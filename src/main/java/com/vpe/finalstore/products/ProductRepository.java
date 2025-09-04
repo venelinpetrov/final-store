@@ -1,4 +1,4 @@
-package com.vpe.finalstore;
+package com.vpe.finalstore.products;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.vpe.finalstore;
+package com.vpe.finalstore.products;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +11,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    private final ProductRepository pr;
+    private final ProductRepository productRepository;
 
     @GetMapping
     public List<Product> getAllProducts() {
-        return pr.findAll();
+        return productRepository.findAll();
     }
 }
