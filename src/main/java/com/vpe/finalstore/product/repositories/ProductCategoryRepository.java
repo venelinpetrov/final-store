@@ -1,5 +1,6 @@
-package com.vpe.finalstore.products;
+package com.vpe.finalstore.product.repositories;
 
+import com.vpe.finalstore.product.entities.ProductCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

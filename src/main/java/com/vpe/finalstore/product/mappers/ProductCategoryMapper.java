@@ -1,5 +1,7 @@
-package com.vpe.finalstore.products;
+package com.vpe.finalstore.product.mappers;
 
+import com.vpe.finalstore.product.repositories.ProductCategoryView;
+import com.vpe.finalstore.product.dtos.ProductCategoryDto;
 import org.mapstruct.Mapper;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.vpe.finalstore.products;
+package com.vpe.finalstore.product.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;

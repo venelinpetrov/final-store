@@ -1,4 +1,4 @@
-package com.vpe.finalstore.products;
+package com.vpe.finalstore.product.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,4 +12,5 @@ public class ProductDto {
     private String name;
     private String description;
     private Integer categoryId;
+    private Integer brandId;
 }

@@ -1,5 +1,8 @@
-package com.vpe.finalstore.products;
+package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.product.dtos.ProductCategoryDto;
+import com.vpe.finalstore.product.mappers.ProductCategoryMapper;
+import com.vpe.finalstore.product.repositories.ProductCategoryRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
