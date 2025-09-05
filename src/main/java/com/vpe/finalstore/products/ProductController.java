@@ -12,9 +12,11 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
     private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductDto> getAllProducts() {
+        var productEntities = productRepository.findAll();
+        return productMapper.toDto(productEntities);
     }
 }
