@@ -2,4 +2,4 @@
 
 # The "Final store" Project
 
-This project is a comprehensive Java Spring Boot exercise for an e-commerce store..
+This project is a comprehensive Java Spring Boot exercise for an e-commerce store API.
