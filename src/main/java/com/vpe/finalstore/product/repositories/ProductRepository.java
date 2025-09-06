@@ -4,5 +4,8 @@ package com.vpe.finalstore.product.repositories;
 import com.vpe.finalstore.product.entities.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+    List<Product> findProductsByBrandBrandId(Integer brandBrandId);
 }
