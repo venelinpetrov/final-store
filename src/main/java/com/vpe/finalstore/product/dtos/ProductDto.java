@@ -1,8 +1,11 @@
 package com.vpe.finalstore.product.dtos;
 
+import com.vpe.finalstore.tags.dtos.TagSummaryDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -13,4 +16,5 @@ public class ProductDto {
     private String description;
     private Integer categoryId;
     private Integer brandId;
+    private Set<TagSummaryDto> tags;
 }

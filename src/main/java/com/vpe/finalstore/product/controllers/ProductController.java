@@ -4,7 +4,6 @@ import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
-import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +26,7 @@ public class ProductController {
         if (brandId != null) {
             productEntities = productRepository.findProductsByBrandBrandId(brandId);
         } else {
-            productEntities = productRepository.findAll();
+            productEntities = productRepository.getAllWithTags();
         }
 
         return productMapper.toDto(productEntities);
