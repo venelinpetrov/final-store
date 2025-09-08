@@ -5,6 +5,10 @@ import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,9 +21,15 @@ public class BrandController {
     private final ProductMapper productMapper;
 
     @GetMapping("/{brandId}/products")
-    public List<ProductDto> getProducts(@PathVariable("brandId") Integer brandId) {
-        List<Product> productEntities = productRepository.findProductsByBrandBrandId(brandId);
+    public Page<ProductDto> getProducts(
+        @PathVariable("brandId") Integer brandId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findProductsByBrandBrandId(brandId, pageable);
+        List<ProductDto> dtos = productMapper.toDto(products.getContent());
 
-        return productMapper.toDto(productEntities);
+        return new PageImpl<>(dtos,pageable, products.getTotalElements());
     }
 }
