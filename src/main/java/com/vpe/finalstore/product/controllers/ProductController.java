@@ -1,18 +1,22 @@
 package com.vpe.finalstore.product.controllers;
 
 import com.vpe.finalstore.product.dtos.ProductDto;
+import com.vpe.finalstore.product.dtos.ProductVariantDto;
+import com.vpe.finalstore.product.dtos.ProductWithVariantsDto;
 import com.vpe.finalstore.product.entities.Product;
+import com.vpe.finalstore.product.entities.ProductVariant;
 import com.vpe.finalstore.product.mappers.ProductMapper;
+import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
+import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,6 +26,8 @@ import java.util.List;
 public class ProductController {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantMapper productVariantMapper;
 
     @GetMapping
     public Page<ProductDto> getProducts(
@@ -41,5 +47,17 @@ public class ProductController {
         List<ProductDto> dtos = productMapper.toDto(products.getContent());
 
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
+    }
+
+    @GetMapping("/{productId}/variants")
+    public ProductWithVariantsDto getProductWithVariants(@PathVariable Integer productId) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        List<ProductVariant> variants = productVariantRepository.getAllByProductId(productId);
+        ProductDto productDto = productMapper.toDto(product);
+        List<ProductVariantDto> variantDtos = productVariantMapper.toDto(variants);
+
+        return new ProductWithVariantsDto(productDto, variantDtos);
     }
 }
