@@ -16,6 +16,7 @@ import java.util.Set;
 public class ProductCategory {
     @Id
     @Column(name = "category_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer categoryId;
 
     @Column(name = "name")

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -15,15 +15,15 @@ import java.util.Set;
 public class Brand {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "brand_id", nullable = false)
+    @Column(name = "brand_id")
     private Integer brandId;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name")
     private String name;
 
     @Column(name = "logo_url")
     private String logoUrl;
 
     @OneToMany(mappedBy = "brand")
-    private Set<Product> products = new LinkedHashSet<>();
+    private Set<Product> products = new HashSet<>();
 }

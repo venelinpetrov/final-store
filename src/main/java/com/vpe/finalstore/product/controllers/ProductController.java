@@ -1,5 +1,6 @@
 package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.product.dtos.ProductCreateRequestDto;
 import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.dtos.ProductVariantDto;
 import com.vpe.finalstore.product.dtos.ProductWithVariantsDto;
@@ -9,15 +10,19 @@ import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.product.services.ProductService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
 
 @AllArgsConstructor
@@ -28,6 +33,7 @@ public class ProductController {
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantMapper productVariantMapper;
+    private final ProductService productService;
 
     @GetMapping
     public Page<ProductDto> getProducts(
@@ -59,5 +65,15 @@ public class ProductController {
         List<ProductVariantDto> variantDtos = productVariantMapper.toDto(variants);
 
         return new ProductWithVariantsDto(productDto, variantDtos);
+    }
+
+    @PostMapping
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateRequestDto req) {
+        var product = productService.createProduct(req);
+        var dto = productMapper.toDto(product);
+
+        return ResponseEntity
+            .created(URI.create("/api/products/" + product.getProductId()))
+            .body(dto);
     }
 }
