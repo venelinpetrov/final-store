@@ -28,9 +28,10 @@ public class ProductCategory {
     private ProductCategory parentCategory;
 
     @ManyToMany
-    @JoinTable(name = "product_to_categories",
+    @JoinTable(
+        name = "product_to_categories",
         joinColumns = @JoinColumn(name = "category_id"),
-        inverseJoinColumns = @JoinColumn(name = "product_id"))
+        inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
     private Set<Product> products = new LinkedHashSet<>();
-
 }

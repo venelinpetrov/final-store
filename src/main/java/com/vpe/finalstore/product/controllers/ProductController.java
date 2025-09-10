@@ -1,9 +1,6 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.product.dtos.ProductCreateRequestDto;
-import com.vpe.finalstore.product.dtos.ProductDto;
-import com.vpe.finalstore.product.dtos.ProductVariantDto;
-import com.vpe.finalstore.product.dtos.ProductWithVariantsDto;
+import com.vpe.finalstore.product.dtos.*;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductVariant;
 import com.vpe.finalstore.product.mappers.ProductMapper;
@@ -36,7 +33,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public Page<ProductDto> getProducts(
+    public Page<ProductSummaryDto> getProducts(
         @RequestParam(value = "brandId", required = false) Integer brandId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
@@ -50,7 +47,7 @@ public class ProductController {
             products = productRepository.getAllWithTags(pageable);
         }
 
-        List<ProductDto> dtos = productMapper.toDto(products.getContent());
+        List<ProductSummaryDto> dtos = productMapper.toSummaryDto(products.getContent());
 
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }

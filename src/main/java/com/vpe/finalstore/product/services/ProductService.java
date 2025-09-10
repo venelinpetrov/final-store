@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -24,14 +25,14 @@ public class ProductService {
     @Transactional
     public Product createProduct(ProductCreateRequestDto req) {
         var brand = brandRepository.findById(req.getBrandId()).orElseThrow();
-        var category = productCategoryRepository.findById(req.getCategoryId()).orElseThrow();
+        var categories = new HashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
         var tags = Set.copyOf(tagRepository.findAllById(req.getTags()));
 
         var product = Product.builder()
             .name(req.getName())
             .description(req.getDescription())
             .brand(brand)
-            .category(category)
+            .categories(categories)
             .tags(tags)
             .build();
 

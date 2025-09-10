@@ -19,7 +19,7 @@ public class ProductCreateRequestDto {
     private Integer brandId;
 
     @NotNull
-    private Integer categoryId;
+    private List<Integer> categoryIds;
 
     private String description;
 

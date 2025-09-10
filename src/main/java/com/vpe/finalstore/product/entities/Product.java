@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
@@ -28,9 +29,14 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private ProductCategory category;
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+        name = "product_to_categories",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<ProductCategory> categories = new LinkedHashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
