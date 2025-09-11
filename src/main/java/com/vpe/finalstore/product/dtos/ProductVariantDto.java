@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -16,4 +17,5 @@ public class ProductVariantDto {
     private BigDecimal unitPrice;
     private Integer quantityInStock;
     private List<ProductVariantOptionAssignmentDto> options;
+    private Set<ProductImageDto> images;
 }

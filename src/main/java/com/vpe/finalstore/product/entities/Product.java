@@ -50,4 +50,7 @@ public class Product {
         inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags;
+
+    @OneToMany(mappedBy = "product")
+    private Set<ProductImageAssignment> images = new LinkedHashSet<>();
 }

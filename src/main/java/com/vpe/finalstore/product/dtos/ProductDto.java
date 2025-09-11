@@ -17,4 +17,5 @@ public class ProductDto {
     private Set<Integer> categoryIds;
     private Integer brandId;
     private Set<TagSummaryDto> tags;
+    private Set<ProductImageDto> images;
 }

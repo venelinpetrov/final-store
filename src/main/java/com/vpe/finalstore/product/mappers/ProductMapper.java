@@ -1,14 +1,18 @@
 package com.vpe.finalstore.product.mappers;
 
 import com.vpe.finalstore.product.dtos.ProductDto;
+import com.vpe.finalstore.product.dtos.ProductImageDto;
 import com.vpe.finalstore.product.dtos.ProductSummaryDto;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductCategory;
+import com.vpe.finalstore.product.entities.ProductImageAssignment;
+import com.vpe.finalstore.product.entities.ProductVariantImageAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
 import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -29,4 +33,19 @@ public interface ProductMapper {
             .map(ProductCategory::getCategoryId)
             .collect(Collectors.toSet());
     }
+
+    default Set<ProductImageDto> mapProductImages(Set<ProductImageAssignment> images) {
+        if (images == null) {
+            return Set.of();
+        }
+        return images.stream()
+            .map((imageAssignment) -> new ProductImageDto(
+                imageAssignment.getImage().getImageId(),
+                imageAssignment.getImage().getLink(),
+                imageAssignment.getImage().getAltText(),
+                imageAssignment.getIsPrimary()
+            ))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
 }
