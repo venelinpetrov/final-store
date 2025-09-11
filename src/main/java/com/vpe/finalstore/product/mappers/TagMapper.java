@@ -1,7 +1,7 @@
-package com.vpe.finalstore.tags.mappers;
+package com.vpe.finalstore.product.mappers;
 
-import com.vpe.finalstore.tags.dtos.TagDto;
-import com.vpe.finalstore.tags.entities.Tag;
+import com.vpe.finalstore.product.dtos.TagDto;
+import com.vpe.finalstore.product.entities.Tag;
 import org.mapstruct.Mapper;
 
 import java.util.List;

@@ -1,14 +1,13 @@
-package com.vpe.finalstore.tags.controllers;
+package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.tags.dtos.TagDto;
-import com.vpe.finalstore.tags.mappers.TagMapper;
-import com.vpe.finalstore.tags.repositories.TagRepository;
+import com.vpe.finalstore.product.dtos.TagDto;
+import com.vpe.finalstore.product.mappers.TagMapper;
+import com.vpe.finalstore.product.repositories.TagRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor

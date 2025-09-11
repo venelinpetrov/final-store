@@ -3,7 +3,7 @@ package com.vpe.finalstore.product.services;
 import com.vpe.finalstore.product.dtos.ProductCreateDto;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
-import com.vpe.finalstore.tags.repositories.TagRepository;
+import com.vpe.finalstore.product.repositories.TagRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,5 @@
 package com.vpe.finalstore.product.entities;
 
-import com.vpe.finalstore.brand.entities.Brand;
-import com.vpe.finalstore.tags.entities.Tag;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;

@@ -1,4 +1,4 @@
-package com.vpe.finalstore.brand.controllers;
+package com.vpe.finalstore.product.controllers;
 
 import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.entities.Product;

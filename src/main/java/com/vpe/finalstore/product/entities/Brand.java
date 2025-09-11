@@ -1,6 +1,5 @@
-package com.vpe.finalstore.brand.entities;
+package com.vpe.finalstore.product.entities;
 
-import com.vpe.finalstore.product.entities.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

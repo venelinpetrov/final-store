@@ -1,4 +1,4 @@
-package com.vpe.finalstore.tags.dtos;
+package com.vpe.finalstore.product.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

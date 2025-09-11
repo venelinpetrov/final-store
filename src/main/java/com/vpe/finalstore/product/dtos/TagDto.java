@@ -1,6 +1,5 @@
-package com.vpe.finalstore.tags.dtos;
+package com.vpe.finalstore.product.dtos;
 
-import com.vpe.finalstore.product.dtos.ProductSummaryDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
