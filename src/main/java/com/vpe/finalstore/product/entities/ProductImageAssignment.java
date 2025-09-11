@@ -2,6 +2,7 @@ package com.vpe.finalstore.product.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -11,8 +12,16 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "product_image_assignments")
 public class ProductImageAssignment {
+    public ProductImageAssignment(Product product, ProductImage image, Boolean isPrimary) {
+        this.id = new ProductImageAssignmentId();
+        this.product = product;
+        this.image = image;
+        this.isPrimary = isPrimary;
+    }
+
     @EmbeddedId
     private ProductImageAssignmentId id;
 

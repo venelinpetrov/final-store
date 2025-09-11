@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -20,4 +21,6 @@ public class ProductVariantCreateDto {
     private Integer quantityInStock;
 
     private List<ProductVariantOptionAssignmentCreateDto> options;
+
+    private Set<ProductImageCreateDto> images;
 }

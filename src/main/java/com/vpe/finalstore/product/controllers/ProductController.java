@@ -65,7 +65,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateRequestDto req) {
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateDto req) {
         var product = productService.createProduct(req);
         var dto = productMapper.toDto(product);
 

@@ -1,6 +1,6 @@
 package com.vpe.finalstore.product.services;
 
-import com.vpe.finalstore.product.dtos.ProductCreateRequestDto;
+import com.vpe.finalstore.product.dtos.ProductCreateDto;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
 import com.vpe.finalstore.tags.repositories.TagRepository;
@@ -21,13 +21,15 @@ public class ProductService {
     private final ProductVariantRepository variantRepository;
     private final ProductVariantOptionRepository optionRepository;
     private final ProductVariantOptionValueRepository optionValueRepository;
+    private final ProductImageAssignmentRepository productImageAssignmentRepository;
+    private final ProductImageRepository productImageRepository;
+    private final ProductVariantImageAssignmentRepository productVariantImageAssignmentRepository;
 
     @Transactional
-    public Product createProduct(ProductCreateRequestDto req) {
+    public Product createProduct(ProductCreateDto req) {
         var brand = brandRepository.findById(req.getBrandId()).orElseThrow();
         var categories = new HashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
         var tags = Set.copyOf(tagRepository.findAllById(req.getTags()));
-
         var product = Product.builder()
             .name(req.getName())
             .description(req.getDescription())
@@ -37,6 +39,20 @@ public class ProductService {
             .build();
 
         productRepository.save(product);
+
+        req.getImages()
+            .forEach(image -> {
+                var imageEntity = new ProductImage(image.getLink(), image.getAltText());
+                productImageRepository.save(imageEntity);
+
+                var productImageAssignmentEntity = new ProductImageAssignment(
+                    product,
+                    imageEntity,
+                    image.getIsPrimary()
+                );
+
+                productImageAssignmentRepository.save(productImageAssignmentEntity);
+            });
 
         if (req.getVariants() != null) {
             for (var variantReq : req.getVariants()) {
@@ -71,6 +87,20 @@ public class ProductService {
                 }
 
                 variantRepository.save(variant);
+
+                variantReq.getImages()
+                    .forEach(image -> {
+                        var imageEntity = new ProductImage(image.getLink(), image.getAltText());
+                        productImageRepository.save(imageEntity);
+
+                        var productVariantImageAssignmentEntity = new ProductVariantImageAssignment(
+                            variant,
+                            imageEntity,
+                            image.getIsPrimary()
+                        );
+
+                        productVariantImageAssignmentRepository.save(productVariantImageAssignmentEntity);
+                    });
             }
         }
 
