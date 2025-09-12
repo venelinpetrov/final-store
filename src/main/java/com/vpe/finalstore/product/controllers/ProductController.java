@@ -1,5 +1,6 @@
 package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.*;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductVariant;
@@ -14,10 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -55,7 +54,7 @@ public class ProductController {
     @GetMapping("/{productId}/variants")
     public ProductWithVariantsDto getProductWithVariants(@PathVariable Integer productId) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            .orElseThrow(() -> new NotFoundException("Product not found"));
 
         List<ProductVariant> variants = productVariantRepository.getAllByProductId(productId);
         ProductDto productDto = productMapper.toDto(product);
