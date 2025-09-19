@@ -109,8 +109,21 @@ public class ProductService {
         return product;
     }
 
-    public Page<Product> getProductsByTagNames(Set<String> tagNames, Pageable pageable) {
+    public Page<Product> getProductsByAnyTagNames(Set<String> tagNames, Pageable pageable) {
         Set<Tag> tags = tagRepository.findByNameIn(tagNames);
-        return productRepository.getByTagsIn(tags, pageable);
+        return productRepository.getByAnyTagsIn(tags, pageable);
+    }
+
+    public Page<Product> getProductsByAllTagNames(Set<String> tagNames, Pageable pageable) {
+        Set<Tag> tags = tagRepository.findByNameIn(tagNames);
+
+        long tagCount = tags.size();
+
+        if (tagCount != tagNames.size()) {
+            return Page.empty(pageable);
+        }
+
+        return productRepository.getByAllTagsIn(tags, tagCount, pageable);
+
     }
 }

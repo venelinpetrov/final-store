@@ -74,13 +74,26 @@ public class ProductController {
             .body(dto);
     }
 
-    @GetMapping("/by-tags")
+    @GetMapping("/by-any-tags")
     public ResponseEntity<Page<ProductDto>> getProductsByTags(@RequestParam("tags") Set<String> tagNames, Pageable pageable) {
         if (tagNames.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        Page<Product> productPage = productService.getProductsByTagNames(tagNames, pageable);
+        Page<Product> productPage = productService.getProductsByAnyTagNames(tagNames, pageable);
+
+        Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
+
+        return ResponseEntity.ok(productDtoPage);
+    }
+
+    @GetMapping("/by-all-tags")
+    public ResponseEntity<Page<ProductDto>> getProductsByAllTags(@RequestParam("tags") Set<String> tagNames, Pageable pageable) {
+        if (tagNames.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Page<Product> productPage = productService.getProductsByAllTagNames(tagNames, pageable);
 
         Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
 

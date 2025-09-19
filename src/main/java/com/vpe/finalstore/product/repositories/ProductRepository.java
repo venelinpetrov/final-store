@@ -29,5 +29,14 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             WHERE t IN :tags
         """
     )
-    Page<Product> getByTagsIn(@Param("tags") Set<Tag> tags, Pageable pageable);
+    Page<Product> getByAnyTagsIn(@Param("tags") Set<Tag> tags, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM Product p
+            JOIN p.tags t
+            WHERE t IN :tags
+            GROUP BY p HAVING COUNT(t) = :tagCount
+        """
+    )
+    Page<Product> getByAllTagsIn(@Param("tags") Set<Tag> tags, @Param("tagCount") long tagCount, Pageable pageable);
 }
