@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @RestController
@@ -71,5 +72,18 @@ public class ProductController {
         return ResponseEntity
             .created(URI.create("/api/products/" + product.getProductId()))
             .body(dto);
+    }
+
+    @GetMapping("/by-tags")
+    public ResponseEntity<Page<ProductDto>> getProductsByTags(@RequestParam("tags") Set<String> tagNames, Pageable pageable) {
+        if (tagNames.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Page<Product> productPage = productService.getProductsByTagNames(tagNames, pageable);
+
+        Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
+
+        return ResponseEntity.ok(productDtoPage);
     }
 }

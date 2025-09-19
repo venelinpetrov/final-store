@@ -6,7 +6,6 @@ import com.vpe.finalstore.product.dtos.ProductSummaryDto;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductCategory;
 import com.vpe.finalstore.product.entities.ProductImageAssignment;
-import com.vpe.finalstore.product.entities.ProductVariantImageAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -47,5 +46,4 @@ public interface ProductMapper {
             ))
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-
 }

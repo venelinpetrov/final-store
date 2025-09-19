@@ -6,6 +6,8 @@ import com.vpe.finalstore.product.repositories.*;
 import com.vpe.finalstore.product.repositories.TagRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -105,5 +107,10 @@ public class ProductService {
         }
 
         return product;
+    }
+
+    public Page<Product> getProductsByTagNames(Set<String> tagNames, Pageable pageable) {
+        Set<Tag> tags = tagRepository.findByNameIn(tagNames);
+        return productRepository.getByTagsIn(tags, pageable);
     }
 }
