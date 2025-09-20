@@ -19,7 +19,7 @@ public interface ProductVariantMapper {
     @Mapping(source = "optionAssignments", target = "options")
     ProductVariantDto toDto(ProductVariant variant);
 
-    List<ProductVariantDto> toDto(List<ProductVariant> variants);
+    List<ProductVariantDto> toDto(Set<ProductVariant> variants);
 
     @Mapping(source = "value.option.optionId", target = "optionId")
     @Mapping(source = "value.option.name", target = "optionName")

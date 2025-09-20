@@ -1,8 +1,6 @@
 package com.vpe.finalstore.product.mappers;
 
-import com.vpe.finalstore.product.dtos.ProductDto;
-import com.vpe.finalstore.product.dtos.ProductImageDto;
-import com.vpe.finalstore.product.dtos.ProductSummaryDto;
+import com.vpe.finalstore.product.dtos.*;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductCategory;
 import com.vpe.finalstore.product.entities.ProductImageAssignment;

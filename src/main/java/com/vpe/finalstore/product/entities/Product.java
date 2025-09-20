@@ -27,6 +27,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProductVariant> variants;
+
     @Builder.Default
     @ManyToMany
     @JoinTable(

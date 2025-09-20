@@ -2,6 +2,7 @@ package com.vpe.finalstore.config;
 
 import com.vpe.finalstore.common.dtos.ErrorDto;
 import com.vpe.finalstore.exceptions.ApiException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -32,6 +33,13 @@ public class GlobalExceptionHandler {
 
         ErrorDto errorDto = new ErrorDto("Validation failed", errors);
         return ResponseEntity.badRequest().body(errorDto);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorDto> handleDataIntegrityViolation() {
+        var message = "Operation failed due to related data. This record is used elsewhere and cannot be deleted";
+        var errorDto = new ErrorDto(message, null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDto);
     }
 
     // Catches all other unexpected exceptions

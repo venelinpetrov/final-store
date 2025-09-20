@@ -10,9 +10,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+    @Query("""
+        SELECT p FROM Product p
+        JOIN FETCH p.variants v
+        JOIN FETCH v.optionAssignments oa
+        JOIN FETCH oa.value val
+        JOIN FETCH val.option
+        WHERE p.productId = :productId
+    """)
+    Optional<Product> getWithVariantsByProductId(@Param("productId") Integer productId);
+
     @EntityGraph(attributePaths = {"tags"})
     Page<Product> findProductsByBrandBrandId(Integer brandId, Pageable pageable);
 

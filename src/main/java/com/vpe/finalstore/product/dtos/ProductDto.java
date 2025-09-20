@@ -2,12 +2,14 @@ package com.vpe.finalstore.product.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Set;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class ProductDto {
     private Integer productId;

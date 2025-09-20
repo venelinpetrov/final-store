@@ -1,6 +1,5 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.product.dtos.TagDto;
 import com.vpe.finalstore.product.dtos.TagSummaryDto;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;

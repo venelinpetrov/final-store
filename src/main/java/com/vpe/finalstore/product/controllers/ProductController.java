@@ -3,7 +3,6 @@ package com.vpe.finalstore.product.controllers;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.*;
 import com.vpe.finalstore.product.entities.Product;
-import com.vpe.finalstore.product.entities.ProductVariant;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
@@ -54,12 +53,11 @@ public class ProductController {
 
     @GetMapping("/{productId}/variants")
     public ProductWithVariantsDto getProductWithVariants(@PathVariable Integer productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.getWithVariantsByProductId(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        List<ProductVariant> variants = productVariantRepository.getAllByProductId(productId);
         ProductDto productDto = productMapper.toDto(product);
-        List<ProductVariantDto> variantDtos = productVariantMapper.toDto(variants);
+        List<ProductVariantDto> variantDtos = productVariantMapper.toDto(product.getVariants());
 
         return new ProductWithVariantsDto(productDto, variantDtos);
     }
@@ -98,5 +96,10 @@ public class ProductController {
         Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
 
         return ResponseEntity.ok(productDtoPage);
+    }
+
+    @DeleteMapping("/{productId}")
+    public void deleteProduct(@PathVariable Integer productId) {
+        productRepository.deleteById(productId);
     }
 }
