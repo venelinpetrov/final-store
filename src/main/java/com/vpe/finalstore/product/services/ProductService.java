@@ -1,6 +1,8 @@
 package com.vpe.finalstore.product.services;
 
+import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCreateDto;
+import com.vpe.finalstore.product.dtos.ProductUpdateDto;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
 import com.vpe.finalstore.product.repositories.TagRepository;
@@ -11,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -26,6 +30,7 @@ public class ProductService {
     private final ProductImageAssignmentRepository productImageAssignmentRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantImageAssignmentRepository productVariantImageAssignmentRepository;
+    private final ProductImageRepository imageRepository;
 
     @Transactional
     public Product createProduct(ProductCreateDto req) {
@@ -107,6 +112,40 @@ public class ProductService {
         }
 
         return product;
+    }
+
+    @Transactional
+    public Product updateProduct(ProductUpdateDto req, Integer productId) {
+        var product = productRepository.findById(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found with id " + productId));
+
+        // Simple fields
+        product.setName(req.getName());
+        product.setDescription(req.getDescription());
+
+        // Brand
+        var brandId = req.getBrandId();
+        var brand = brandRepository.findById(brandId)
+            .orElseThrow(() -> new NotFoundException("Brand not found with id " + brandId));
+        product.setBrand(brand);
+
+        // Categories
+        var categories = new LinkedHashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
+        if (categories.size() != req.getCategoryIds().size()) {
+            throw new NotFoundException("One or more categories not found");
+        }
+        product.setCategories(categories);
+
+        // Tags
+        if (req.getTags() != null) {
+            var tags = new LinkedHashSet<>(tagRepository.findAllById(req.getTags()));
+            if (tags.size() != req.getTags().size()) {
+                throw new NotFoundException("One or more tags not found");
+            }
+            product.setTags(tags);
+        }
+
+        return productRepository.save(product);
     }
 
     public Page<Product> getProductsByAnyTagNames(Set<String> tagNames, Pageable pageable) {

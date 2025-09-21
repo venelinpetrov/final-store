@@ -6,7 +6,6 @@ import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
-import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -27,7 +26,6 @@ import java.util.Set;
 public class ProductController {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final ProductVariantRepository productVariantRepository;
     private final ProductVariantMapper productVariantMapper;
     private final ProductService productService;
 
@@ -96,6 +94,16 @@ public class ProductController {
         Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
 
         return ResponseEntity.ok(productDtoPage);
+    }
+
+    @PutMapping("/{productId}")
+    public ResponseEntity<ProductDto> updateProduct(
+        @PathVariable Integer productId,
+        @Valid @RequestBody ProductUpdateDto updatedProduct
+    ) {
+        var product = productService.updateProduct(updatedProduct, productId);
+
+        return ResponseEntity.ok(productMapper.toDto(product));
     }
 
     @DeleteMapping("/{productId}")
