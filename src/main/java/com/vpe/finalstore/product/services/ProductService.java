@@ -29,7 +29,6 @@ public class ProductService {
     private final ProductImageAssignmentRepository productImageAssignmentRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantImageAssignmentRepository productVariantImageAssignmentRepository;
-    private final ProductImageRepository imageRepository;
 
     @Transactional
     public Product createProduct(ProductCreateDto req) {
@@ -66,7 +65,6 @@ public class ProductService {
                 variant.setProduct(product);
                 variant.setSku(variantReq.getSku());
                 variant.setUnitPrice(variantReq.getUnitPrice());
-                variant.setQuantityInStock(variantReq.getQuantityInStock());
 
                 if (variantReq.getOptions() != null) {
                     for (var optionReq : variantReq.getOptions()) {

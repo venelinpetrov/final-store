@@ -6,6 +6,7 @@ import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
+import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ public class ProductController {
     private final ProductMapper productMapper;
     private final ProductVariantMapper productVariantMapper;
     private final ProductService productService;
+    private final ProductVariantRepository productVariantRepository;
 
     @GetMapping
     public Page<ProductSummaryDto> getProducts(
@@ -50,14 +52,11 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}/variants")
-    public ProductWithVariantsDto getProductWithVariants(@PathVariable Integer productId) {
-        Product product = productRepository.getWithVariantsByProductId(productId)
+    public List<ProductVariantDto> getProductVariants(@PathVariable Integer productId) {
+        var variants = productVariantRepository.findProductVariantsByProductProductId(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        ProductDto productDto = productMapper.toDto(product);
-        List<ProductVariantDto> variantDtos = productVariantMapper.toDto(product.getVariants());
-
-        return new ProductWithVariantsDto(productDto, variantDtos);
+        return productVariantMapper.toDto(variants);
     }
 
     @PostMapping

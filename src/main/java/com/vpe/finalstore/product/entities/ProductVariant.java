@@ -33,9 +33,6 @@ public class ProductVariant {
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
 
-    @Column(name = "quantity_in_stock")
-    private Integer quantityInStock;
-
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
