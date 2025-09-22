@@ -1,23 +1,25 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.exceptions.NotFoundException;
-import com.vpe.finalstore.product.dtos.ProductVariantDto;
-import com.vpe.finalstore.product.mappers.ProductVariantMapper;
-import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.product.services.ProductVariantService;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.RestController;
 
 @AllArgsConstructor
-@Controller
+@RestController
 @RequestMapping("/api/variants")
 class VariantController {
-    private final ProductVariantRepository productVariantRepository;
-    private final ProductVariantMapper productVariantMapper;
+    private final ProductVariantService variantService;
 
+    @PostMapping("/{variantId}/archive")
+    public void archiveVariant(@PathVariable Integer variantId) {
+        variantService.archiveVariant(variantId);
+    }
 
+    @PostMapping("/{variantId}/unarchive")
+    public void unarchiveVariant(@PathVariable Integer variantId) {
+        variantService.unarchiveVariant(variantId);
+    }
 }

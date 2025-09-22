@@ -162,4 +162,25 @@ public class ProductService {
         return productRepository.getByAllTagsIn(tags, tagCount, pageable);
 
     }
+
+    public void archiveProduct(Integer productId) {
+        var product = productRepository.findById(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        product.setIsArchived(true);
+        product.getVariants().forEach(variant -> variant.setIsArchived(true));
+
+        productRepository.save(product);
+    }
+
+    public void unarchiveProduct(Integer productId) {
+        var product = productRepository.findById(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        product.setIsArchived(false);
+
+        product.getVariants().forEach(variant -> variant.setIsArchived(false));
+
+        productRepository.save(product);
+    }
 }

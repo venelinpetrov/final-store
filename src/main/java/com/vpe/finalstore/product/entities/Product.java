@@ -27,6 +27,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "is_archived")
+    private Boolean isArchived;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductVariant> variants;
 

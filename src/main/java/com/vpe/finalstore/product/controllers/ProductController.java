@@ -41,7 +41,7 @@ public class ProductController {
         Page<Product> products;
 
         if (brandId != null) {
-            products = productRepository.findProductsByBrandBrandId(brandId, pageable);
+            products = productRepository.findProductsByBrandBrandIdAndIsArchivedIsFalse(brandId, pageable);
         } else {
             products = productRepository.getAllWithTags(pageable);
         }
@@ -53,7 +53,7 @@ public class ProductController {
 
     @GetMapping("/{productId}/variants")
     public List<ProductVariantDto> getProductVariants(@PathVariable Integer productId) {
-        var variants = productVariantRepository.findProductVariantsByProductProductId(productId)
+        var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
         return productVariantMapper.toDto(variants);
@@ -108,5 +108,15 @@ public class ProductController {
     @DeleteMapping("/{productId}")
     public void deleteProduct(@PathVariable Integer productId) {
         productRepository.deleteById(productId);
+    }
+
+    @PostMapping("/{productId}/archive")
+    public void archiveProduct(@PathVariable Integer productId) {
+        productService.archiveProduct(productId);
+    }
+
+    @PostMapping("/{productId}/unarchive")
+    public void unarchiveProduct(@PathVariable Integer productId) {
+        productService.unarchiveProduct(productId);
     }
 }

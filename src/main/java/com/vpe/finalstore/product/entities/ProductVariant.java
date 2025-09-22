@@ -33,6 +33,9 @@ public class ProductVariant {
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
 
+    @Column(name = "is_archived")
+    private Boolean isArchived;
+
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

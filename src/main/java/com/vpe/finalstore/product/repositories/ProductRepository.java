@@ -13,11 +13,11 @@ import org.springframework.data.repository.query.Param;
 import java.util.Set;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    @EntityGraph(attributePaths = {"tags"})
-    Page<Product> findProductsByBrandBrandId(Integer brandId, Pageable pageable);
+    @EntityGraph(attributePaths = {"tags", "images", "categories"})
+    Page<Product> findProductsByBrandBrandIdAndIsArchivedIsFalse(Integer brandId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"tags"})
-    @Query("SELECT p FROM Product p")
+    @Query("SELECT p FROM Product p WHERE p.isArchived = false")
     Page<Product> getAllWithTags(Pageable pageable);
 
     @Query("""
@@ -26,7 +26,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             LEFT JOIN FETCH p.categories c
             LEFT JOIN FETCH p.brand b
             LEFT JOIN FETCH p.images i
-            WHERE t IN :tags
+            WHERE t IN :tags AND p.isArchived = false
         """
     )
     Page<Product> getByAnyTagsIn(@Param("tags") Set<Tag> tags, Pageable pageable);
@@ -34,7 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("""
             SELECT p FROM Product p
             JOIN p.tags t
-            WHERE t IN :tags
+            WHERE t IN :tags AND p.isArchived = false
             GROUP BY p HAVING COUNT(t) = :tagCount
         """
     )

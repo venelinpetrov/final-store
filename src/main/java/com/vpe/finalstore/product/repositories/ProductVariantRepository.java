@@ -14,5 +14,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
         "optionAssignments.value.option",
         "images"
     })
-    Optional<List<ProductVariant>> findProductVariantsByProductProductId(Integer productProductId);
+    Optional<List<ProductVariant>> findProductVariantsByProductProductIdAndIsArchivedIsFalse(Integer productProductId);
+
+    Optional<ProductVariant> findByVariantIdAndIsArchivedIsTrue(Integer variantId);
 }

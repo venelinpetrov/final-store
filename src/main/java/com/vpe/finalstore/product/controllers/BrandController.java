@@ -27,9 +27,9 @@ public class BrandController {
         @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productRepository.findProductsByBrandBrandId(brandId, pageable);
+        Page<Product> products = productRepository.findProductsByBrandBrandIdAndIsArchivedIsFalse(brandId, pageable);
         List<ProductDto> dtos = productMapper.toDto(products.getContent());
 
-        return new PageImpl<>(dtos,pageable, products.getTotalElements());
+        return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
 }
