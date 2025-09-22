@@ -16,7 +16,9 @@ GET    /products                             list products
 GET    /products/{id}                        get product details
 POST   /products                             create a new product with at least one variant
 PUT    /products/{id}                        update product metadata (name, brandId, categories, tags, description)
-DELETE /products/{id}                        delete (or soft-delete) product
+POST   /products/{id}/archive                archive product
+POST   /products/{id}/unarchive              unarchive product
+DELETE /products/{id}                        delete product
 ```
 
 ### Variants
@@ -28,6 +30,8 @@ GET    /products/{productId}/variants        list variants of a product
 GET    /variants/{variantId}                 get single variant
 POST   /products/{productId}/variants        add a new variant to a product
 PUT    /variants/{variantId}                 update variant (sku, unitPrice, stock, etc.)
+POST   /variants/{id}/archive                archive variant
+POST   /variants/{id}/unarchive              unarchive variant
 DELETE /variants/{variantId}                 delete variant
 ```
 Example `VariantUpdateDto`
