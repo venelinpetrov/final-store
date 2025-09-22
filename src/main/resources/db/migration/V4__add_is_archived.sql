@@ -1,0 +1,5 @@
+ALTER TABLE products
+    ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE product_variants
+    ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT FALSE;
