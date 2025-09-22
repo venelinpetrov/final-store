@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/variants")
-class VariantController {
+class ProductVariantController {
     private final ProductVariantService variantService;
 
     @PostMapping("/{variantId}/archive")
