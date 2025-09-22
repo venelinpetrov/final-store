@@ -1,14 +1,18 @@
 package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.product.dtos.BrandDto;
 import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.entities.Product;
+import com.vpe.finalstore.product.mappers.BrandMapper;
 import com.vpe.finalstore.product.mappers.ProductMapper;
+import com.vpe.finalstore.product.repositories.BrandRepository;
 import com.vpe.finalstore.product.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +23,16 @@ import java.util.List;
 public class BrandController {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final BrandRepository brandRepository;
+    private final BrandMapper brandMapper;
+
+    @GetMapping
+    public ResponseEntity<Page<BrandDto>> getAllBrands(Pageable pageable) {
+        var brandPage = brandRepository.findAll(pageable);
+        var brandDtoPage = brandPage.map(brandMapper::toDto);
+
+        return ResponseEntity.ok(brandDtoPage);
+    }
 
     @GetMapping("/{brandId}/products")
     public Page<ProductDto> getProducts(
