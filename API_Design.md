@@ -29,7 +29,7 @@ Variants are children of products, but they’re often managed separately (like 
 GET    /products/{productId}/variants        list variants of a product
 GET    /variants/{variantId}                 get single variant
 POST   /products/{productId}/variants        add a new variant to a product
-PUT    /variants/{variantId}                 update variant (sku, unitPrice, stock, etc.)
+PUT    /variants/{variantId}                 update variant (sku, unitPrice)
 POST   /variants/{id}/archive                archive variant
 POST   /variants/{id}/unarchive              unarchive variant
 DELETE /variants/{variantId}                 delete variant
