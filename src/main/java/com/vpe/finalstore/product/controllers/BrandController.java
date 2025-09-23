@@ -2,6 +2,7 @@ package com.vpe.finalstore.product.controllers;
 
 import com.vpe.finalstore.product.dtos.BrandCreateDto;
 import com.vpe.finalstore.product.dtos.BrandDto;
+import com.vpe.finalstore.product.dtos.BrandUpdateDto;
 import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.BrandMapper;
@@ -54,5 +55,22 @@ public class BrandController {
         var brand = brandRepository.save(brandMapper.toEntity(req));
 
         return ResponseEntity.ok(brandMapper.toDto(brand));
+    }
+
+    @PutMapping("/{brandId}")
+    public ResponseEntity<BrandDto> updateBrand(@Valid @RequestBody BrandUpdateDto req, @PathVariable Integer brandId) {
+        var brand = brandRepository.findById(brandId).orElseThrow();
+
+        brand.setName(req.getName());
+        brand.setLogoUrl(req.getLogoUrl());
+
+        brandRepository.save(brand);
+
+        return ResponseEntity.ok(brandMapper.toDto(brand));
+    }
+
+    @DeleteMapping("/{brandId}")
+    public void deleteBrand(@PathVariable Integer brandId) {
+        brandRepository.deleteById(brandId);
     }
 }
