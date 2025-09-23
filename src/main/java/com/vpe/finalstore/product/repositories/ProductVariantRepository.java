@@ -16,5 +16,19 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     })
     Optional<List<ProductVariant>> findProductVariantsByProductProductIdAndIsArchivedIsFalse(Integer productProductId);
 
+    @EntityGraph(attributePaths = {
+        "optionAssignments",
+        "optionAssignments.value",
+        "optionAssignments.value.option",
+        "images"
+    })
+    Optional<ProductVariant> findByVariantId(Integer variantId);
+
+    @EntityGraph(attributePaths = {
+        "optionAssignments",
+        "optionAssignments.value",
+        "optionAssignments.value.option",
+        "images"
+    })
     Optional<ProductVariant> findByVariantIdAndIsArchivedIsTrue(Integer variantId);
 }

@@ -24,4 +24,6 @@ public class ProductUpdateDto {
     private String description;
 
     private List<Integer> tags;
+
+    private Boolean isArchived;
 }

@@ -119,6 +119,7 @@ public class ProductService {
         // Simple fields
         product.setName(req.getName());
         product.setDescription(req.getDescription());
+        product.setIsArchived(req.getIsArchived());
 
         // Brand
         var brandId = req.getBrandId();
