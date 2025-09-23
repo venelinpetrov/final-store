@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorDto> handleApiException(ApiException ex) {
         ErrorDto errorDto = new ErrorDto(ex.getMessage(), null);
-        return ResponseEntity.badRequest().body(errorDto);
+        return ResponseEntity.status(ex.getStatus()).body(errorDto);
     }
 
     // Handles validation errors thrown by @Valid

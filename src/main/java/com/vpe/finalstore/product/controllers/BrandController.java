@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,6 +71,7 @@ public class BrandController {
     }
 
     @DeleteMapping("/{brandId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBrand(@PathVariable Integer brandId) {
         brandRepository.deleteById(brandId);
     }
