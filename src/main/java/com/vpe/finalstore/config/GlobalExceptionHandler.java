@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorDto> handleDataIntegrityViolation() {
-        var message = "Operation failed due to related data. This record is used elsewhere and cannot be deleted";
+        var message = "Operation failed due to related data. This record is used elsewhere and cannot be updated or deleted";
         var errorDto = new ErrorDto(message, null);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDto);
     }

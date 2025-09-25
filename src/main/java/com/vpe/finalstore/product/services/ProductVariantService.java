@@ -1,6 +1,7 @@
 package com.vpe.finalstore.product.services;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,15 @@ public class ProductVariantService {
             .orElseThrow(() -> new NotFoundException("Variant not found"));
 
         variant.setIsArchived(false);
+
+        variantRepository.save(variant);
+    }
+
+    public void updateVariant(Integer variantId, ProductVariantUpdateDto req) {
+        var variant = variantRepository.findById(variantId)
+            .orElseThrow(() -> new NotFoundException("Variant not found"));
+
+        variant.setUnitPrice(req.getUnitPrice());
 
         variantRepository.save(variant);
     }

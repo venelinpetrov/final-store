@@ -2,9 +2,11 @@ package com.vpe.finalstore.product.controllers;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductVariantDto;
+import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductVariantService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,10 @@ class ProductVariantController {
         return ResponseEntity.ok(variantMapper.toDto(variant));
     }
 
+    @PutMapping("/{variantId}")
+    public void updateVariant(@PathVariable Integer variantId, @Valid @RequestBody ProductVariantUpdateDto req) {
+        variantService.updateVariant(variantId, req);
+    }
 
     @PostMapping("/{variantId}/archive")
     public void archiveVariant(@PathVariable Integer variantId) {
