@@ -23,16 +23,13 @@ public class ProductService {
     private final TagRepository tagRepository;
     private final ProductRepository productRepository;
     private final ProductCategoryRepository productCategoryRepository;
-    private final ProductVariantRepository variantRepository;
-    private final ProductVariantOptionRepository optionRepository;
-    private final ProductVariantOptionValueRepository optionValueRepository;
     private final ProductImageAssignmentRepository productImageAssignmentRepository;
     private final ProductImageRepository productImageRepository;
-    private final ProductVariantImageAssignmentRepository productVariantImageAssignmentRepository;
+    private final ProductVariantService variantService;
 
     @Transactional
     public Product createProduct(ProductCreateDto req) {
-        var brand = brandRepository.findById(req.getBrandId()).orElseThrow();
+        var brand = brandRepository.findById(req.getBrandId()).orElseThrow(() -> new NotFoundException("Brand does not exist"));
         var categories = new HashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
         var tags = Set.copyOf(tagRepository.findAllById(req.getTags()));
         var product = Product.builder()
@@ -41,19 +38,20 @@ public class ProductService {
             .brand(brand)
             .categories(categories)
             .tags(tags)
+            .isArchived(req.getIsArchived())
             .build();
 
         productRepository.save(product);
 
         req.getImages()
-            .forEach(image -> {
-                var imageEntity = new ProductImage(image.getLink(), image.getAltText());
+            .forEach(imageDto -> {
+                var imageEntity = new ProductImage(imageDto.getLink(), imageDto.getAltText());
                 productImageRepository.save(imageEntity);
 
                 var productImageAssignmentEntity = new ProductImageAssignment(
                     product,
                     imageEntity,
-                    image.getIsPrimary()
+                    imageDto.getIsPrimary()
                 );
 
                 productImageAssignmentRepository.save(productImageAssignmentEntity);
@@ -61,50 +59,7 @@ public class ProductService {
 
         if (req.getVariants() != null) {
             for (var variantReq : req.getVariants()) {
-                var variant = new ProductVariant();
-                variant.setProduct(product);
-                variant.setSku(variantReq.getSku());
-                variant.setUnitPrice(variantReq.getUnitPrice());
-
-                if (variantReq.getOptions() != null) {
-                    for (var optionReq : variantReq.getOptions()) {
-                        var option = optionRepository.findByNameIgnoreCase(optionReq.getName())
-                            .orElseGet(() -> {
-                                var o = new ProductVariantOption();
-                                o.setName(optionReq.getName());
-
-                                return optionRepository.save(o);
-                            });
-                        var value = optionValueRepository.findByOptionAndValue(option, optionReq.getValue())
-                            .orElseGet(() -> {
-                                var v = new ProductVariantOptionValue();
-                                v.setOption(option);
-                                v.setValue(optionReq.getValue());
-
-                                return optionValueRepository.save(v);
-                            });
-
-                        var assignment = new ProductVariantOptionAssignment(variant, value);
-
-                        variant.getOptionAssignments().add(assignment);
-                    }
-                }
-
-                variantRepository.save(variant);
-
-                variantReq.getImages()
-                    .forEach(image -> {
-                        var imageEntity = new ProductImage(image.getLink(), image.getAltText());
-                        productImageRepository.save(imageEntity);
-
-                        var productVariantImageAssignmentEntity = new ProductVariantImageAssignment(
-                            variant,
-                            imageEntity,
-                            image.getIsPrimary()
-                        );
-
-                        productVariantImageAssignmentRepository.save(productVariantImageAssignmentEntity);
-                    });
+                variantService.addVariant(product, variantReq);
             }
         }
 

@@ -8,6 +8,7 @@ import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
+import com.vpe.finalstore.product.services.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public class ProductController {
     private final ProductVariantMapper productVariantMapper;
     private final ProductService productService;
     private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantService productVariantService;
 
     @GetMapping
     public Page<ProductSummaryDto> getProducts(
@@ -120,5 +122,15 @@ public class ProductController {
     @PostMapping("/{productId}/unarchive")
     public void unarchiveProduct(@PathVariable Integer productId) {
         productService.unarchiveProduct(productId);
+    }
+
+    @PostMapping("/{productId}/variants")
+    public ProductVariantDto addVariant(@PathVariable Integer productId, @Valid @RequestBody ProductVariantCreateDto variantDto) {
+        var product = productRepository.findById(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        var variant = productVariantService.addVariant(product, variantDto);
+
+        return productVariantMapper.toDto(variant);
     }
 }

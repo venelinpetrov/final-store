@@ -2,6 +2,7 @@ package com.vpe.finalstore.product.dtos;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,9 +19,15 @@ public class ProductVariantCreateDto {
     @DecimalMin(value = "0.01", message = "Unit price must be at least 0.01")
     private BigDecimal unitPrice;
 
+    @NotNull
     private Integer quantityInStock;
 
+    @NotNull
+    private Boolean isArchived;
+
+    @NotNull
     private List<ProductVariantOptionAssignmentCreateDto> options;
 
+    @NotNull
     private Set<ProductImageCreateDto> images;
 }

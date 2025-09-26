@@ -1,8 +1,10 @@
 package com.vpe.finalstore.product.services;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.product.dtos.ProductVariantCreateDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
-import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.product.entities.*;
+import com.vpe.finalstore.product.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProductVariantService {
     private final ProductVariantRepository variantRepository;
+    private final ProductImageRepository imageRepository;
+    private final ProductVariantOptionRepository optionRepository;
+    private final ProductVariantOptionValueRepository optionValueRepository;
 
     @Transactional
     public void archiveVariant(Integer variantId) {
@@ -45,5 +50,50 @@ public class ProductVariantService {
     @Transactional
     public void deleteVariant(Integer variantId) {
         variantRepository.deleteById(variantId);
+    }
+
+    @Transactional
+    public ProductVariant addVariant(Product product, ProductVariantCreateDto variantDto) {
+        var variant = new ProductVariant();
+        variant.setProduct(product);
+        variant.setSku(variantDto.getSku());
+        variant.setUnitPrice(variantDto.getUnitPrice());
+        variant.setIsArchived(variantDto.getIsArchived());
+
+        if (variantDto.getOptions() != null) {
+            for (var optionReq : variantDto.getOptions()) {
+                var option = optionRepository.findByNameIgnoreCase(optionReq.getName())
+                    .orElseGet(() -> {
+                        var o = new ProductVariantOption();
+                        o.setName(optionReq.getName());
+
+                        return optionRepository.save(o);
+                    });
+                var value = optionValueRepository.findByOptionAndValue(option, optionReq.getValue())
+                    .orElseGet(() -> {
+                        var v = new ProductVariantOptionValue();
+                        v.setOption(option);
+                        v.setValue(optionReq.getValue());
+
+                        return optionValueRepository.save(v);
+                    });
+
+                var assignment = new ProductVariantOptionAssignment(variant, value);
+
+                variant.getOptionAssignments().add(assignment);
+            }
+        }
+
+        for (var reqImage : variantDto.getImages()) {
+            var image = imageRepository.findByLink(reqImage.getLink())
+                .orElseGet(() -> imageRepository.save(
+                    new ProductImage(reqImage.getLink(), reqImage.getAltText())
+                ));
+
+            var assignment = new ProductVariantImageAssignment(variant, image, reqImage.getIsPrimary());
+            variant.getImages().add(assignment);
+        }
+
+        return variantRepository.save(variant);
     }
 }

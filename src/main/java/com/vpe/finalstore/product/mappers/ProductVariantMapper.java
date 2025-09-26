@@ -29,7 +29,6 @@ public interface ProductVariantMapper {
     @Mapping(source = "value.value", target = "value")
     ProductVariantOptionAssignmentDto toDto(ProductVariantOptionAssignment assignment);
 
-
     default Set<ProductImageDto> mapProductVariantImages(Set<ProductVariantImageAssignment> images) {
         if (images == null) {
             return Set.of();

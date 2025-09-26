@@ -20,13 +20,20 @@ public class ProductCreateDto {
     private Integer brandId;
 
     @NotNull
+    private Boolean isArchived;
+
+    @NotNull
     private List<Integer> categoryIds;
 
+    @NotBlank
     private String description;
 
+    @NotNull
     private List<Integer> tags;
 
+    @NotNull
     private List<ProductVariantCreateDto> variants;
 
+    @NotNull
     private Set<ProductImageCreateDto> images;
 }

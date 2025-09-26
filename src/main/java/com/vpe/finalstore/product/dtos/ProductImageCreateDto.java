@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ProductImageCreateDto {
-    private Integer imageId;
     private String link;
     private String altText;
     private Boolean isPrimary;
