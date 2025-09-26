@@ -164,6 +164,7 @@ public class ProductService {
 
     }
 
+    @Transactional
     public void archiveProduct(Integer productId) {
         var product = productRepository.findById(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
@@ -174,6 +175,7 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    @Transactional
     public void unarchiveProduct(Integer productId) {
         var product = productRepository.findById(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
