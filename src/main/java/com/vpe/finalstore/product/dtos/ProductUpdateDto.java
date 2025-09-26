@@ -21,9 +21,12 @@ public class ProductUpdateDto {
     @NotNull
     private List<Integer> categoryIds;
 
+    @NotBlank
     private String description;
 
+    @NotNull
     private List<Integer> tags;
 
+    @NotNull
     private Boolean isArchived;
 }
