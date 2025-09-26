@@ -8,6 +8,7 @@ import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,5 +41,11 @@ class ProductVariantController {
     @PostMapping("/{variantId}/unarchive")
     public void unarchiveVariant(@PathVariable Integer variantId) {
         variantService.unarchiveVariant(variantId);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{variantId}")
+    public void deleteVariant(@PathVariable Integer variantId) {
+        variantService.deleteVariant(variantId);
     }
 }

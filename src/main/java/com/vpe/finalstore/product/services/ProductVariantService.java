@@ -3,6 +3,7 @@ package com.vpe.finalstore.product.services;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class ProductVariantService {
     private final ProductVariantRepository variantRepository;
 
+    @Transactional
     public void archiveVariant(Integer variantId) {
         var variant = variantRepository.findById(variantId)
             .orElseThrow(() -> new NotFoundException("Variant not found"));
@@ -20,6 +22,7 @@ public class ProductVariantService {
         variantRepository.save(variant);
     }
 
+    @Transactional
     public void unarchiveVariant(Integer variantId) {
         var variant = variantRepository.findByVariantIdAndIsArchivedIsTrue(variantId)
             .orElseThrow(() -> new NotFoundException("Variant not found"));
@@ -29,6 +32,7 @@ public class ProductVariantService {
         variantRepository.save(variant);
     }
 
+    @Transactional
     public void updateVariant(Integer variantId, ProductVariantUpdateDto req) {
         var variant = variantRepository.findById(variantId)
             .orElseThrow(() -> new NotFoundException("Variant not found"));
@@ -36,5 +40,10 @@ public class ProductVariantService {
         variant.setUnitPrice(req.getUnitPrice());
 
         variantRepository.save(variant);
+    }
+
+    @Transactional
+    public void deleteVariant(Integer variantId) {
+        variantRepository.deleteById(variantId);
     }
 }

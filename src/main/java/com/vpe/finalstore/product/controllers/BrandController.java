@@ -70,8 +70,8 @@ public class BrandController {
         return ResponseEntity.ok(brandMapper.toDto(brand));
     }
 
-    @DeleteMapping("/{brandId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{brandId}")
     public void deleteBrand(@PathVariable Integer brandId) {
         brandRepository.deleteById(brandId);
     }
