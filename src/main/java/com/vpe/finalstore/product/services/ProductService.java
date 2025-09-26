@@ -117,8 +117,15 @@ public class ProductService {
             .orElseThrow(() -> new NotFoundException("Product not found with id " + productId));
 
         // Simple fields
+        product.setName(req.getName());
         product.setDescription(req.getDescription());
         product.setIsArchived(req.getIsArchived());
+
+        // Brand
+        var brandId = req.getBrandId();
+        var brand = brandRepository.findById(brandId)
+            .orElseThrow(() -> new NotFoundException("Brand not found with id " + brandId));
+        product.setBrand(brand);
 
         // Categories
         var categories = new LinkedHashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
