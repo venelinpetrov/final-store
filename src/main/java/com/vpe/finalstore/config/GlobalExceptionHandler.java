@@ -36,8 +36,24 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorDto> handleDataIntegrityViolation() {
-        var message = "Operation failed due to related data. This record is used elsewhere and cannot be updated or deleted";
+    public ResponseEntity<ErrorDto> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        var rootCause = ex.getRootCause();
+        String message;
+
+        if (rootCause instanceof java.sql.SQLIntegrityConstraintViolationException sqlEx) {
+            int errorCode = sqlEx.getErrorCode();
+
+            if (errorCode == 1062) { // duplicate key
+                message = "A record with the same value already exists.";
+            } else if (errorCode == 1451 || errorCode == 1452) { // foreign key constraint
+                message = "Operation failed due to related data. This record is used elsewhere and cannot be updated or deleted.";
+            } else {
+                message = "Data integrity violation.";
+            }
+        } else {
+            message = "Data integrity violation.";
+        }
+
         var errorDto = new ErrorDto(message, null);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDto);
     }

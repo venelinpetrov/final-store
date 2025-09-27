@@ -1,10 +1,13 @@
 package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.product.dtos.TagDto;
 import com.vpe.finalstore.product.dtos.TagSummaryDto;
+import com.vpe.finalstore.product.entities.Tag;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -22,5 +25,12 @@ public class TagController {
         var tags = tagRepository.findAll();
 
         return tagMapper.toSummaryDto(tags);
+    }
+
+    @PostMapping
+    public TagSummaryDto createTag(String name) {
+        var  tag = tagRepository.save(new Tag(name));
+
+        return tagMapper.toSummaryDto(tag);
     }
 }

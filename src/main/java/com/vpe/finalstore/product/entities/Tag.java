@@ -2,6 +2,7 @@ package com.vpe.finalstore.product.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.Set;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "tags")
 public class Tag {
@@ -22,4 +24,8 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags")
     private Set<Product> products = new HashSet<>();
+
+    public Tag(String name) {
+        this.name = name;
+    }
 }

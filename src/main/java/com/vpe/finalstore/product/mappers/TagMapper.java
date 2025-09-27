@@ -13,5 +13,7 @@ public interface TagMapper {
 
     List<TagDto> toDto(List<Tag> tags);
 
+    TagSummaryDto toSummaryDto(Tag tag);
+
     List<TagSummaryDto> toSummaryDto(List<Tag> tags);
 }
