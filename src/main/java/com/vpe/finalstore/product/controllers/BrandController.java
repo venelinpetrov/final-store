@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @AllArgsConstructor
@@ -55,7 +56,9 @@ public class BrandController {
     public ResponseEntity<BrandDto> createBrand(@Valid @RequestBody BrandCreateDto req) {
         var brand = brandRepository.save(brandMapper.toEntity(req));
 
-        return ResponseEntity.ok(brandMapper.toDto(brand));
+        return ResponseEntity
+            .created(URI.create("/api/brands/" + brand.getBrandId()))
+            .body(brandMapper.toDto(brand));
     }
 
     @PutMapping("/{brandId}")

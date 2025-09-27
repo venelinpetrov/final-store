@@ -6,11 +6,13 @@ import com.vpe.finalstore.product.entities.Tag;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.net.URI;
 import java.util.List;
 
 @AllArgsConstructor
@@ -28,9 +30,11 @@ public class TagController {
     }
 
     @PostMapping
-    public TagSummaryDto createTag(String name) {
+    public ResponseEntity<TagSummaryDto> createTag(String name) {
         var  tag = tagRepository.save(new Tag(name));
 
-        return tagMapper.toSummaryDto(tag);
+        return ResponseEntity
+            .created(URI.create("/api/tags/" + tag.getTagId()))
+            .body(tagMapper.toSummaryDto(tag));
     }
 }
