@@ -1,16 +1,13 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.product.dtos.TagDto;
 import com.vpe.finalstore.product.dtos.TagSummaryDto;
 import com.vpe.finalstore.product.entities.Tag;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
@@ -36,5 +33,11 @@ public class TagController {
         return ResponseEntity
             .created(URI.create("/api/tags/" + tag.getTagId()))
             .body(tagMapper.toSummaryDto(tag));
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{tagId}")
+    public void deleteTag(@PathVariable Integer tagId) {
+        tagRepository.deleteById(tagId);
     }
 }
