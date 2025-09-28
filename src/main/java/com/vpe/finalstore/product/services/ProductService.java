@@ -12,9 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -140,5 +139,28 @@ public class ProductService {
         product.getVariants().forEach(variant -> variant.setIsArchived(false));
 
         productRepository.save(product);
+    }
+
+    @Transactional
+    public void assignImages(List<Integer> imageIds, Product product) {
+        List<Integer> distinctImageIds = imageIds.stream()
+            .collect(Collectors.collectingAndThen(
+                Collectors.toCollection(LinkedHashSet::new),
+                ArrayList::new
+            ));
+
+        List<ProductImageAssignment> assignments = new ArrayList<>();
+
+        for (int index = 0; index < distinctImageIds.size(); index++) {
+            Integer id = distinctImageIds.get(index);
+
+            var image = productImageRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Image not found"));
+
+            var isPrimary = index == 0;
+            assignments.add(new ProductImageAssignment(product, image, isPrimary));
+        }
+
+        productImageAssignmentRepository.saveAll(assignments);
     }
 }

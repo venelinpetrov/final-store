@@ -54,6 +54,15 @@ public class ProductController {
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
 
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDto> getProduct(@PathVariable Integer productId) {
+        var product = productRepository.findProductByProductId(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        return ResponseEntity.ok(productMapper.toDto(product));
+    }
+
+
     @GetMapping("/{productId}/variants")
     public List<ProductVariantDto> getProductVariants(@PathVariable Integer productId) {
         var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
@@ -132,5 +141,14 @@ public class ProductController {
         var variant = productVariantService.addVariant(product, variantDto);
 
         return productVariantMapper.toDto(variant);
+    }
+
+    @PostMapping("/{productId}/images")
+    public ResponseEntity<Void> assignImages(@PathVariable Integer productId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {
+        var product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        productService.assignImages(assignmentDto.getImageIds(), product);
+        return ResponseEntity.ok().build();
     }
 }

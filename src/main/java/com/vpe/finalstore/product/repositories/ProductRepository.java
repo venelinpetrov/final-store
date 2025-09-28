@@ -10,9 +10,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+    @EntityGraph(attributePaths = {"tags", "images", "categories"})
+    Optional<Product> findProductByProductId(Integer productId);
+
     @EntityGraph(attributePaths = {"tags", "images", "categories"})
     Page<Product> findProductsByBrandBrandIdAndIsArchivedIsFalse(Integer brandId, Pageable pageable);
 
