@@ -1,9 +1,13 @@
 package com.vpe.finalstore.product.controllers;
 
+import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.product.dtos.TagCreateDto;
 import com.vpe.finalstore.product.dtos.TagSummaryDto;
+import com.vpe.finalstore.product.dtos.TagUpdateDto;
 import com.vpe.finalstore.product.entities.Tag;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +31,25 @@ public class TagController {
     }
 
     @PostMapping
-    public ResponseEntity<TagSummaryDto> createTag(String name) {
-        var  tag = tagRepository.save(new Tag(name));
+    public ResponseEntity<TagSummaryDto> createTag(@Valid @RequestBody TagCreateDto tagDto) {
+        var tag = tagRepository.save(new Tag(tagDto.getName()));
 
         return ResponseEntity
             .created(URI.create("/api/tags/" + tag.getTagId()))
             .body(tagMapper.toSummaryDto(tag));
+    }
+
+    @PutMapping("/{tagId}")
+    public ResponseEntity<TagSummaryDto> updateTag(@PathVariable Integer tagId, @Valid @RequestBody TagUpdateDto tagDto) {
+        var tag = tagRepository.findById(tagId)
+            .orElseThrow(() -> new NotFoundException("Tag not found"));
+
+        tag.setName(tagDto.getName());
+
+        tag = tagRepository.save(tag);
+
+        return ResponseEntity.ok(tagMapper.toSummaryDto(tag));
+
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
