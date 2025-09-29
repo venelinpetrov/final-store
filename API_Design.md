@@ -65,7 +65,7 @@ DELETE /images/{imageId}                          delete image (if unused)
 
 ````
 POST   /products/{productId}/images               assign image(s) to product
-DELETE /products/{productId}/images/{imageId}     unassign image from product
+DELETE /products/{productId}/images               unassign image from product
 ````
 
 #### Variant - image relation

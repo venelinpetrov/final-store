@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -21,15 +20,15 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private final TagRepository tagRepository;
     private final ProductRepository productRepository;
-    private final ProductCategoryRepository productCategoryRepository;
-    private final ProductImageAssignmentRepository productImageAssignmentRepository;
-    private final ProductImageRepository productImageRepository;
+    private final ProductCategoryRepository categoryRepository;
+    private final ProductImageAssignmentRepository imageAssignmentRepository;
+    private final ProductImageRepository imageRepository;
     private final ProductVariantService variantService;
 
     @Transactional
     public Product createProduct(ProductCreateDto req) {
         var brand = brandRepository.findById(req.getBrandId()).orElseThrow(() -> new NotFoundException("Brand does not exist"));
-        var categories = new HashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
+        var categories = new HashSet<>(categoryRepository.findAllById(req.getCategoryIds()));
         var tags = Set.copyOf(tagRepository.findAllById(req.getTags()));
         var product = Product.builder()
             .name(req.getName())
@@ -45,7 +44,7 @@ public class ProductService {
         req.getImages()
             .forEach(imageDto -> {
                 var imageEntity = new ProductImage(imageDto.getLink(), imageDto.getAltText());
-                productImageRepository.save(imageEntity);
+                imageRepository.save(imageEntity);
 
                 var productImageAssignmentEntity = new ProductImageAssignment(
                     product,
@@ -53,7 +52,7 @@ public class ProductService {
                     imageDto.getIsPrimary()
                 );
 
-                productImageAssignmentRepository.save(productImageAssignmentEntity);
+                imageAssignmentRepository.save(productImageAssignmentEntity);
             });
 
         if (req.getVariants() != null) {
@@ -82,7 +81,7 @@ public class ProductService {
         product.setBrand(brand);
 
         // Categories
-        var categories = new LinkedHashSet<>(productCategoryRepository.findAllById(req.getCategoryIds()));
+        var categories = new LinkedHashSet<>(categoryRepository.findAllById(req.getCategoryIds()));
         if (categories.size() != req.getCategoryIds().size()) {
             throw new NotFoundException("One or more categories not found");
         }
@@ -144,23 +143,38 @@ public class ProductService {
     @Transactional
     public void assignImages(List<Integer> imageIds, Product product) {
         List<Integer> distinctImageIds = imageIds.stream()
-            .collect(Collectors.collectingAndThen(
-                Collectors.toCollection(LinkedHashSet::new),
-                ArrayList::new
-            ));
+            .distinct()
+            .toList();
+
+        var images = imageRepository.findAllById(distinctImageIds);
+        if (images.size() != distinctImageIds.size()) {
+            throw new NotFoundException("Some images were not found");
+        }
 
         List<ProductImageAssignment> assignments = new ArrayList<>();
+        for (int i = 0; i < distinctImageIds.size(); i++) {
+            var imageId = distinctImageIds.get(i);
+            var image = images.stream()
+                .filter(img -> img.getImageId().equals(imageId))
+                .findFirst()
+                .orElseThrow();
 
-        for (int index = 0; index < distinctImageIds.size(); index++) {
-            Integer id = distinctImageIds.get(index);
-
-            var image = productImageRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Image not found"));
-
-            var isPrimary = index == 0;
+            boolean isPrimary = (i == 0);
             assignments.add(new ProductImageAssignment(product, image, isPrimary));
         }
 
-        productImageAssignmentRepository.saveAll(assignments);
+        imageAssignmentRepository.saveAll(assignments);
+    }
+
+    public void unassignImages(List<Integer> imageIds, Product product) {
+        var assignments = imageIds.stream()
+            .map(imageId -> imageAssignmentRepository.findAssignment(imageId, product.getProductId())
+                .orElseThrow(
+                    () -> new NotFoundException("Image with ID %d not assigned to product %d".formatted(imageId, product.getProductId()))
+                )
+            )
+            .toList();
+
+        imageAssignmentRepository.deleteAll(assignments);
     }
 }

@@ -151,4 +151,13 @@ public class ProductController {
         productService.assignImages(assignmentDto.getImageIds(), product);
         return ResponseEntity.ok().build();
     }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{productId}/images")
+    public void unassignImages(@PathVariable Integer productId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {
+        var product = productRepository.findById(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        productService.unassignImages(assignmentDto.getImageIds(), product);
+    }
 }
