@@ -1,11 +1,11 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCategoryCreateDto;
 import com.vpe.finalstore.product.dtos.ProductCategoryDto;
-import com.vpe.finalstore.product.entities.ProductCategory;
+import com.vpe.finalstore.product.dtos.ProductCategoryUpdateDto;
 import com.vpe.finalstore.product.mappers.ProductCategoryMapper;
 import com.vpe.finalstore.product.repositories.ProductCategoryRepository;
+import com.vpe.finalstore.product.services.ProductCategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/categories")
 public class ProductCategoryController {
+    private final ProductCategoryService categoryService;
     private final ProductCategoryRepository productCategoryRepository;
     private final ProductCategoryMapper productCategoryMapper;
 
@@ -29,17 +30,17 @@ public class ProductCategoryController {
 
     @PostMapping
     public ResponseEntity<ProductCategoryDto> createCategory(@Valid @RequestBody ProductCategoryCreateDto dto) {
-        var parentCategory = productCategoryRepository.findById(dto.getParentCategoryId())
-            .orElseThrow(() -> new NotFoundException("Parent category not found"));
-
-        var category = new ProductCategory();
-        category.setName(dto.getName());
-        category.setParentCategory(parentCategory);
-
-        category = productCategoryRepository.save(category);
+        var category = categoryService.createCategory(dto);
 
         return ResponseEntity
-            .created(URI.create("/api/tags/" + category.getCategoryId()))
+            .created(URI.create("/api/categories/" + category.getCategoryId()))
             .body(productCategoryMapper.toDto(category));
+    }
+
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<Void> updateCategory(@PathVariable Integer categoryId, @Valid @RequestBody ProductCategoryUpdateDto dto) {
+        categoryService.updateCategory(categoryId, dto);
+
+        return ResponseEntity.ok().build();
     }
 }

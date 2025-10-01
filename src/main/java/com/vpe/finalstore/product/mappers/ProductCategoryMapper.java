@@ -11,7 +11,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ProductCategoryMapper {
     ProductCategoryDto toDto(ProductCategoryView categoryView);
+
     @Mapping(target="parentCategoryId", source = "parentCategory.categoryId")
     ProductCategoryDto toDto(ProductCategory category);
+
     List<ProductCategoryDto> toDto(List<ProductCategoryView> views);
 }
