@@ -8,6 +8,7 @@ import com.vpe.finalstore.product.repositories.ProductCategoryRepository;
 import com.vpe.finalstore.product.services.ProductCategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,5 +43,11 @@ public class ProductCategoryController {
         categoryService.updateCategory(categoryId, dto);
 
         return ResponseEntity.ok().build();
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{categoryId}")
+    public void deleteCategory(@PathVariable Integer categoryId) {
+        productCategoryRepository.deleteById(categoryId);
     }
 }
