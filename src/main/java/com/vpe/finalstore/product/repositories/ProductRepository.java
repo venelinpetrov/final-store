@@ -24,12 +24,18 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p WHERE p.isArchived = false")
     Page<Product> getAllWithTags(Pageable pageable);
 
-    @Query("""
-        SELECT p FROM Product p
+    @Query(
+        value = """
+            SELECT p FROM Product p
             LEFT JOIN FETCH p.tags t
             LEFT JOIN FETCH p.categories c
             LEFT JOIN FETCH p.brand b
             LEFT JOIN FETCH p.images i
+            WHERE t IN :tags AND p.isArchived = false
+        """,
+        countQuery = """
+            SELECT COUNT(DISTINCT p) FROM Product p
+                JOIN p.tags t
             WHERE t IN :tags AND p.isArchived = false
         """
     )
