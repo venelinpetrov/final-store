@@ -9,6 +9,9 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @Service
 public class ProductVariantService {
@@ -16,6 +19,7 @@ public class ProductVariantService {
     private final ProductImageRepository imageRepository;
     private final ProductVariantOptionRepository optionRepository;
     private final ProductVariantOptionValueRepository optionValueRepository;
+    private final ProductVariantImageAssignmentRepository imageAssignmentRepository;
 
     @Transactional
     public void archiveVariant(Integer variantId) {
@@ -95,5 +99,43 @@ public class ProductVariantService {
         }
 
         return variantRepository.save(variant);
+    }
+
+    @Transactional
+    public void assignImages(List<Integer> imageIds, ProductVariant variant) {
+        List<Integer> distinctImageIds = imageIds.stream()
+            .distinct()
+            .toList();
+
+        var images = imageRepository.findAllById(distinctImageIds);
+        if (images.size() != distinctImageIds.size()) {
+            throw new NotFoundException("Some images were not found");
+        }
+
+        List<ProductVariantImageAssignment> assignments = new ArrayList<>();
+        for (int i = 0; i < distinctImageIds.size(); i++) {
+            var imageId = distinctImageIds.get(i);
+            var image = images.stream()
+                .filter(img -> img.getImageId().equals(imageId))
+                .findFirst()
+                .orElseThrow();
+
+            boolean isPrimary = (i == 0);
+            assignments.add(new ProductVariantImageAssignment(variant, image, isPrimary));
+        }
+
+        imageAssignmentRepository.saveAll(assignments);
+    }
+
+    public void unassignImages(List<Integer> imageIds, ProductVariant variant) {
+        var assignments = imageIds.stream()
+            .map(imageId -> imageAssignmentRepository.findAssignment(imageId, variant.getVariantId())
+                .orElseThrow(
+                    () -> new NotFoundException("Image with ID %d not assigned to variant %d".formatted(imageId, variant.getVariantId()))
+                )
+            )
+            .toList();
+
+        imageAssignmentRepository.deleteAll(assignments);
     }
 }
