@@ -31,7 +31,7 @@ public class InventoryLevelController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
-        var inventoryLevelsPage = inventoryLevelRepository.getAll(pageable);
+        var inventoryLevelsPage = inventoryLevelRepository.findAllWithVariant(pageable);
 
         List<InventoryItemDto> dtos = inventoryLevelMapper.toDto(inventoryLevelsPage.getContent());
 
@@ -39,9 +39,12 @@ public class InventoryLevelController {
     }
 
     @GetMapping("/out-of-stock")
-    public List<InventoryItemDto> getOutOfStock() {
-        var items = inventoryLevelService.getOutOfStock();
-
-        return inventoryLevelMapper.toDto(items);
+    public Page<InventoryItemDto> getOutOfStock(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        var items = inventoryLevelService.getOutOfStock(pageable);
+        return items.map(inventoryLevelMapper::toDto);
     }
 }
