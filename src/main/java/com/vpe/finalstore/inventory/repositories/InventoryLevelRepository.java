@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface InventoryLevelRepository extends JpaRepository<InventoryLevel, Integer> {
 
     @Query(
@@ -13,4 +15,6 @@ public interface InventoryLevelRepository extends JpaRepository<InventoryLevel, 
         countQuery = "SELECT COUNT(i) FROM InventoryLevel i"
     )
     Page<InventoryLevel> getAll(Pageable p);
+
+    List<InventoryLevel> getAllByQuantityInStock(Integer quantityInStock);
 }

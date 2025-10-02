@@ -3,6 +3,7 @@ package com.vpe.finalstore.inventory.controllers;
 import com.vpe.finalstore.inventory.dtos.InventoryItemDto;
 import com.vpe.finalstore.inventory.mappers.InventoryLevelMapper;
 import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
+import com.vpe.finalstore.inventory.services.InventoryLevelService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,6 +22,7 @@ import java.util.List;
 public class InventoryLevelController {
     private final InventoryLevelRepository inventoryLevelRepository;
     private final InventoryLevelMapper inventoryLevelMapper;
+    private final InventoryLevelService inventoryLevelService;
 
     @GetMapping
     public Page<InventoryItemDto> getInventoryLevels(
@@ -34,5 +36,12 @@ public class InventoryLevelController {
         List<InventoryItemDto> dtos = inventoryLevelMapper.toDto(inventoryLevelsPage.getContent());
 
         return new PageImpl<>(dtos, pageable, inventoryLevelsPage.getTotalElements());
+    }
+
+    @GetMapping("/out-of-stock")
+    public List<InventoryItemDto> getOutOfStock() {
+        var items = inventoryLevelService.getOutOfStock();
+
+        return inventoryLevelMapper.toDto(items);
     }
 }
