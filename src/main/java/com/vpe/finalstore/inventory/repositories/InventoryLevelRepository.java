@@ -8,14 +8,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface InventoryLevelRepository extends JpaRepository<InventoryLevel, Integer> {
-
-    @Query("SELECT i FROM InventoryLevel i JOIN FETCH i.variant v")
-    Page<InventoryLevel> findAllWithVariant(Pageable pageable);
-
-    @Query("""
-        SELECT i FROM InventoryLevel i
-        JOIN FETCH i.variant v
-        WHERE i.quantityInStock = :quantityInStock
-    """)
-    Page<InventoryLevel> findByQuantityInStock(@Param("quantityInStock") Integer quantityInStock, Pageable pageable);
+    @Query(
+        value = """
+            SELECT i FROM InventoryLevel i
+            JOIN FETCH i.variant v
+            WHERE (:gte IS NULL OR i.quantityInStock >= :gte)
+              AND (:lte IS NULL OR i.quantityInStock <= :lte)
+        """,
+        countQuery = """
+            SELECT COUNT(i) FROM InventoryLevel i
+            WHERE (:gte IS NULL OR i.quantityInStock >= :gte)
+              AND (:lte IS NULL OR i.quantityInStock <= :lte)
+        """
+    )
+    Page<InventoryLevel> findByQuantityInStockBetween(
+        @Param("gte") Integer gte,
+        @Param("lte") Integer lte,
+        Pageable pageable
+    );
 }

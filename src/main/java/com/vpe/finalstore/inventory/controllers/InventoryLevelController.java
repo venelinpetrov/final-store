@@ -18,33 +18,22 @@ import java.util.List;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/inventory-levels")
+@RequestMapping("/api/inventory")
 public class InventoryLevelController {
-    private final InventoryLevelRepository inventoryLevelRepository;
     private final InventoryLevelMapper inventoryLevelMapper;
     private final InventoryLevelService inventoryLevelService;
 
-    @GetMapping
+    @GetMapping("/levels")
     public Page<InventoryItemDto> getInventoryLevels(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(required = false) Integer gte,
+        @RequestParam(required = false) Integer lte
     ) {
         Pageable pageable = PageRequest.of(page, size);
-
-        var inventoryLevelsPage = inventoryLevelRepository.findAllWithVariant(pageable);
-
+        var inventoryLevelsPage = inventoryLevelService.getInventoryLevels(gte, lte, pageable);
         List<InventoryItemDto> dtos = inventoryLevelMapper.toDto(inventoryLevelsPage.getContent());
 
         return new PageImpl<>(dtos, pageable, inventoryLevelsPage.getTotalElements());
-    }
-
-    @GetMapping("/out-of-stock")
-    public Page<InventoryItemDto> getOutOfStock(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        var items = inventoryLevelService.getOutOfStock(pageable);
-        return items.map(inventoryLevelMapper::toDto);
     }
 }

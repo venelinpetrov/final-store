@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class InventoryLevelService {
     private final InventoryLevelRepository inventoryLevelRepository;
 
-    public Page<InventoryLevel> getOutOfStock(Pageable pageable) {
-        return inventoryLevelRepository.findByQuantityInStock(0, pageable);
+    public Page<InventoryLevel> getInventoryLevels(Integer gte, Integer lte, Pageable pageable) {
+        return inventoryLevelRepository.findByQuantityInStockBetween(gte, lte, pageable);
     }
 }
