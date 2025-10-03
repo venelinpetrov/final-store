@@ -47,6 +47,6 @@ public class ProductVariant {
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductVariantOptionAssignment> optionAssignments = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductVariantImageAssignment> images = new LinkedHashSet<>();
 }
