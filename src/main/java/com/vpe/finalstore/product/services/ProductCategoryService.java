@@ -5,7 +5,6 @@ import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCategoryCreateDto;
 import com.vpe.finalstore.product.dtos.ProductCategoryUpdateDto;
 import com.vpe.finalstore.product.entities.ProductCategory;
-import com.vpe.finalstore.product.mappers.ProductCategoryMapper;
 import com.vpe.finalstore.product.repositories.ProductCategoryRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
