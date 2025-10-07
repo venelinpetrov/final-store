@@ -7,12 +7,9 @@ import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
 import com.vpe.finalstore.inventory.services.InventoryLevelService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -27,13 +24,16 @@ public class InventoryLevelController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size,
         @RequestParam(required = false) Integer gte,
-        @RequestParam(required = false) Integer lte
+        @RequestParam(required = false) Integer lte,
+        @RequestParam(required = false) String sku,
+        @RequestParam(required = false) String productName,
+        @RequestParam(required = false) Integer categoryId
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        var inventoryLevelsPage = inventoryLevelService.getInventoryLevels(gte, lte, pageable);
-        List<InventoryItemDto> dtos = inventoryLevelMapper.toDto(inventoryLevelsPage.getContent());
-
-        return new PageImpl<>(dtos, pageable, inventoryLevelsPage.getTotalElements());
+        var levels = inventoryLevelService.searchInventoryLevels(
+            sku, productName, categoryId, gte, lte, pageable
+        );
+        return levels.map(inventoryLevelMapper::toDto);
     }
 
     @GetMapping("/levels/{variantId}")

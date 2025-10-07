@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class InventoryLevelService {
     private final InventoryLevelRepository inventoryLevelRepository;
 
-    public Page<InventoryLevel> getInventoryLevels(Integer gte, Integer lte, Pageable pageable) {
-        return inventoryLevelRepository.findByQuantityInStockBetween(gte, lte, pageable);
+    public Page<InventoryLevel> searchInventoryLevels(String sku, String productName, Integer categoryId, Integer gte, Integer lte, Pageable pageable) {
+        return inventoryLevelRepository.searchInventoryLevels(sku, productName, categoryId, gte, lte, pageable);
     }
 }
