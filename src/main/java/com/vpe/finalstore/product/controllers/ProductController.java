@@ -138,7 +138,7 @@ public class ProductController {
         var product = productRepository.findById(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        var variant = productVariantService.addVariant(product, variantDto);
+        var variant = productVariantService.createVariant(product, variantDto);
 
         return productVariantMapper.toDto(variant);
     }

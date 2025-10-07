@@ -57,7 +57,7 @@ public class ProductService {
 
         if (req.getVariants() != null) {
             for (var variantReq : req.getVariants()) {
-                variantService.addVariant(product, variantReq);
+                variantService.createVariant(product, variantReq);
             }
         }
 

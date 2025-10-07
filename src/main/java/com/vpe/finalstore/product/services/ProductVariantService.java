@@ -1,6 +1,9 @@
 package com.vpe.finalstore.product.services;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
+import com.vpe.finalstore.inventory.enums.MovementType;
+import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.product.dtos.ProductVariantCreateDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.entities.*;
@@ -20,6 +23,7 @@ public class ProductVariantService {
     private final ProductVariantOptionRepository optionRepository;
     private final ProductVariantOptionValueRepository optionValueRepository;
     private final ProductVariantImageAssignmentRepository imageAssignmentRepository;
+    private final InventoryMovementService inventoryMovementService;
 
     @Transactional
     public void archiveVariant(Integer variantId) {
@@ -57,7 +61,7 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public ProductVariant addVariant(Product product, ProductVariantCreateDto variantDto) {
+    public ProductVariant createVariant(Product product, ProductVariantCreateDto variantDto) {
         var variant = new ProductVariant();
         variant.setProduct(product);
         variant.setSku(variantDto.getSku());
@@ -97,6 +101,16 @@ public class ProductVariantService {
             var assignment = new ProductVariantImageAssignment(variant, image, reqImage.getIsPrimary());
             variant.getImages().add(assignment);
         }
+
+        variant = variantRepository.save(variant);
+
+        var initMovement = new InventoryMovementCreateDto();
+        initMovement.setVariantId(variant.getVariantId());
+        initMovement.setMovementType(MovementType.ADJUSTMENT);
+        initMovement.setQuantity(variantDto.getQuantityInStock());
+        initMovement.setReason("Initialize stock for new variant");
+
+        inventoryMovementService.createMovement(initMovement);
 
         return variantRepository.save(variant);
     }
