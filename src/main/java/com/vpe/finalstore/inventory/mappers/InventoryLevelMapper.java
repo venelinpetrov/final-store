@@ -11,7 +11,7 @@ import java.util.List;
 public interface InventoryLevelMapper {
     @Mapping(source = "variant.sku", target = "sku")
     @Mapping(source = "variant.variantId", target = "variantId")
-    InventoryItemDto toDto(InventoryLevel record);
+    InventoryItemDto toDto(InventoryLevel item);
 
-    List<InventoryItemDto> toDto(List<InventoryLevel> record);
+    List<InventoryItemDto> toDto(List<InventoryLevel> item);
 }

@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface InventoryLevelRepository extends JpaRepository<InventoryLevel, Integer> {
     @Query(
         value = """
@@ -26,4 +29,6 @@ public interface InventoryLevelRepository extends JpaRepository<InventoryLevel, 
         @Param("lte") Integer lte,
         Pageable pageable
     );
+
+    Optional<InventoryLevel> findByVariantVariantId(Integer variantVariantId);
 }
