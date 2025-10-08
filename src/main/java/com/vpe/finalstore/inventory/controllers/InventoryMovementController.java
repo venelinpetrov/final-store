@@ -11,7 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @RestController
@@ -23,12 +26,22 @@ class InventoryMovementController {
 
     @GetMapping
     public Page<InventoryMovementDto> getMovements(
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        LocalDateTime from,
+
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        LocalDateTime to,
+
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
         Pageable pageable
     ) {
-        var movements = inventoryMovementRepository.findAll(pageable);
+        var movements = inventoryMovementService.getMovements(from, to, pageable);
         return movements.map(inventoryMovementMapper::toDto);
     }
+
+
 
     @PostMapping
     public void createMovement(@Valid @RequestBody InventoryMovementCreateDto dto) {
