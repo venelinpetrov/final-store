@@ -41,8 +41,6 @@ class InventoryMovementController {
         return movements.map(inventoryMovementMapper::toDto);
     }
 
-
-
     @PostMapping
     public void createMovement(@Valid @RequestBody InventoryMovementCreateDto dto) {
         inventoryMovementService.createMovement(dto);

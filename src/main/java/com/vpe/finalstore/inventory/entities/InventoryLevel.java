@@ -4,6 +4,7 @@ import com.vpe.finalstore.product.entities.ProductVariant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -13,9 +14,15 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "inventory_levels")
 public class InventoryLevel {
+    public InventoryLevel(ProductVariant variant, Integer quantityInStock) {
+        this.variant = variant;
+        this.quantityInStock = quantityInStock;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inventory_id")

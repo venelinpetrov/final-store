@@ -1,8 +1,12 @@
 package com.vpe.finalstore.inventory.services;
 
+import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
+import com.vpe.finalstore.inventory.entities.InventoryLevel;
 import com.vpe.finalstore.inventory.entities.InventoryMovement;
+import com.vpe.finalstore.inventory.enums.MovementType;
+import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
 import com.vpe.finalstore.inventory.repositories.InventoryMovementRepository;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import jakarta.transaction.Transactional;
@@ -18,6 +22,7 @@ import java.time.LocalDateTime;
 public class InventoryMovementService {
     private final ProductVariantRepository variantRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
+    private final InventoryLevelRepository inventoryLevelRepository;
 
     public Page<InventoryMovement> getMovements(LocalDateTime from, LocalDateTime to, Pageable pageable) {
         if (from != null && to != null) {
@@ -35,6 +40,17 @@ public class InventoryMovementService {
     public void createMovement(InventoryMovementCreateDto dto) {
         var variant = variantRepository.findById(dto.getVariantId())
             .orElseThrow(() -> new NotFoundException("Variant not found"));
+
+        var inventoryItem = inventoryLevelRepository.findByVariantVariantIdForUpdate(variant.getVariantId())
+            .orElseGet(() -> inventoryLevelRepository.save(new InventoryLevel(variant, 0)));
+
+        var quantityInStock = inventoryItem.getQuantityInStock();
+
+        if (dto.getMovementType() == MovementType.OUT && dto.getQuantity() > quantityInStock) {
+                throw new BadRequestException(
+                    String.format("Cannot move out %d items. Only %d in stock", dto.getQuantity(), quantityInStock)
+                );
+        }
 
         var movement = new InventoryMovement();
         movement.setVariant(variant);
