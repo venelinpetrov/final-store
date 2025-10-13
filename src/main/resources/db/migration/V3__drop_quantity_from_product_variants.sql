@@ -1,2 +1,0 @@
-ALTER TABLE product_variants
-DROP COLUMN quantity_in_stock;
