@@ -2,12 +2,8 @@ name: slack-notification
 
 on:
   pull_request:
-    types: [opened, ready_for_review]
-    paths:
-      [
-        "src/**",
-        ".github/workflows/pr-alert.yml",
-      ]
+    types: [opened]
+
 
 jobs:
   slack-notifications:
