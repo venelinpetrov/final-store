@@ -2,12 +2,7 @@ name: slack-notification
 
 on:
   pull_request:
-    types: [opened, ready_for_review]
-    paths:
-      [
-        "src/**",
-        ".github/workflows/pr-alert.yml",
-      ]
+    types: [opened]
 
 jobs:
   slack-notifications:
@@ -15,31 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request.draft }}
     steps:
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.25.0
+      - name: Post to Slack (v2)
+        uses: slackapi/slack-github-action@v2
         with:
-          channel-id: "C09LYQ1BHDJ"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*New PR waiting for review:*\n <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Opened by:*\n${{ github.event.pull_request.user.login }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+            channel: "C09LYQ1BHDJ"
+            text: "*New PR waiting for review:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+            blocks:
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "*New PR waiting for review:*\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Opened by:*\n${{ github.event.pull_request.user.login }}"
