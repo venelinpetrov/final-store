@@ -1,0 +1,45 @@
+name: slack-notification
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+    paths:
+      [
+        "src/**",
+        ".github/workflows/pr-alert.yml",
+      ]
+
+jobs:
+  slack-notifications:
+    name: Sends a message to Slack when a pull request is opened
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          channel-id: "C09LYQ1BHDJ"
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*New PR waiting for review:*\n <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Opened by:*\n${{ github.event.pull_request.user.login }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
