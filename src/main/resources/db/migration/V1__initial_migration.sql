@@ -211,7 +211,7 @@ CREATE TABLE product_variant_image_assignments
 
 CREATE TABLE carts
 (
-    cart_id     INT AUTO_INCREMENT PRIMARY KEY,
+    cart_id     VARCHAR(36) PRIMARY KEY,
     session_id  VARCHAR(255) UNIQUE NULL,
     customer_id INT,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -223,7 +223,7 @@ CREATE TABLE carts
 CREATE TABLE cart_items
 (
     item_id    INT AUTO_INCREMENT PRIMARY KEY,
-    cart_id    INT NOT NULL,
+    cart_id    VARCHAR(36) NOT NULL,
     variant_id INT NOT NULL,
     quantity   INT NOT NULL DEFAULT 1,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,

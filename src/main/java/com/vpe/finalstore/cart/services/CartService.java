@@ -12,8 +12,6 @@ import java.util.Optional;
 public class CartService {
     private final CartRepository cartRepository;
     public Optional<Cart> getCartWithItems(Integer cartId) {
-        var x=  cartRepository.getCartWithItems(cartId);
-
-        return x;
+        return cartRepository.getCartWithItems(cartId);
     }
 }
