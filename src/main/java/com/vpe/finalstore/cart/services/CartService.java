@@ -6,12 +6,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @AllArgsConstructor
 @Service
 public class CartService {
     private final CartRepository cartRepository;
-    public Optional<Cart> getCartWithItems(Integer cartId) {
+    public Optional<Cart> getCartWithItems(UUID cartId) {
         return cartRepository.getCartWithItems(cartId);
     }
 }

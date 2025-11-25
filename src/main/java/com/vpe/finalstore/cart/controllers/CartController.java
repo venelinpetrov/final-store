@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @AllArgsConstructor
 @Controller
@@ -20,9 +22,9 @@ class CartController {
     private final CartMapper cartMapper;
 
     @GetMapping("/{cartId}")
-    public CartDto getCart(@PathVariable Integer cartId) {
+    public CartDto getCart(@PathVariable UUID cartId) {
         var cart = cartService.getCartWithItems(cartId)
-            .orElseThrow(() -> new NotFoundException("Cart with id: " + cartId + " not found"));
+            .orElseThrow(() -> new NotFoundException("Cart with UUID: " + cartId + " not found"));
 
         return cartMapper.toDto(cart);
     }

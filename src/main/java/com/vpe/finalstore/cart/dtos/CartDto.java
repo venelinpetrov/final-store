@@ -5,12 +5,13 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class CartDto {
-   private Integer cartId;
-   private String sessionId;
+   private UUID cartId;
+   private UUID sessionId;
    private LocalDateTime createdAt;
    private LocalDateTime updatedAt;
    private Set<CartItemDto> cartItems;
