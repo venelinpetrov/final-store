@@ -5,11 +5,10 @@ import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -28,4 +27,20 @@ class CartController {
 
         return cartMapper.toDto(cart);
     }
+
+    @PostMapping
+    ResponseEntity<CartDto> createCart(UriComponentsBuilder uriBuilder) {
+        var cart = cartService.createCart();
+        var cartDto = cartMapper.toDto(cart);
+        var uri = uriBuilder.path("/carts/{cart_id}").buildAndExpand(cartDto.getCartId()).toUri();
+
+        return ResponseEntity.created(uri).body(cartDto);
+    }
+    // Add to cart
+
+    // Get cart
+
+    // Delete cart item
+
+    // Exception handlers
 }

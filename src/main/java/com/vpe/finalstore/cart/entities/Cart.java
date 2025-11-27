@@ -1,10 +1,10 @@
 package com.vpe.finalstore.cart.entities;
 
 import com.vpe.finalstore.customer.entities.Customer;
+import org.hibernate.annotations.Generated;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -28,12 +28,12 @@ public class Cart {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
+    @Generated
     private LocalDateTime createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Generated
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "cart")

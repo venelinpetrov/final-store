@@ -12,7 +12,12 @@ import java.util.UUID;
 @Service
 public class CartService {
     private final CartRepository cartRepository;
+
     public Optional<Cart> getCartWithItems(UUID cartId) {
         return cartRepository.getCartWithItems(cartId);
+    }
+
+    public Cart createCart() {
+        return  cartRepository.save(new Cart());
     }
 }
