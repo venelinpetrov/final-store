@@ -27,8 +27,10 @@ public class CartService {
     }
 
     public CartItem addToCart(UUID cartId, Integer variantId) {
-        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
-        var variant = variantRepository.findByVariantId(variantId).orElseThrow(VariantNotFoundException::new);
+        var cart = cartRepository.getCartWithItems(cartId)
+            .orElseThrow(CartNotFoundException::new);
+        var variant = variantRepository.findByVariantId(variantId)
+            .orElseThrow(VariantNotFoundException::new);
 
         var cartItem = cart.addItem(variant);
 
@@ -37,4 +39,10 @@ public class CartService {
         return cartItem;
     }
 
+    public void deleteCartItem(UUID cartId, Integer variantId) {
+        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
+
+        cart.removeItem(variantId);
+        cartRepository.save(cart);
+    }
 }

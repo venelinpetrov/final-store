@@ -1,11 +1,11 @@
 package com.vpe.finalstore.cart.controllers;
 
 import com.vpe.finalstore.cart.dtos.CartDto;
+import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import com.vpe.finalstore.cart.dtos.CartItemDto;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
-import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,9 +35,12 @@ class CartController {
     ResponseEntity<CartDto> createCart(UriComponentsBuilder uriBuilder) {
         var cart = cartService.createCart();
         var cartDto = cartMapper.toDto(cart);
-        var uri = uriBuilder.path("/carts/{cart_id}").buildAndExpand(cartDto.getCartId()).toUri();
+        var uri = uriBuilder.path("/carts/{cart_id}")
+            .buildAndExpand(cartDto.getCartId())
+            .toUri();
 
-        return ResponseEntity.created(uri).body(cartDto);
+        return ResponseEntity.created(uri)
+            .body(cartDto);
     }
 
     @PostMapping("/{cartId}/items")
@@ -48,12 +51,21 @@ class CartController {
         var cartItem = cartService.addToCart(cartId, body.getVariantId());
         var cartItemDto = cartMapper.toDto(cartItem);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(cartItemDto);
     }
 
     // Get cart
 
     // Delete cart item
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{cartId}/items/{variantId}")
+    public void deleteCartItem(
+        @PathVariable("cartId") UUID cartId,
+        @PathVariable("variantId") Integer variantId
+    ) {
+        cartService.deleteCartItem(cartId, variantId);
+    }
 
     // Exception handlers
 }
