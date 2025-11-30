@@ -39,6 +39,21 @@ public class CartService {
         return cartItem;
     }
 
+    public CartItem updateCartItem(UUID cartId, Integer variantId, short quantity) {
+        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
+        var cartItem = cart.getItem(variantId);
+
+        if (cartItem == null) {
+            throw new VariantNotFoundException();
+        }
+
+        cartItem.setQuantity(quantity);
+
+        cartRepository.save(cart);
+
+        return cartItem;
+    }
+
     public void deleteCartItem(UUID cartId, Integer variantId) {
         var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
 

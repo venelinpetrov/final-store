@@ -3,9 +3,11 @@ package com.vpe.finalstore.cart.controllers;
 import com.vpe.finalstore.cart.dtos.CartDto;
 import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import com.vpe.finalstore.cart.dtos.CartItemDto;
+import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,9 +57,17 @@ class CartController {
             .body(cartItemDto);
     }
 
-    // Get cart
+    @PutMapping("/{cartId}/items/{variantId}")
+    public ResponseEntity<CartItemDto> updateCart(
+        @PathVariable("cartId") UUID cartId,
+        @PathVariable("variantId") Integer variantId,
+        @Valid @RequestBody CartItemUpdateDto body
+    ) {
+        var cartItem = cartService.updateCartItem(cartId, variantId, body.getQuantity());
 
-    // Delete cart item
+        return ResponseEntity.ok(cartMapper.toDto(cartItem));
+    }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{cartId}/items/{variantId}")
     public void deleteCartItem(
