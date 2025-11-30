@@ -1,10 +1,13 @@
 package com.vpe.finalstore.cart.controllers;
 
 import com.vpe.finalstore.cart.dtos.CartDto;
+import com.vpe.finalstore.cart.dtos.CartItemDto;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +39,17 @@ class CartController {
 
         return ResponseEntity.created(uri).body(cartDto);
     }
-    // Add to cart
+
+    @PostMapping("/{cartId}/items")
+    public ResponseEntity<CartItemDto> addToCart(
+        @PathVariable(name = "cartId") UUID cartId,
+        @RequestBody CartItemAddDto body) {
+
+        var cartItem = cartService.addToCart(cartId, body.getVariantId());
+        var cartItemDto = cartMapper.toDto(cartItem);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+    }
 
     // Get cart
 

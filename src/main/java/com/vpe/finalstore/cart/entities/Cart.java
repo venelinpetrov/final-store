@@ -1,6 +1,7 @@
 package com.vpe.finalstore.cart.entities;
 
 import com.vpe.finalstore.customer.entities.Customer;
+import com.vpe.finalstore.product.entities.ProductVariant;
 import org.hibernate.annotations.Generated;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,7 +37,48 @@ public class Cart {
     @Generated
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "cart")
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<CartItem> cartItems = new LinkedHashSet<>();
+
+    public CartItem getItem(Integer variantId) {
+        return cartItems.stream()
+            .filter(item -> item.getVariant().getVariantId().equals(variantId))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public CartItem addItem(ProductVariant variant) {
+        var cartItem = getItem(variant.getVariantId());
+
+        if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
+        } else {
+            cartItem = new CartItem();
+            cartItem.setVariant(variant);
+            cartItem.setQuantity(1);
+            cartItem.setCart(this);
+            cartItems.add(cartItem);
+        }
+
+        return cartItem;
+    }
+
+
+    public void removeItem(Integer variantId) {
+        var cartItem = getItem(variantId);
+
+        if (cartItem != null) {
+            cartItems.remove(cartItem);
+            cartItem.setCart(null);
+        }
+    }
+
+    public boolean isEmpty() {
+        return cartItems.isEmpty();
+    }
+
+    public void clear() {
+        cartItems.clear();
+    }
 
 }
