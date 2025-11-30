@@ -1,6 +1,6 @@
 package com.vpe.finalstore.product.controllers;
 
-import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.dtos.ProductImageAssignmentDto;
 import com.vpe.finalstore.product.dtos.ProductVariantDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
@@ -24,7 +24,7 @@ class ProductVariantController {
     @GetMapping("/{variantId}")
     public ResponseEntity<ProductVariantDto> getVariant(@PathVariable Integer variantId) {
         var variant = variantRepository.findByVariantId(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         return ResponseEntity.ok(variantMapper.toDto(variant));
     }
@@ -53,7 +53,7 @@ class ProductVariantController {
     @PostMapping("/{variantId}/images")
     public ResponseEntity<Void> assignImages(@PathVariable Integer variantId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {
         var variant = variantRepository.findById(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         variantService.assignImages(assignmentDto.getImageIds(), variant);
         return ResponseEntity.ok().build();
@@ -63,7 +63,7 @@ class ProductVariantController {
     @DeleteMapping("/{variantId}/images")
     public void unassignImages(@PathVariable Integer variantId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {
         var variant = variantRepository.findById(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         variantService.unassignImages(assignmentDto.getImageIds(), variant);
     }

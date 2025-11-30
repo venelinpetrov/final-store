@@ -1,13 +1,13 @@
 package com.vpe.finalstore.inventory.services;
 
 import com.vpe.finalstore.exceptions.BadRequestException;
-import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.entities.InventoryLevel;
 import com.vpe.finalstore.inventory.entities.InventoryMovement;
 import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
 import com.vpe.finalstore.inventory.repositories.InventoryMovementRepository;
+import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ public class InventoryMovementService {
     @Transactional
     public void createMovement(InventoryMovementCreateDto dto) {
         var variant = variantRepository.findById(dto.getVariantId())
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         var inventoryItem = inventoryLevelRepository.findByVariantVariantIdForUpdate(variant.getVariantId())
             .orElseGet(() -> inventoryLevelRepository.save(new InventoryLevel(variant, 0)));

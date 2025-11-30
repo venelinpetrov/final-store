@@ -1,11 +1,9 @@
 package com.vpe.finalstore.cart.services;
 
-import com.vpe.finalstore.cart.dtos.CartItemDto;
 import com.vpe.finalstore.cart.entities.Cart;
 import com.vpe.finalstore.cart.entities.CartItem;
 import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.repositories.CartRepository;
-import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import lombok.AllArgsConstructor;

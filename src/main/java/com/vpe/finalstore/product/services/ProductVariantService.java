@@ -1,5 +1,5 @@
 package com.vpe.finalstore.product.services;
-
+import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.enums.MovementType;
@@ -28,7 +28,7 @@ public class ProductVariantService {
     @Transactional
     public void archiveVariant(Integer variantId) {
         var variant = variantRepository.findById(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         variant.setIsArchived(true);
 
@@ -38,7 +38,7 @@ public class ProductVariantService {
     @Transactional
     public void unarchiveVariant(Integer variantId) {
         var variant = variantRepository.findByVariantIdAndIsArchivedIsTrue(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         variant.setIsArchived(false);
 
@@ -48,7 +48,7 @@ public class ProductVariantService {
     @Transactional
     public void updateVariant(Integer variantId, ProductVariantUpdateDto req) {
         var variant = variantRepository.findById(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         variant.setUnitPrice(req.getUnitPrice());
 

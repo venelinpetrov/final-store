@@ -1,10 +1,10 @@
 package com.vpe.finalstore.inventory.controllers;
 
-import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryItemDto;
 import com.vpe.finalstore.inventory.mappers.InventoryLevelMapper;
 import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
 import com.vpe.finalstore.inventory.services.InventoryLevelService;
+import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +39,7 @@ public class InventoryLevelController {
     @GetMapping("/levels/{variantId}")
     public InventoryItemDto getInventoryItem(@PathVariable Integer variantId) {
         var item = inventoryLevelRepository.findByVariantVariantId(variantId)
-            .orElseThrow(() -> new NotFoundException("Variant not found"));
+            .orElseThrow(VariantNotFoundException::new);
 
         return inventoryLevelMapper.toDto(item);
     }
