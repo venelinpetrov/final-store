@@ -7,6 +7,7 @@ import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ class CartController {
     private final CartService cartService;
     private final CartMapper cartMapper;
 
+    @Operation(
+        summary = "Get cart by UUID"
+    )
     @GetMapping("/{cartId}")
     public CartDto getCart(@PathVariable UUID cartId) {
         var cart = cartService.getCartWithItems(cartId)
@@ -33,6 +37,9 @@ class CartController {
         return cartMapper.toDto(cart);
     }
 
+    @Operation(
+        summary = "Create cart"
+    )
     @PostMapping
     ResponseEntity<CartDto> createCart(UriComponentsBuilder uriBuilder) {
         var cart = cartService.createCart();
@@ -45,6 +52,9 @@ class CartController {
             .body(cartDto);
     }
 
+    @Operation(
+        summary = "Add an item to the cart"
+    )
     @PostMapping("/{cartId}/items")
     public ResponseEntity<CartItemDto> addToCart(
         @PathVariable(name = "cartId") UUID cartId,
@@ -57,6 +67,9 @@ class CartController {
             .body(cartItemDto);
     }
 
+    @Operation(
+        summary = "Update cart"
+    )
     @PutMapping("/{cartId}/items/{variantId}")
     public ResponseEntity<CartItemDto> updateCart(
         @PathVariable("cartId") UUID cartId,
@@ -68,6 +81,9 @@ class CartController {
         return ResponseEntity.ok(cartMapper.toDto(cartItem));
     }
 
+    @Operation(
+        summary = "Delete cart item"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{cartId}/items/{variantId}")
     public void deleteCartItem(
@@ -77,6 +93,9 @@ class CartController {
         cartService.deleteCartItem(cartId, variantId);
     }
 
+    @Operation(
+        summary = "Empty/clear cart"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{cartId}/items")
     public void clearCart(@PathVariable("cartId") UUID cartId) {
