@@ -60,4 +60,10 @@ public class CartService {
         cart.removeItem(variantId);
         cartRepository.save(cart);
     }
+
+    public void clearCart(UUID cartId) {
+        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
+        cart.clear();
+        cartRepository.save(cart);
+    }
 }

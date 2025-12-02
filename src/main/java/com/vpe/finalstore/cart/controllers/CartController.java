@@ -77,5 +77,9 @@ class CartController {
         cartService.deleteCartItem(cartId, variantId);
     }
 
-    // Exception handlers
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{cartId}/items")
+    public void clearCart(@PathVariable("cartId") UUID cartId) {
+        cartService.clearCart(cartId);
+    }
 }
