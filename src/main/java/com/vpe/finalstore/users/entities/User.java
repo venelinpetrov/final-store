@@ -1,5 +1,6 @@
 package com.vpe.finalstore.users.entities;
 
+import com.vpe.finalstore.customer.entities.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -29,6 +30,9 @@ public class User {
 
     @Column(name = "is_active")
     private Boolean isActive;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Customer customer;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

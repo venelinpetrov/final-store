@@ -1,5 +1,6 @@
 package com.vpe.finalstore.users.entities;
 
+import com.vpe.finalstore.users.enums.RoleEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -16,8 +17,9 @@ public class Role {
     private Integer roleId;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "name")
-    private String name;
+    private RoleEnum name;
 
     @Column(name = "description")
     private String description;
