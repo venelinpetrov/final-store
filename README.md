@@ -79,3 +79,8 @@ Optionally, install [DBeaver](https://dbeaver.io/download/) as well.
     ls /usr/lib/jvm
     ```
 7. Add Spring Boot configuration and select the Main class
+8. Copy the `.env.example` file and name it `.env`
+9. Generate JWT secret (Mac / Ubuntu) and assign it to `JWT_SECRET`
+   ```bash
+   openssl rand -base64 64
+   ```

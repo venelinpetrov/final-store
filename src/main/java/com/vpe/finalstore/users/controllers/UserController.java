@@ -1,4 +1,4 @@
-package com.vpe.finalstore.users;
+package com.vpe.finalstore.users.controllers;
 
 import com.vpe.finalstore.users.dtos.UserCreateDto;
 import com.vpe.finalstore.users.dtos.UserDto;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 class UserController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
