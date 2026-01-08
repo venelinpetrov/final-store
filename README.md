@@ -6,6 +6,10 @@ This project is a comprehensive Java Spring Boot exercise for an e-commerce stor
 
 Find the roadmap [here](https://github.com/users/venelinpetrov/projects/2/views/1)
 
+## Related projects
+
+- Database design: [link](https://github.com/venelinpetrov/db-my-store)
+- Seed script: [link](https://github.com/venelinpetrov/my-store-seed-script)
 
 ## Setup
 
@@ -34,9 +38,6 @@ Optionally, install [DBeaver](https://dbeaver.io/download/) as well.
 ### Setup
 
 1. User setup
-    ```bash 
-   mysql
-    ```
     ```mysql
     ALTER USER 'root'@'localhost' IDENTIFIED BY '0000';
     FLUSH PRIVILEGES;
@@ -44,16 +45,21 @@ Optionally, install [DBeaver](https://dbeaver.io/download/) as well.
     ```
 2. Create a table `my_store`
 
-    ```bash
-    mysql
-    
+    ```mysql
     CREATE DATABASE my_store;
     ```
-
-3. Run the migrations by going to the plugins in IntelliJ and clicking on `flyway:migrate`
-
-4. Run the seed script from here: [link](https://github.com/venelinpetrov/my-store-seed-script)
-5. Configure the JDK in IntelliJ: [link](https://www.jetbrains.com/help/idea/sdk.html#change-module-sdk)
+3. Connect to the database in IntelliJ
+    - Select the Database tab on the right
+    - Select New > Datasource > MySQL
+    - Fill the necessary fields
+      - Name: `my-store-db`
+      - User: `root`
+      - Password: `0000`
+      - Database Name: `my_store`
+      - The final URL should look like this: `jdbc:mysql://localhost:3306/my_store`
+4. Run the migrations by going to the plugins in IntelliJ and clicking on `flyway:migrate`
+5. Run the seed script from here: [link](https://github.com/venelinpetrov/my-store-seed-script)
+6. Configure the JDK in IntelliJ: [link](https://www.jetbrains.com/help/idea/sdk.html#change-module-sdk)
     ```bash
     # Typical JDK locations MacOS
     /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
@@ -72,4 +78,4 @@ Optionally, install [DBeaver](https://dbeaver.io/download/) as well.
     # Ubuntu
     ls /usr/lib/jvm
     ```
-6. Add Spring Boot configuration and select the Main class
+7. Add Spring Boot configuration and select the Main class
