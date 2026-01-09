@@ -22,4 +22,8 @@ public class UserCreateDto {
     @NotBlank(message = "Password is required")
     @Size(min = 6, max = 25, message = "Password must be between 6 and 25 characters long")
     private String password;
+
+    @NotBlank
+    // TODO Phone validation
+    private String phone;
 }

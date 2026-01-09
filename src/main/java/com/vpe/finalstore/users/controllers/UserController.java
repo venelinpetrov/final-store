@@ -1,11 +1,14 @@
 package com.vpe.finalstore.users.controllers;
 
+import com.vpe.finalstore.customer.entities.Customer;
+import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.users.dtos.UserCreateDto;
 import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.enums.RoleEnum;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.RoleRepository;
 import com.vpe.finalstore.users.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,21 +29,30 @@ class UserController {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final CustomerRepository customerRepository;
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto data, UriComponentsBuilder uriBuilder) {
         // TODO abstract this into a service
+
         if (userRepository.existsByEmail(data.getEmail())) {
             return ResponseEntity.badRequest().build();
         }
 
         var userEntity = userMapper.toEntity(data);
+
         userEntity.setPasswordHash(passwordEncoder.encode(data.getPassword()));
 
         // TODO Get OR create the role
         var role = roleRepository.getRoleByName(RoleEnum.USER);
         userEntity.setRoles(Set.of(role));
         userRepository.save(userEntity);
+
+        Customer customer = new Customer();
+        customer.setName(data.getName());
+        customer.setPhone(data.getPhone());
+        customer.setUser(userEntity);
+        customerRepository.save(customer);
 
         var userDto = userMapper.toDto(userEntity);
         var uri = uriBuilder
