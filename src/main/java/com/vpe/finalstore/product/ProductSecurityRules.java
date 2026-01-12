@@ -13,6 +13,10 @@ public class ProductSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry
-            .requestMatchers(HttpMethod.GET, "/api/tags").permitAll();
+            .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/brands").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/variants/{variantId}").permitAll();
     }
 }

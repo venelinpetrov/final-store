@@ -16,7 +16,6 @@ public class JwtConfig {
     private int accessTokenExpiration;
     private int refreshTokenExpiration;
     public SecretKey getSigningKey() {
-        System.out.println(">>>>>>>" + secret);
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 }
