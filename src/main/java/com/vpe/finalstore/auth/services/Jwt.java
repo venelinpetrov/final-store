@@ -2,6 +2,8 @@ package com.vpe.finalstore.auth.services;
 
 import io.jsonwebtoken.Claims;
 
+import java.util.List;
+
 public class Jwt {
     private final Claims claims;
     private final String token;
@@ -15,8 +17,12 @@ public class Jwt {
         return Integer.valueOf(claims.getSubject());
     }
 
-    public String getRole() {
-        return claims.get("role", String.class);
+    public List<String> getRoles() {
+        Object raw = claims.get("roles");
+        if (raw instanceof List<?> list) {
+            return list.stream().map(String::valueOf).toList();
+        }
+        return List.of();
     }
 
     public boolean isExpired() {
