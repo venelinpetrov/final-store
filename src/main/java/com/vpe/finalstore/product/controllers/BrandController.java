@@ -32,7 +32,11 @@ public class BrandController {
     private final BrandMapper brandMapper;
 
     @GetMapping
-    public ResponseEntity<Page<BrandDto>> getAllBrands(Pageable pageable) {
+    public ResponseEntity<Page<BrandDto>> getAllBrands(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
         var brandPage = brandRepository.findAll(pageable);
         var brandDtoPage = brandPage.map(brandMapper::toDto);
 
