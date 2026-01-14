@@ -1,13 +1,13 @@
 package com.vpe.finalstore.auth.filters;
 
 import com.vpe.finalstore.auth.services.JwtService;
+import com.vpe.finalstore.users.enums.RoleEnum;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -46,8 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         var userId = jwt.getUserId();
 
         var authorities = jwt.getRoles().stream()
-                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r) // avoid double prefixing
-                .map(SimpleGrantedAuthority::new)
+                .map(RoleEnum::valueOf)
+                .map(RoleEnum::toAuthority)
                 .toList();
 
         var authentication = new UsernamePasswordAuthenticationToken(

@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(c -> {
                     featureSecurityRules.forEach(r -> r.configure(c));
-                    c.anyRequest().authenticated();
+                    c.anyRequest().denyAll();
                 })
                 .cors(c -> {})
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
