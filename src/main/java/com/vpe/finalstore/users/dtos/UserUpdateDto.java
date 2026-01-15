@@ -4,12 +4,10 @@ import com.vpe.finalstore.common.validation.Lowercase;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
-public class UserCreateDto {
+public class UserUpdateDto {
     @NotBlank(message = "Name is required")
     @Size(max = 255, message = "Name must be less than 256 characters")
     private String name;

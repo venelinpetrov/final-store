@@ -4,18 +4,17 @@ import com.vpe.finalstore.customer.entities.Customer;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.users.dtos.UserCreateDto;
 import com.vpe.finalstore.users.dtos.UserDto;
+import com.vpe.finalstore.users.dtos.UserUpdateDto;
 import com.vpe.finalstore.users.enums.RoleEnum;
+import com.vpe.finalstore.users.exceptions.UserNotFoundException;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.RoleRepository;
 import com.vpe.finalstore.users.repositories.UserRepository;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -30,6 +29,7 @@ class UserController {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final CustomerRepository customerRepository;
+
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto data, UriComponentsBuilder uriBuilder) {
@@ -61,5 +61,23 @@ class UserController {
             .toUri();
 
         return ResponseEntity.created(uri).body(userDto);
+    }
+
+    @PreAuthorize("hasAuthority(T(com.vpe.finalstore.users.enums.RoleEnum).ADMIN.authority()) or #userId == authentication.principal")
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUser(
+            @PathVariable("userId") Integer userId,
+            @Valid @RequestBody UserUpdateDto data
+    ) {
+        var user = userRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+
+        user.getCustomer().setName(data.getName());
+        user.setEmail(data.getEmail());
+        user.getCustomer().setPhone(data.getPhone());
+
+        userRepository.save(user);
+        customerRepository.save(user.getCustomer());
+
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 }

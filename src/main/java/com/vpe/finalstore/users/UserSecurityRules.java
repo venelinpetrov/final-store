@@ -15,5 +15,6 @@ public class UserSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry.requestMatchers(HttpMethod.POST, "/api/users").hasAuthority(ADMIN.authority());
+        registry.requestMatchers(HttpMethod.PUT, "/api/users/*").authenticated();
     }
 }
