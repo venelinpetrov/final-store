@@ -8,11 +8,11 @@ public enum RoleEnum {
     ADMIN;
 
     public String role() {
-        return name(); // for hasRole()
+        return name();
     }
 
     public String authority() {
-        return "ROLE_" + name(); // for hasAuthority()
+        return "ROLE_" + name();
     }
 
     public GrantedAuthority toAuthority() {
