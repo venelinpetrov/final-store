@@ -1,9 +1,11 @@
 package com.vpe.finalstore.auth.controllers;
 
 import com.vpe.finalstore.auth.config.JwtConfig;
+import com.vpe.finalstore.auth.dtos.ChangePasswordRequest;
 import com.vpe.finalstore.auth.dtos.JwtResponse;
 import com.vpe.finalstore.auth.dtos.LoginDto;
 import com.vpe.finalstore.auth.services.JwtService;
+import com.vpe.finalstore.auth.services.PasswordService;
 import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.UserRepository;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthController {
     private final AuthenticationManager authenticationManager;
+    private final PasswordService passwordService;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -76,6 +80,16 @@ public class AuthController {
         var userDto = userMapper.toDto(user);
 
         return ResponseEntity.ok(userDto);
+    }
+
+    @PostMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+        @Valid @RequestBody ChangePasswordRequest request,
+        Authentication authentication
+    ) {
+        passwordService.changePassword(authentication, request);
+
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(BadCredentialsException.class)
