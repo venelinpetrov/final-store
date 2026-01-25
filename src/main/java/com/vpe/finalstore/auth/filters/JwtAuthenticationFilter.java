@@ -2,11 +2,13 @@ package com.vpe.finalstore.auth.filters;
 
 import com.vpe.finalstore.auth.services.JwtService;
 import com.vpe.finalstore.users.enums.RoleEnum;
+import com.vpe.finalstore.users.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -20,6 +22,7 @@ import java.io.IOException;
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -45,10 +48,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var userId = jwt.getUserId();
 
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new BadCredentialsException("User not found"));
+
         var authorities = jwt.getRoles().stream()
                 .map(RoleEnum::valueOf)
                 .map(RoleEnum::toAuthority)
                 .toList();
+
+        if (!jwt.getTokenVersion().equals(user.getTokenVersion())) {
+            throw new BadCredentialsException("Token revoked");
+        }
 
         var authentication = new UsernamePasswordAuthenticationToken(
             userId,

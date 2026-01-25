@@ -29,6 +29,10 @@ public class Jwt {
         return claims.getExpiration().before(new java.util.Date());
     }
 
+    public Integer getTokenVersion() {
+        return (Integer) claims.get("ver");
+    }
+
     @Override
     public String toString() {
         return token;

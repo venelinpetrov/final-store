@@ -37,6 +37,9 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "token_version")
+    private Integer tokenVersion = 0;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

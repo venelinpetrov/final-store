@@ -31,5 +31,7 @@ public class PasswordService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+
+        user.setTokenVersion(user.getTokenVersion() + 1);
     }
 }
