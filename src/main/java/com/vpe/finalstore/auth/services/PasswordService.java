@@ -22,9 +22,10 @@ public class PasswordService {
             throw new BadRequestException("Passwords do not match");
         }
 
-        Integer userId = Integer.valueOf(authentication.getName());
+        var userId = Integer.valueOf(authentication.getName());
 
-        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        var user = userRepository.findById(userId)
+            .orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw new BadRequestException("Password is incorrect");
