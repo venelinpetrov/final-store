@@ -45,7 +45,7 @@ public class BrandController {
 
     @GetMapping("/{brandId}/products")
     public Page<ProductDto> getProducts(
-        @PathVariable("brandId") Integer brandId,
+        @PathVariable Integer brandId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {

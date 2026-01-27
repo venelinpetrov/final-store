@@ -56,10 +56,7 @@ class CartController {
         summary = "Add an item to the cart"
     )
     @PostMapping("/{cartId}/items")
-    public ResponseEntity<CartItemDto> addToCart(
-        @PathVariable(name = "cartId") UUID cartId,
-        @RequestBody CartItemAddDto body) {
-
+    public ResponseEntity<CartItemDto> addToCart(@PathVariable UUID cartId, @RequestBody CartItemAddDto body) {
         var cartItem = cartService.addToCart(cartId, body.getVariantId());
         var cartItemDto = cartMapper.toDto(cartItem);
 
@@ -72,8 +69,8 @@ class CartController {
     )
     @PutMapping("/{cartId}/items/{variantId}")
     public ResponseEntity<CartItemDto> updateCart(
-        @PathVariable("cartId") UUID cartId,
-        @PathVariable("variantId") Integer variantId,
+        @PathVariable UUID cartId,
+        @PathVariable Integer variantId,
         @Valid @RequestBody CartItemUpdateDto body
     ) {
         var cartItem = cartService.updateCartItem(cartId, variantId, body.getQuantity());
@@ -86,10 +83,7 @@ class CartController {
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{cartId}/items/{variantId}")
-    public void deleteCartItem(
-        @PathVariable("cartId") UUID cartId,
-        @PathVariable("variantId") Integer variantId
-    ) {
+    public void deleteCartItem(@PathVariable UUID cartId, @PathVariable Integer variantId) {
         cartService.deleteCartItem(cartId, variantId);
     }
 
@@ -98,7 +92,7 @@ class CartController {
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{cartId}/items")
-    public void clearCart(@PathVariable("cartId") UUID cartId) {
+    public void clearCart(@PathVariable UUID cartId) {
         cartService.clearCart(cartId);
     }
 }
