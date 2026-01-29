@@ -1,0 +1,47 @@
+# Development Dockerfile with hot reload support
+FROM maven:3.9.11-eclipse-temurin-21-alpine
+
+WORKDIR /app
+
+# Install bash for better shell support
+RUN apk add --no-cache bash
+
+# Copy Maven wrapper and pom.xml
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+
+# Make mvnw executable
+RUN chmod +x mvnw
+
+# Download dependencies (this layer will be cached)
+RUN ./mvnw dependency:go-offline -B || true
+
+# The source code will be mounted as a volume
+# This allows for hot reload without rebuilding the image
+
+# Expose the application port and debug port
+EXPOSE 8080 5005
+
+# Run with Spring Boot DevTools enabled and debug mode
+# Install inotify-tools for file watching
+RUN apk add --no-cache inotify-tools
+
+# Create a startup script that compiles on file changes
+RUN echo '#!/bin/bash' > /start-dev.sh && \
+    echo 'set -e' >> /start-dev.sh && \
+    echo '' >> /start-dev.sh && \
+    echo '# Start Maven in the background' >> /start-dev.sh && \
+    echo './mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" &' >> /start-dev.sh && \
+    echo 'MAVEN_PID=$!' >> /start-dev.sh && \
+    echo '' >> /start-dev.sh && \
+    echo '# Watch for file changes and trigger recompilation' >> /start-dev.sh && \
+    echo 'while true; do' >> /start-dev.sh && \
+    echo '  inotifywait -r -e modify,create,delete /app/src && echo "File change detected, recompiling..." && ./mvnw compile' >> /start-dev.sh && \
+    echo 'done &' >> /start-dev.sh && \
+    echo '' >> /start-dev.sh && \
+    echo '# Wait for Maven process' >> /start-dev.sh && \
+    echo 'wait $MAVEN_PID' >> /start-dev.sh && \
+    chmod +x /start-dev.sh
+
+CMD ["/start-dev.sh"]
+

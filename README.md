@@ -1,86 +1,227 @@
-## 🚧 Under construction 🚧
+# Final Store
 
-# The "Final store" Project
+A comprehensive Java Spring Boot e-commerce store API.
 
-This project is a comprehensive Java Spring Boot exercise for an e-commerce store API.
+## Project Links
 
-Find the roadmap [here](https://github.com/users/venelinpetrov/projects/2/views/1)
+- [Roadmap](https://github.com/users/venelinpetrov/projects/2/views/1)
+- [Database design](https://github.com/venelinpetrov/db-my-store)
+- [Seed script](https://github.com/venelinpetrov/my-store-seed-script)
 
-## Related projects
+## Documentation
 
-- Database design: [link](https://github.com/venelinpetrov/db-my-store)
-- Seed script: [link](https://github.com/venelinpetrov/my-store-seed-script)
+- [Development Guide](DEVELOPMENT.md) - Hot reload, debugging, and workflow
+- [Docker Guide](DOCKER.md) - Detailed Docker documentation
+- [Quick Start Guide](QUICK_START.md) - Quick reference
 
-## Setup
+## Prerequisites
 
-### Prerequisites 
+Choose one of the following setup options:
 
-1. Java
-    - Install via Homebrew
-    ```bash 
-    brew install openjdk@21
-    ```
-2. MySQL
-    - Install via Homebrew
-   ```bash
-   brew install mysql
-   ```
-   
-    - Start the service
-    ```bash
-    brew services start mysql
-    ```
-3. Python 3
-   - Should be included if you use Mac or Ubuntu
+### Option 1: Local Setup
 
-Optionally, install [DBeaver](https://dbeaver.io/download/) as well.
+**Required:**
+- Java 21
+- MySQL 8.0
+- Python 3 (for seed script)
 
-### Setup
+**Installation (macOS):**
+```bash
+# Install Java 21
+brew install openjdk@21
 
-1. User setup
-    ```mysql
-    ALTER USER 'root'@'localhost' IDENTIFIED BY '0000';
-    FLUSH PRIVILEGES;
-    EXIT;
-    ```
-2. Create a table `my_store`
+# Install MySQL
+brew install mysql
+brew services start mysql
+```
 
-    ```mysql
-    CREATE DATABASE my_store;
-    ```
-3. Connect to the database in IntelliJ
-    - Select the Database tab on the right
-    - Select New > Datasource > MySQL
-    - Fill the necessary fields
-      - Name: `my-store-db`
-      - User: `root`
-      - Password: `0000`
-      - Database Name: `my_store`
-      - The final URL should look like this: `jdbc:mysql://localhost:3306/my_store`
-4. Run the migrations by going to the plugins in IntelliJ and clicking on `flyway:migrate`
-5. Run the seed script from here: [link](https://github.com/venelinpetrov/my-store-seed-script)
-6. Configure the JDK in IntelliJ: [link](https://www.jetbrains.com/help/idea/sdk.html#change-module-sdk)
-    ```bash
-    # Typical JDK locations MacOS
-    /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
-    /Library/Java/JavaVirtualMachines/openjdk-21.jdk/Contents/Home
-   
-    # Typical JDK locations Ubuntu
-    /usr/lib/jvm/java-17-openjdk-amd64/
-    /usr/lib/jvm/java-21-openjdk-amd64/
-    ```
-   
-    Or you can find the location using:
-    ```bash
-    # MacOS
-    /usr/libexec/java_home -V
-   
-    # Ubuntu
-    ls /usr/lib/jvm
-    ```
-7. Add Spring Boot configuration and select the Main class
-8. Copy the `.env.example` file and name it `.env`
-9. Generate JWT secret (Mac / Ubuntu) and assign it to `JWT_SECRET`
-   ```bash
-   openssl rand -base64 64
-   ```
+**Installation (Ubuntu):**
+```bash
+# Install Java 21
+sudo apt update
+sudo apt install openjdk-21-jdk
+
+# Install MySQL
+sudo apt install mysql-server
+sudo systemctl start mysql
+sudo systemctl enable mysql
+```
+
+**Optional:**
+- [DBeaver](https://dbeaver.io/download/) for database management
+- IntelliJ IDEA for development
+
+### Option 2: Docker Setup
+
+**Required:**
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+**Use this option if:**
+- You don't want to install Java / MySQL locally
+- You want an isolated environment
+
+## Setup Instructions
+
+### Local Setup
+
+#### 1. Configure MySQL
+
+```bash
+# Connect to MySQL
+mysql -u root
+
+# Set root password and create database
+ALTER USER 'root'@'localhost' IDENTIFIED BY '0000';
+FLUSH PRIVILEGES;
+CREATE DATABASE my_store;
+EXIT;
+```
+
+#### 2. Configure Environment Variables
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Generate JWT secret
+openssl rand -base64 64
+
+# Edit .env and set JWT_SECRET to the generated value
+```
+
+#### 3. Configure IntelliJ IDEA
+
+**Set up JDK:**
+1. Go to File > Project Structure > Project
+2. Set SDK to Java 21
+
+Find JDK location if needed:
+```bash
+# macOS
+/usr/libexec/java_home -V
+
+# Ubuntu
+ls /usr/lib/jvm
+```
+
+Common locations:
+- macOS: `/Library/Java/JavaVirtualMachines/openjdk-21.jdk/Contents/Home`
+- Ubuntu: `/usr/lib/jvm/java-21-openjdk-amd64/`
+
+**Set up database connection:**
+1. Open Database tab (right side)
+2. Click + > Data Source > MySQL
+3. Configure:
+   - Host: `localhost`
+   - Port: `3306`
+   - User: `root`
+   - Password: `0000`
+   - Database: `my_store`
+
+**Run migrations:**
+1. Open Maven tool window
+2. Navigate to Plugins > flyway
+3. Run `flyway:migrate`
+
+**Create run configuration:**
+1. Run > Edit Configurations
+2. Add new Spring Boot configuration
+3. Select main class: `com.vpe.finalstore.FinalStoreApplication`
+4. Run the application
+
+#### 4. Seed the Database
+
+Run the seed script from [here](https://github.com/venelinpetrov/my-store-seed-script)
+
+#### 5. Access the Application
+
+- API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger-ui.html
+
+### Docker Setup
+
+Docker Compose sets up both the application and MySQL database with a single command.
+
+#### 1. Configure Environment Variables
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Generate JWT secret
+openssl rand -base64 64
+
+# Edit .env and set JWT_SECRET to the generated value
+```
+
+#### 2. Start the Application
+
+**Development mode (with hot reload):**
+```bash
+make dev
+```
+
+Features:
+- Automatically reloads when you change Java files
+- No rebuild needed after code changes
+- Debug port available on 5005
+- Useful when you don't have Java installed locally
+
+**Production mode:**
+```bash
+make start
+```
+
+Note: In production mode, rebuild after code changes:
+```bash
+make build
+```
+
+**All available commands:**
+```bash
+make help
+```
+
+#### 3. Seed the Database
+
+Connect to MySQL:
+```bash
+# From Docker container
+docker exec -it final-store-mysql mysql -uroot -p0000 my_store
+
+# From host machine
+mysql -h 127.0.0.1 -P 3307 -u root -p0000 my_store
+```
+
+Run the seed script from [here](https://github.com/venelinpetrov/my-store-seed-script)
+
+#### 4. Access the Application
+
+- API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger-ui.html
+
+## Additional Information
+
+### Migrations
+
+Flyway migrations run automatically when the application starts. The database schema is created on first startup.
+
+### Common Tasks
+
+**View logs (Docker):**
+```bash
+make logs
+```
+
+**Stop the application (Docker):**
+```bash
+make stop          # Production mode
+make dev-stop      # Development mode
+```
+
+**Database shell (Docker):**
+```bash
+make db-shell      # Production mode
+make db-shell-dev  # Development mode
+```
