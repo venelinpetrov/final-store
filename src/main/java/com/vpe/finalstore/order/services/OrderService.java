@@ -1,5 +1,7 @@
 package com.vpe.finalstore.order.services;
 
+import com.vpe.finalstore.cart.repositories.CartRepository;
+import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.customer.repositories.CustomerAddressRepository;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
@@ -8,6 +10,7 @@ import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
+import com.vpe.finalstore.order.dtos.OrderFromCartDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.entities.Order;
@@ -26,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @AllArgsConstructor
 @Service
@@ -36,6 +40,8 @@ public class OrderService {
     private final CustomerAddressRepository customerAddressRepository;
     private final ProductVariantRepository variantRepository;
     private final InventoryMovementService inventoryMovementService;
+    private final CartRepository cartRepository;
+    private final CartService cartService;
     private final OrderMapper orderMapper;
 
     @Transactional
@@ -90,6 +96,65 @@ public class OrderService {
         return orderMapper.toDto(order);
     }
 
+    @Transactional
+    public OrderDto createOrderFromCart(UUID cartId, OrderFromCartDto dto) {
+        var cart = cartRepository.getCartWithItems(cartId)
+            .orElseThrow(() -> new NotFoundException("Cart not found"));
+
+        if (cart.isEmpty()) {
+            throw new BadRequestException("Cannot create order from empty cart");
+        }
+
+        var customer = customerRepository.findById(dto.getCustomerId())
+            .orElseThrow(() -> new NotFoundException("Customer not found"));
+
+        var address = customerAddressRepository.findById(dto.getAddressId())
+            .orElseThrow(() -> new NotFoundException("Address not found"));
+
+        if (!address.getCustomer().getCustomerId().equals(customer.getCustomerId())) {
+            throw new BadRequestException("Address does not belong to customer");
+        }
+
+        var pendingStatus = orderStatusRepository.findByName(OrderStatusType.PENDING)
+            .orElseThrow(() -> new NotFoundException("Order status PENDING not found"));
+
+        // Create order
+        var order = new Order();
+        order.setCustomer(customer);
+        order.setAddress(address);
+        order.setStatus(pendingStatus);
+
+        // Convert cart items to order items
+        for (var cartItem : cart.getCartItems()) {
+            var variant = cartItem.getVariant();
+
+            if (Boolean.TRUE.equals(variant.getIsArchived())) {
+                throw new BadRequestException("Cannot order archived variant: " + variant.getSku());
+            }
+
+            // Create order item with denormalized data
+            var orderItem = new OrderItem();
+            var orderItemId = new OrderItemId();
+            orderItem.setOrderItemId(orderItemId);
+            orderItem.setOrder(order);
+            orderItem.setVariant(variant);
+            orderItem.setQuantity((int) cartItem.getQuantity());
+            orderItem.setProductName(variant.getProduct().getName());
+            orderItem.setSku(variant.getSku());
+            orderItem.setBrandName(variant.getProduct().getBrand() != null ?
+                variant.getProduct().getBrand().getName() : null);
+            orderItem.setUnitPrice(variant.getUnitPrice());
+
+            order.getOrderItems().add(orderItem);
+        }
+
+        order = orderRepository.save(order);
+
+        cartService.clearCart(cartId);
+
+        return orderMapper.toDto(order);
+    }
+
     public OrderDto getOrderById(Integer orderId) {
         var order = orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
@@ -110,17 +175,13 @@ public class OrderService {
         var currentStatus = order.getStatus().getName();
         var newStatus = dto.getStatus();
 
-        // Validate status transition
         validateStatusTransition(currentStatus, newStatus);
 
-        // Get new status entity
         var newStatusEntity = orderStatusRepository.findByName(newStatus)
             .orElseThrow(() -> new NotFoundException("Order status not found: " + newStatus));
 
-        // Handle inventory based on status change
         handleInventoryForStatusChange(order, currentStatus, newStatus);
 
-        // Update status
         order.setStatus(newStatusEntity);
         order = orderRepository.save(order);
 
@@ -128,7 +189,6 @@ public class OrderService {
     }
 
     private void validateStatusTransition(OrderStatusType currentStatus, OrderStatusType newStatus) {
-        // Define valid transitions
         var validTransitions = switch (currentStatus) {
             case PENDING -> List.of(OrderStatusType.SHIPPED, OrderStatusType.CANCELED);
             case SHIPPED -> List.of(OrderStatusType.DELIVERED, OrderStatusType.RETURNED);

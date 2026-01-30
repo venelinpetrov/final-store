@@ -15,6 +15,7 @@ public class OrderSecurityRules implements SecurityRules {
     ) {
         registry
             .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/orders/from-cart/*").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/orders/*").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/orders/customers/*").authenticated()
             .requestMatchers(HttpMethod.PATCH, "/api/orders/*/status").authenticated();

@@ -2,6 +2,7 @@ package com.vpe.finalstore.order.controllers;
 
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
+import com.vpe.finalstore.order.dtos.OrderFromCartDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.UUID;
 
 @AllArgsConstructor
 @RestController
@@ -31,6 +34,23 @@ class OrderController {
         UriComponentsBuilder uriBuilder
     ) {
         var order = orderService.createOrder(dto);
+        var uri = uriBuilder.path("/api/orders/{orderId}")
+            .buildAndExpand(order.getOrderId())
+            .toUri();
+
+        return ResponseEntity.created(uri).body(order);
+    }
+
+    @Operation(
+        summary = "Create order from cart"
+    )
+    @PostMapping("/from-cart/{cartId}")
+    public ResponseEntity<OrderDto> createOrderFromCart(
+        @PathVariable UUID cartId,
+        @Valid @RequestBody OrderFromCartDto dto,
+        UriComponentsBuilder uriBuilder
+    ) {
+        var order = orderService.createOrderFromCart(cartId, dto);
         var uri = uriBuilder.path("/api/orders/{orderId}")
             .buildAndExpand(order.getOrderId())
             .toUri();
