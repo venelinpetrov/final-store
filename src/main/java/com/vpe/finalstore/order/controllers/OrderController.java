@@ -2,6 +2,7 @@ package com.vpe.finalstore.order.controllers;
 
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
+import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.services.OrderService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 class OrderController {
     private final OrderService orderService;
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(
         @Valid @RequestBody OrderCreateDto dto,
@@ -49,5 +49,15 @@ class OrderController {
     ) {
         var orders = orderService.getOrdersByCustomer(customerId, pageable);
         return ResponseEntity.ok(orders);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<OrderDto> updateOrderStatus(
+        @PathVariable Integer orderId,
+        @Valid @RequestBody OrderUpdateStatusDto dto
+    ) {
+        var order = orderService.updateOrderStatus(orderId, dto);
+        return ResponseEntity.ok(order);
     }
 }
