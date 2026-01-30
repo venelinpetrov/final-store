@@ -9,6 +9,7 @@ import com.vpe.finalstore.product.repositories.ProductRepository;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
 import com.vpe.finalstore.product.services.ProductVariantService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,9 @@ public class ProductController {
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantService productVariantService;
 
+    @Operation(
+        summary = "Get all products with optional brand filter"
+    )
     @GetMapping
     public Page<ProductSummaryDto> getProducts(
         @RequestParam(value = "brandId", required = false) Integer brandId,
@@ -54,6 +58,9 @@ public class ProductController {
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
 
+    @Operation(
+        summary = "Get product by ID"
+    )
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDto> getProduct(@PathVariable Integer productId) {
         var product = productRepository.findProductByProductId(productId)
@@ -63,6 +70,9 @@ public class ProductController {
     }
 
 
+    @Operation(
+        summary = "Get all variants for a product"
+    )
     @GetMapping("/{productId}/variants")
     public List<ProductVariantDto> getProductVariants(@PathVariable Integer productId) {
         var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
@@ -71,6 +81,9 @@ public class ProductController {
         return productVariantMapper.toDto(variants);
     }
 
+    @Operation(
+        summary = "Create a new product"
+    )
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateDto req) {
         var product = productService.createProduct(req);
@@ -81,6 +94,9 @@ public class ProductController {
             .body(dto);
     }
 
+    @Operation(
+        summary = "Get products matching any of the specified tags"
+    )
     @GetMapping("/by-any-tags")
     public ResponseEntity<Page<ProductDto>> getProductsByTags(@RequestParam("tags") Set<String> tagNames, Pageable pageable) {
         if (tagNames.isEmpty()) {
@@ -94,6 +110,9 @@ public class ProductController {
         return ResponseEntity.ok(productDtoPage);
     }
 
+    @Operation(
+        summary = "Get products matching all of the specified tags"
+    )
     @GetMapping("/by-all-tags")
     public ResponseEntity<Page<ProductDto>> getProductsByAllTags(@RequestParam("tags") Set<String> tagNames, Pageable pageable) {
         if (tagNames.isEmpty()) {
@@ -107,6 +126,9 @@ public class ProductController {
         return ResponseEntity.ok(productDtoPage);
     }
 
+    @Operation(
+        summary = "Update a product"
+    )
     @PutMapping("/{productId}")
     public ResponseEntity<ProductDto> updateProduct(
         @PathVariable Integer productId,
@@ -117,22 +139,34 @@ public class ProductController {
         return ResponseEntity.ok(productMapper.toDto(product));
     }
 
+    @Operation(
+        summary = "Delete a product"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{productId}")
     public void deleteProduct(@PathVariable Integer productId) {
         productRepository.deleteById(productId);
     }
 
+    @Operation(
+        summary = "Archive a product"
+    )
     @PostMapping("/{productId}/archive")
     public void archiveProduct(@PathVariable Integer productId) {
         productService.archiveProduct(productId);
     }
 
+    @Operation(
+        summary = "Unarchive a product"
+    )
     @PostMapping("/{productId}/unarchive")
     public void unarchiveProduct(@PathVariable Integer productId) {
         productService.unarchiveProduct(productId);
     }
 
+    @Operation(
+        summary = "Add a variant to a product"
+    )
     @PostMapping("/{productId}/variants")
     public ProductVariantDto addVariant(@PathVariable Integer productId, @Valid @RequestBody ProductVariantCreateDto variantDto) {
         var product = productRepository.findById(productId)
@@ -143,6 +177,9 @@ public class ProductController {
         return productVariantMapper.toDto(variant);
     }
 
+    @Operation(
+        summary = "Assign images to a product"
+    )
     @PostMapping("/{productId}/images")
     public ResponseEntity<Void> assignImages(@PathVariable Integer productId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {
         var product = productRepository.findById(productId)
@@ -152,6 +189,9 @@ public class ProductController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+        summary = "Unassign images from a product"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{productId}/images")
     public void unassignImages(@PathVariable Integer productId, @Valid @RequestBody ProductImageAssignmentDto assignmentDto) {

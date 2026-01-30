@@ -9,6 +9,7 @@ import com.vpe.finalstore.auth.services.PasswordService;
 import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -33,6 +34,9 @@ public class AuthController {
     private final UserMapper userMapper;
     private final JwtConfig jwtConfig;
 
+    @Operation(
+        summary = "Login with email and password"
+    )
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginDto body, HttpServletResponse response) {
         authenticationManager.authenticate(
@@ -53,6 +57,9 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
+    @Operation(
+        summary = "Refresh access token using refresh token"
+    )
     @PostMapping("/refresh")
     public ResponseEntity<JwtResponse> refresh(@CookieValue(value = "refreshToken") String refreshToken) {
         var jwt = jwtService.parseToken(refreshToken);
@@ -67,6 +74,9 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
+    @Operation(
+        summary = "Get current authenticated user"
+    )
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -82,6 +92,9 @@ public class AuthController {
         return ResponseEntity.ok(userDto);
     }
 
+    @Operation(
+        summary = "Change password for current user"
+    )
     @PostMapping("/me/password")
     public ResponseEntity<Void> changePassword(
         @Valid @RequestBody ChangePasswordRequest request,

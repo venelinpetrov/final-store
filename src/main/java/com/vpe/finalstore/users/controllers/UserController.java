@@ -8,6 +8,7 @@ import com.vpe.finalstore.users.exceptions.UserNotFoundException;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.UserRepository;
 import com.vpe.finalstore.users.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ class UserController {
     private final UserService userService;
 
 
+    @Operation(
+        summary = "Create a new user"
+    )
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto data, UriComponentsBuilder uriBuilder) {
         // Note that we don't need to check for user existence beforehand as this is handled
@@ -40,6 +44,9 @@ class UserController {
         return ResponseEntity.created(uri).body(userDto);
     }
 
+    @Operation(
+        summary = "Update a user"
+    )
     @PreAuthorize("hasAuthority(T(com.vpe.finalstore.users.enums.RoleEnum).ADMIN.authority()) or #userId == authentication.principal")
     @PutMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(

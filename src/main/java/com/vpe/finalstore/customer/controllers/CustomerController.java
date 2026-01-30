@@ -3,6 +3,7 @@ package com.vpe.finalstore.customer.controllers;
 import com.vpe.finalstore.customer.dtos.CustomerDto;
 import com.vpe.finalstore.customer.mappers.CustomerMapper;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,9 @@ class CustomerController {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
+    @Operation(
+        summary = "Get customer by ID"
+    )
     @PreAuthorize("@customerSecurity.isOwner(#customerId, authentication)")
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerDto> getCustomer(@PathVariable Integer customerId) {

@@ -9,6 +9,7 @@ import com.vpe.finalstore.product.mappers.BrandMapper;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.repositories.BrandRepository;
 import com.vpe.finalstore.product.repositories.ProductRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,9 @@ public class BrandController {
     private final BrandRepository brandRepository;
     private final BrandMapper brandMapper;
 
+    @Operation(
+        summary = "Get all brands"
+    )
     @GetMapping
     public ResponseEntity<Page<BrandDto>> getAllBrands(
         @RequestParam(defaultValue = "0") int page,
@@ -43,6 +47,9 @@ public class BrandController {
         return ResponseEntity.ok(brandDtoPage);
     }
 
+    @Operation(
+        summary = "Get all products for a brand"
+    )
     @GetMapping("/{brandId}/products")
     public Page<ProductDto> getProducts(
         @PathVariable Integer brandId,
@@ -56,6 +63,9 @@ public class BrandController {
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
 
+    @Operation(
+        summary = "Create a new brand"
+    )
     @PostMapping
     public ResponseEntity<BrandDto> createBrand(@Valid @RequestBody BrandCreateDto req) {
         var brand = brandRepository.save(brandMapper.toEntity(req));
@@ -65,6 +75,9 @@ public class BrandController {
             .body(brandMapper.toDto(brand));
     }
 
+    @Operation(
+        summary = "Update a brand"
+    )
     @PutMapping("/{brandId}")
     public ResponseEntity<BrandDto> updateBrand(@Valid @RequestBody BrandUpdateDto req, @PathVariable Integer brandId) {
         var brand = brandRepository.findById(brandId).orElseThrow();
@@ -77,6 +90,9 @@ public class BrandController {
         return ResponseEntity.ok(brandMapper.toDto(brand));
     }
 
+    @Operation(
+        summary = "Delete a brand"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{brandId}")
     public void deleteBrand(@PathVariable Integer brandId) {

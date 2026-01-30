@@ -7,6 +7,7 @@ import com.vpe.finalstore.product.dtos.TagUpdateDto;
 import com.vpe.finalstore.product.entities.Tag;
 import com.vpe.finalstore.product.mappers.TagMapper;
 import com.vpe.finalstore.product.repositories.TagRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,9 @@ public class TagController {
     private final TagRepository tagRepository;
     private final TagMapper tagMapper;
 
+    @Operation(
+        summary = "Get all tags"
+    )
     @GetMapping
     public List<TagSummaryDto> getAllTags() {
         var tags = tagRepository.findAll();
@@ -30,6 +34,9 @@ public class TagController {
         return tagMapper.toSummaryDto(tags);
     }
 
+    @Operation(
+        summary = "Create a new tag"
+    )
     @PostMapping
     public ResponseEntity<TagSummaryDto> createTag(@Valid @RequestBody TagCreateDto tagDto) {
         var tag = tagRepository.save(new Tag(tagDto.getName()));
@@ -39,6 +46,9 @@ public class TagController {
             .body(tagMapper.toSummaryDto(tag));
     }
 
+    @Operation(
+        summary = "Update a tag"
+    )
     @PutMapping("/{tagId}")
     public ResponseEntity<TagSummaryDto> updateTag(@PathVariable Integer tagId, @Valid @RequestBody TagUpdateDto tagDto) {
         var tag = tagRepository.findById(tagId)
@@ -52,6 +62,9 @@ public class TagController {
 
     }
 
+    @Operation(
+        summary = "Delete a tag"
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{tagId}")
     public void deleteTag(@PathVariable Integer tagId) {

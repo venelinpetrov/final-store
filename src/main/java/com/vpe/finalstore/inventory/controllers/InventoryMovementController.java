@@ -5,6 +5,7 @@ import com.vpe.finalstore.inventory.mappers.InventoryMovementMapper;
 import com.vpe.finalstore.inventory.repositories.InventoryMovementRepository;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.product.dtos.InventoryMovementDto;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,9 @@ class InventoryMovementController {
     private final InventoryMovementRepository inventoryMovementRepository;
     private final InventoryMovementMapper inventoryMovementMapper;
 
+    @Operation(
+        summary = "Get inventory movements with optional date range filter"
+    )
     @GetMapping
     public Page<InventoryMovementDto> getMovements(
         @RequestParam(required = false)
@@ -41,6 +45,9 @@ class InventoryMovementController {
         return movements.map(inventoryMovementMapper::toDto);
     }
 
+    @Operation(
+        summary = "Create a new inventory movement"
+    )
     @PostMapping
     public void createMovement(@Valid @RequestBody InventoryMovementCreateDto dto) {
         inventoryMovementService.createMovement(dto);

@@ -4,6 +4,7 @@ import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.services.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 class OrderController {
     private final OrderService orderService;
 
+    @Operation(
+        summary = "Create a new order"
+    )
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(
         @Valid @RequestBody OrderCreateDto dto,
@@ -34,6 +38,9 @@ class OrderController {
         return ResponseEntity.created(uri).body(order);
     }
 
+    @Operation(
+        summary = "Get order by ID"
+    )
     @PreAuthorize("@orderSecurity.canViewOrder(#orderId, authentication)")
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Integer orderId) {
@@ -41,6 +48,9 @@ class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    @Operation(
+        summary = "Get all orders for a customer"
+    )
     @PreAuthorize("@customerSecurity.isOwner(#customerId, authentication)")
     @GetMapping("/customers/{customerId}")
     public ResponseEntity<Page<OrderDto>> getCustomerOrders(
@@ -51,6 +61,9 @@ class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @Operation(
+        summary = "Update order status"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderDto> updateOrderStatus(
