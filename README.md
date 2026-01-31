@@ -18,7 +18,7 @@ A comprehensive Java Spring Boot e-commerce store API.
 
 Choose one of the following setup options:
 
-### Option 1: Local Setup
+### Option 1: Local Setup (full control)
 
 **Required:**
 - Java 21
@@ -51,7 +51,7 @@ sudo systemctl enable mysql
 - [DBeaver](https://dbeaver.io/download/) for database management
 - IntelliJ IDEA for development
 
-### Option 2: Docker Setup
+### Option 2: Docker Setup (easiest, OS-agnostic)
 
 **Required:**
 - [Docker](https://docs.docker.com/get-docker/)
