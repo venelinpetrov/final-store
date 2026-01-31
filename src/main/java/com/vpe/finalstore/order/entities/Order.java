@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -41,6 +42,22 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "address_id")
     private CustomerAddress address;
+
+    @NotNull
+    @Column(name = "subtotal", precision = 10, scale = 2)
+    private BigDecimal subtotal = BigDecimal.ZERO;
+
+    @NotNull
+    @Column(name = "tax", precision = 10, scale = 2)
+    private BigDecimal tax = BigDecimal.ZERO;
+
+    @NotNull
+    @Column(name = "shipping_cost", precision = 10, scale = 2)
+    private BigDecimal shippingCost = BigDecimal.ZERO;
+
+    @NotNull
+    @Column(name = "total", precision = 10, scale = 2)
+    private BigDecimal total = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<OrderItem> orderItems = new LinkedHashSet<>();

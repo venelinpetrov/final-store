@@ -4,6 +4,7 @@ import com.vpe.finalstore.order.enums.OrderStatusType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -16,5 +17,9 @@ public class OrderDto {
     private OrderStatusType status;
     private Integer customerId;
     private Integer addressId;
+    private BigDecimal subtotal;
+    private BigDecimal tax;
+    private BigDecimal shippingCost;
+    private BigDecimal total;
     private Set<OrderItemDto> orderItems;
 }

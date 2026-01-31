@@ -39,6 +39,7 @@ public class OrderService {
     private final InventoryMovementService inventoryMovementService;
     private final CartRepository cartRepository;
     private final CartService cartService;
+    private final OrderSummaryCalculator orderSummaryCalculator;
 
     @Transactional
     public Order createOrder(OrderCreateDto dto) {
@@ -86,6 +87,9 @@ public class OrderService {
 
             order.getOrderItems().add(orderItem);
         }
+
+        // Calculates and sets the order summary (subtotal, tax, shipping, total)
+        orderSummaryCalculator.calculateOrderSummary(order);
 
         return orderRepository.save(order);
     }
@@ -141,6 +145,9 @@ public class OrderService {
 
             order.getOrderItems().add(orderItem);
         }
+
+        // Calculate order summary (subtotal, tax, shipping, total)
+        orderSummaryCalculator.calculateOrderSummary(order);
 
         order = orderRepository.save(order);
 
