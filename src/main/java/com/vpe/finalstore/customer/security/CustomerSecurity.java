@@ -13,7 +13,7 @@ public class CustomerSecurity {
     }
 
     public boolean isOwner(Integer customerId, Authentication authentication) {
-        Integer userId = Integer.valueOf(authentication.getName());
+        Integer userId = (Integer) authentication.getPrincipal();
 
         return customerRepository
             .getCustomerByCustomerId(customerId)
