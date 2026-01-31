@@ -7,11 +7,13 @@ import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -25,6 +27,7 @@ import java.util.UUID;
 class CartController {
     private final CartService cartService;
     private final CartMapper cartMapper;
+    private final UserRepository userRepository;
 
     @Operation(
         summary = "Get cart by UUID"
@@ -94,5 +97,48 @@ class CartController {
     @DeleteMapping("/{cartId}/items")
     public void clearCart(@PathVariable UUID cartId) {
         cartService.clearCart(cartId);
+    }
+
+    @Operation(
+        summary = "Get cart by session ID (for anonymous users)"
+    )
+    @GetMapping("/session/{sessionId}")
+    public CartDto getCartBySession(@PathVariable UUID sessionId) {
+        var cart = cartService.getCartBySessionId(sessionId)
+            .orElseThrow(() -> new NotFoundException("Cart with session ID: " + sessionId + " not found"));
+
+        return cartMapper.toDto(cart);
+    }
+
+    @Operation(
+        summary = "Get cart for current logged-in user"
+    )
+    @GetMapping("/my-cart")
+    public CartDto getMyCart(Authentication authentication) {
+        Integer userId = (Integer) authentication.getPrincipal();
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+
+        var cart = cartService.getCartByCustomerId(user.getCustomer().getCustomerId())
+            .orElseThrow(() -> new NotFoundException("Cart not found for customer"));
+
+        return cartMapper.toDto(cart);
+    }
+
+    @Operation(
+        summary = "Associate anonymous cart with logged-in user (after login)"
+    )
+    @PostMapping("/associate")
+    public CartDto associateCart(
+        @RequestParam UUID sessionId,
+        Authentication authentication
+    ) {
+        Integer userId = (Integer) authentication.getPrincipal();
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+
+        var cart = cartService.associateCartWithCustomer(sessionId, user.getCustomer().getCustomerId());
+
+        return cartMapper.toDto(cart);
     }
 }

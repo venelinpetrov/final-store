@@ -13,4 +13,12 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
     @EntityGraph(attributePaths = "cartItems.variant")
     @Query("SELECT c FROM Cart c WHERE c.cartId = :cartId")
     Optional<Cart> getCartWithItems(@Param("cartId") UUID cartId);
+
+    @EntityGraph(attributePaths = "cartItems.variant")
+    @Query("SELECT c FROM Cart c WHERE c.sessionId = :sessionId")
+    Optional<Cart> findBySessionId(@Param("sessionId") UUID sessionId);
+
+    @EntityGraph(attributePaths = "cartItems.variant")
+    @Query("SELECT c FROM Cart c WHERE c.customer.customerId = :customerId")
+    Optional<Cart> findByCustomer_CustomerId(@Param("customerId") Integer customerId);
 }

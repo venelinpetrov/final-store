@@ -8,9 +8,6 @@ import lombok.Setter;
 @Setter
 public class OrderFromCartDto {
     @NotNull
-    private Integer customerId;
-
-    @NotNull
     private Integer addressId;
 }
 

@@ -10,7 +10,6 @@ import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
-import com.vpe.finalstore.order.dtos.OrderFromCartDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.entities.Order;
@@ -97,7 +96,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto createOrderFromCart(UUID cartId, OrderFromCartDto dto) {
+    public OrderDto createOrderFromCart(UUID cartId, Integer customerId, Integer addressId) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -105,10 +104,10 @@ public class OrderService {
             throw new BadRequestException("Cannot create order from empty cart");
         }
 
-        var customer = customerRepository.findById(dto.getCustomerId())
+        var customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new NotFoundException("Customer not found"));
 
-        var address = customerAddressRepository.findById(dto.getAddressId())
+        var address = customerAddressRepository.findById(addressId)
             .orElseThrow(() -> new NotFoundException("Address not found"));
 
         if (!address.getCustomer().getCustomerId().equals(customer.getCustomerId())) {
