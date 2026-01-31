@@ -1,4 +1,4 @@
-.PHONY: help start stop restart logs build clean db-connect db-shell test dev dev-stop dev-logs dev-build
+.PHONY: help start stop restart logs build clean db-connect db-shell test dev dev-stop dev-logs dev-build migrate migrate-info migrate-clean migrate-repair
 
 # Default target
 help:
@@ -24,6 +24,12 @@ help:
 	@echo "  make db-connect    - Connect to MySQL database from host"
 	@echo "  make db-shell      - Open MySQL shell in container"
 	@echo "  make db-shell-dev  - Open MySQL shell in container (dev)"
+	@echo ""
+	@echo "Migrations:"
+	@echo "  make migrate        - Run Flyway migrations"
+	@echo "  make migrate-info   - Show migration status"
+	@echo "  make migrate-repair - Repair migration metadata"
+	@echo "  make migrate-clean  - Clean database (WARNING: deletes all data)"
 	@echo ""
 	@echo "Other:"
 	@echo "  make status        - Show status of all services"
@@ -94,3 +100,25 @@ dev-build:
 	@echo "Rebuilding and starting development environment..."
 	@docker-compose -f docker-compose.dev.yml up -d --build
 
+# Migration commands
+migrate:
+	@echo "Running Flyway migrations..."
+	@./mvnw flyway:migrate
+
+migrate-info:
+	@echo "Checking migration status..."
+	@./mvnw flyway:info
+
+migrate-repair:
+	@echo "Repairing Flyway migration metadata..."
+	@./mvnw flyway:repair
+
+migrate-clean:
+	@echo "WARNING: This will delete all data in the database!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		./mvnw flyway:clean; \
+	else \
+		echo "Operation cancelled."; \
+	fi

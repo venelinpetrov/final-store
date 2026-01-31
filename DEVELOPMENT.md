@@ -88,6 +88,12 @@ make build            # Rebuild
 make db-shell         # Open MySQL shell
 make db-connect       # Connect from host
 
+# Migrations
+make migrate          # Run Flyway migrations
+make migrate-info     # Show migration status
+make migrate-repair   # Repair migration metadata
+make migrate-clean    # Clean database (WARNING: deletes all data)
+
 # Other
 make status           # Show container status
 make help             # Show all commands
