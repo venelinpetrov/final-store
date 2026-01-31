@@ -20,4 +20,13 @@ public class OrderSecurity {
             .map(order -> order.getCustomer().getUser().getUserId().equals(userId))
             .orElse(false);
     }
+
+    public boolean canCancelOrder(Integer orderId, Authentication authentication) {
+        Integer userId = (Integer) authentication.getPrincipal();
+
+        return orderRepository
+            .findById(orderId)
+            .map(order -> order.getCustomer().getUser().getUserId().equals(userId))
+            .orElse(false);
+    }
 }

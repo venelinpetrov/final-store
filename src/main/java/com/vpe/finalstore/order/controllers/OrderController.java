@@ -5,6 +5,7 @@ import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.dtos.OrderFromCartDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
+import com.vpe.finalstore.order.mappers.OrderMapper;
 import com.vpe.finalstore.order.services.OrderService;
 import com.vpe.finalstore.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,7 @@ import java.util.UUID;
 class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
 
     @Operation(
         summary = "Create a new order"
@@ -38,11 +40,12 @@ class OrderController {
         UriComponentsBuilder uriBuilder
     ) {
         var order = orderService.createOrder(dto);
+        var orderDto = orderMapper.toDto(order);
         var uri = uriBuilder.path("/api/orders/{orderId}")
             .buildAndExpand(order.getOrderId())
             .toUri();
 
-        return ResponseEntity.created(uri).body(order);
+        return ResponseEntity.created(uri).body(orderDto);
     }
 
     @Operation(
@@ -62,11 +65,12 @@ class OrderController {
         Integer customerId = user.getCustomer().getCustomerId();
 
         var order = orderService.createOrderFromCart(cartId, customerId, dto.getAddressId());
+        var orderDto = orderMapper.toDto(order);
         var uri = uriBuilder.path("/api/orders/{orderId}")
             .buildAndExpand(order.getOrderId())
             .toUri();
 
-        return ResponseEntity.created(uri).body(order);
+        return ResponseEntity.created(uri).body(orderDto);
     }
 
     @Operation(
@@ -76,7 +80,7 @@ class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Integer orderId) {
         var order = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderMapper.toDto(order));
     }
 
     @Operation(
@@ -89,7 +93,7 @@ class OrderController {
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         var orders = orderService.getOrdersByCustomer(customerId, pageable);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orders.map(orderMapper::toDto));
     }
 
     @Operation(
@@ -102,6 +106,16 @@ class OrderController {
         @Valid @RequestBody OrderUpdateStatusDto dto
     ) {
         var order = orderService.updateOrderStatus(orderId, dto);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderMapper.toDto(order));
+    }
+
+    @Operation(
+        summary = "Cancel order"
+    )
+    @PreAuthorize("@orderSecurity.canCancelOrder(#orderId, authentication)")
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderDto> cancelOrder(@PathVariable Integer orderId) {
+        var order = orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(orderMapper.toDto(order));
     }
 }

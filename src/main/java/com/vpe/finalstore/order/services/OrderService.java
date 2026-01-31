@@ -11,12 +11,10 @@ import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
-import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
 import com.vpe.finalstore.order.entities.OrderItemId;
 import com.vpe.finalstore.order.enums.OrderStatusType;
-import com.vpe.finalstore.order.mappers.OrderMapper;
 import com.vpe.finalstore.order.repositories.OrderRepository;
 import com.vpe.finalstore.order.repositories.OrderStatusRepository;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
@@ -41,10 +39,9 @@ public class OrderService {
     private final InventoryMovementService inventoryMovementService;
     private final CartRepository cartRepository;
     private final CartService cartService;
-    private final OrderMapper orderMapper;
 
     @Transactional
-    public OrderDto createOrder(OrderCreateDto dto) {
+    public Order createOrder(OrderCreateDto dto) {
         var customer = customerRepository.findById(dto.getCustomerId())
             .orElseThrow(() -> new NotFoundException("Customer not found"));
 
@@ -90,13 +87,11 @@ public class OrderService {
             order.getOrderItems().add(orderItem);
         }
 
-        order = orderRepository.save(order);
-
-        return orderMapper.toDto(order);
+        return orderRepository.save(order);
     }
 
     @Transactional
-    public OrderDto createOrderFromCart(UUID cartId, Integer customerId, Integer addressId) {
+    public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -151,23 +146,20 @@ public class OrderService {
 
         cartService.clearCart(cartId);
 
-        return orderMapper.toDto(order);
+        return order;
     }
 
-    public OrderDto getOrderById(Integer orderId) {
-        var order = orderRepository.findOrderWithDetails(orderId)
+    public Order getOrderById(Integer orderId) {
+        return orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
-
-        return orderMapper.toDto(order);
     }
 
-    public Page<OrderDto> getOrdersByCustomer(Integer customerId, Pageable pageable) {
-        var orders = orderRepository.findByCustomerCustomerId(customerId, pageable);
-        return orders.map(orderMapper::toDto);
+    public Page<Order> getOrdersByCustomer(Integer customerId, Pageable pageable) {
+        return orderRepository.findByCustomerCustomerId(customerId, pageable);
     }
 
     @Transactional
-    public OrderDto updateOrderStatus(Integer orderId, OrderUpdateStatusDto dto) {
+    public Order updateOrderStatus(Integer orderId, OrderUpdateStatusDto dto) {
         var order = orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
 
@@ -182,9 +174,7 @@ public class OrderService {
         handleInventoryForStatusChange(order, currentStatus, newStatus);
 
         order.setStatus(newStatusEntity);
-        order = orderRepository.save(order);
-
-        return orderMapper.toDto(order);
+        return orderRepository.save(order);
     }
 
     private void validateStatusTransition(OrderStatusType currentStatus, OrderStatusType newStatus) {
@@ -229,5 +219,26 @@ public class OrderService {
                 inventoryMovementService.createMovement(movement);
             }
         }
+    }
+
+    @Transactional
+    public Order cancelOrder(Integer orderId) {
+        var order = orderRepository.findOrderWithDetails(orderId)
+            .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        var currentStatus = order.getStatus().getName();
+
+        // Only PENDING orders can be canceled by customers
+        if (currentStatus != OrderStatusType.PENDING) {
+            throw new BadRequestException(
+                "Only pending orders can be canceled. Current status: " + currentStatus
+            );
+        }
+
+        var canceledStatus = orderStatusRepository.findByName(OrderStatusType.CANCELED)
+            .orElseThrow(() -> new NotFoundException("Order status CANCELED not found"));
+
+        order.setStatus(canceledStatus);
+        return orderRepository.save(order);
     }
 }
