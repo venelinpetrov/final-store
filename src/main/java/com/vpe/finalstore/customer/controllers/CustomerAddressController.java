@@ -3,6 +3,7 @@ package com.vpe.finalstore.customer.controllers;
 import com.vpe.finalstore.customer.dtos.CustomerAddressCreateDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressUpdateDto;
+import com.vpe.finalstore.customer.mappers.CustomerAddressMapper;
 import com.vpe.finalstore.customer.services.CustomerAddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/customers/{customerId}/addresses")
 class CustomerAddressController {
     private final CustomerAddressService addressService;
+    private final CustomerAddressMapper addressMapper;
 
     @Operation(
         summary = "Get all addresses for a customer"
@@ -27,7 +29,7 @@ class CustomerAddressController {
     @GetMapping
     public ResponseEntity<List<CustomerAddressDto>> getAddresses(@PathVariable Integer customerId) {
         var addresses = addressService.getAddressesByCustomerId(customerId);
-        return ResponseEntity.ok(addresses);
+        return ResponseEntity.ok(addressMapper.toDto(addresses));
     }
 
     @Operation(
@@ -40,7 +42,7 @@ class CustomerAddressController {
         @PathVariable Integer addressId
     ) {
         var address = addressService.getAddressById(customerId, addressId);
-        return ResponseEntity.ok(address);
+        return ResponseEntity.ok(addressMapper.toDto(address));
     }
 
     @Operation(
@@ -54,12 +56,13 @@ class CustomerAddressController {
         UriComponentsBuilder uriBuilder
     ) {
         var address = addressService.createAddress(customerId, dto);
+        var addressDto = addressMapper.toDto(address);
         var uri = uriBuilder
             .path("/api/customers/{customerId}/addresses/{addressId}")
             .buildAndExpand(customerId, address.getAddressId())
             .toUri();
 
-        return ResponseEntity.created(uri).body(address);
+        return ResponseEntity.created(uri).body(addressDto);
     }
 
     @Operation(
@@ -73,7 +76,7 @@ class CustomerAddressController {
         @Valid @RequestBody CustomerAddressUpdateDto dto
     ) {
         var address = addressService.updateAddress(customerId, addressId, dto);
-        return ResponseEntity.ok(address);
+        return ResponseEntity.ok(addressMapper.toDto(address));
     }
 
     @Operation(
@@ -99,7 +102,7 @@ class CustomerAddressController {
         @PathVariable Integer addressId
     ) {
         var address = addressService.setDefaultAddress(customerId, addressId);
-        return ResponseEntity.ok(address);
+        return ResponseEntity.ok(addressMapper.toDto(address));
     }
 }
 

@@ -1,10 +1,8 @@
 package com.vpe.finalstore.customer.services;
 
 import com.vpe.finalstore.customer.dtos.CustomerAddressCreateDto;
-import com.vpe.finalstore.customer.dtos.CustomerAddressDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressUpdateDto;
 import com.vpe.finalstore.customer.entities.CustomerAddress;
-import com.vpe.finalstore.customer.mappers.CustomerAddressMapper;
 import com.vpe.finalstore.customer.repositories.AddressTypeRepository;
 import com.vpe.finalstore.customer.repositories.CustomerAddressRepository;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
@@ -21,22 +19,18 @@ public class CustomerAddressService {
     private final CustomerAddressRepository addressRepository;
     private final CustomerRepository customerRepository;
     private final AddressTypeRepository addressTypeRepository;
-    private final CustomerAddressMapper addressMapper;
 
-    public List<CustomerAddressDto> getAddressesByCustomerId(Integer customerId) {
-        var addresses = addressRepository.findByCustomer_CustomerId(customerId);
-        return addressMapper.toDto(addresses);
+    public List<CustomerAddress> getAddressesByCustomerId(Integer customerId) {
+        return addressRepository.findByCustomer_CustomerId(customerId);
     }
 
-    public CustomerAddressDto getAddressById(Integer customerId, Integer addressId) {
-        var address = addressRepository.findByAddressIdAndCustomer_CustomerId(addressId, customerId)
+    public CustomerAddress getAddressById(Integer customerId, Integer addressId) {
+        return addressRepository.findByAddressIdAndCustomer_CustomerId(addressId, customerId)
             .orElseThrow(() -> new NotFoundException("Address not found or does not belong to customer"));
-
-        return addressMapper.toDto(address);
     }
 
     @Transactional
-    public CustomerAddressDto createAddress(Integer customerId, CustomerAddressCreateDto dto) {
+    public CustomerAddress createAddress(Integer customerId, CustomerAddressCreateDto dto) {
         var customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new NotFoundException("Customer not found"));
 
@@ -59,12 +53,11 @@ public class CustomerAddressService {
             unsetDefaultAddress(customerId);
         }
 
-        var savedAddress = addressRepository.save(address);
-        return addressMapper.toDto(savedAddress);
+        return addressRepository.save(address);
     }
 
     @Transactional
-    public CustomerAddressDto updateAddress(Integer customerId, Integer addressId, CustomerAddressUpdateDto dto) {
+    public CustomerAddress updateAddress(Integer customerId, Integer addressId, CustomerAddressUpdateDto dto) {
         var address = addressRepository.findByAddressIdAndCustomer_CustomerId(addressId, customerId)
             .orElseThrow(() -> new NotFoundException("Address not found or does not belong to customer"));
 
@@ -98,8 +91,7 @@ public class CustomerAddressService {
             address.setIsDefault(dto.getIsDefault());
         }
 
-        var savedAddress = addressRepository.save(address);
-        return addressMapper.toDto(savedAddress);
+        return addressRepository.save(address);
     }
 
     @Transactional
@@ -111,7 +103,7 @@ public class CustomerAddressService {
     }
 
     @Transactional
-    public CustomerAddressDto setDefaultAddress(Integer customerId, Integer addressId) {
+    public CustomerAddress setDefaultAddress(Integer customerId, Integer addressId) {
         var address = addressRepository.findByAddressIdAndCustomer_CustomerId(addressId, customerId)
             .orElseThrow(() -> new NotFoundException("Address not found or does not belong to customer"));
 
@@ -120,9 +112,7 @@ public class CustomerAddressService {
 
         // Set this address as default
         address.setIsDefault(true);
-        var savedAddress = addressRepository.save(address);
-
-        return addressMapper.toDto(savedAddress);
+        return addressRepository.save(address);
     }
 
     private void unsetDefaultAddress(Integer customerId) {
