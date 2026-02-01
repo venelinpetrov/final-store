@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -79,6 +80,13 @@ public class Cart {
 
     public void clear() {
         cartItems.clear();
+    }
+
+    public BigDecimal calculateTotal() {
+        return cartItems.stream()
+                .map(item -> item.getVariant().getUnitPrice()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 }
