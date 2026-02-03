@@ -38,7 +38,7 @@ public class Cart {
     @Generated
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
     public CartItem getItem(Integer variantId) {

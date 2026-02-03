@@ -44,10 +44,11 @@ public class StripeService {
                 paramsBuilder.putAllMetadata(metadata);
             }
 
-            // Automatic payment methods (card, etc.)
+            // Automatic payment methods (card only, no redirects for testing without frontend)
             paramsBuilder.setAutomaticPaymentMethods(
                     PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                             .setEnabled(true)
+                            .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
                             .build()
             );
 

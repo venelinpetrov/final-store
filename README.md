@@ -13,6 +13,7 @@ A comprehensive Java Spring Boot e-commerce store API.
 - [Development Guide](DEVELOPMENT.md) - Hot reload, debugging, and workflow
 - [Docker Guide](DOCKER.md) - Detailed Docker documentation
 - [Quick Start Guide](QUICK_START.md) - Quick reference
+- [Stripe Testing Guide](STRIPE_TESTING_GUIDE.md) - Testing payments without a frontend
 
 ## Prerequisites
 

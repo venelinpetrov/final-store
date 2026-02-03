@@ -6,6 +6,7 @@ import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.payment.config.PaymentConfig;
+import com.vpe.finalstore.payment.dtos.PaymentIntentResponseDto;
 import com.vpe.finalstore.payment.entities.Invoice;
 import com.vpe.finalstore.payment.entities.Payment;
 import com.vpe.finalstore.payment.entities.PaymentMethod;
@@ -37,7 +38,7 @@ public class PaymentService {
     private final PaymentConfig paymentConfig;
 
     @Transactional
-    public Map<String, String> createPaymentIntentForCart(UUID cartId, Integer customerId) {
+    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, Integer customerId) {
         var cart = cartRepository.getCartWithItems(cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -67,16 +68,15 @@ public class PaymentService {
                 metadata
         );
 
-        log.info("Created PaymentIntent {} for cart {} with amount ${}",
-                paymentIntent.getId(), cartId, total);
+        log.info("Created PaymentIntent {} for cart {} with amount {} {}",
+                paymentIntent.getId(), cartId, total, paymentConfig.getCurrency());
 
-        // Return client secret for frontend
-        Map<String, String> response = new HashMap<>();
-        response.put("clientSecret", paymentIntent.getClientSecret());
-        response.put("paymentIntentId", paymentIntent.getId());
-        response.put("amount", total.toString());
-
-        return response;
+        return new PaymentIntentResponseDto(
+                paymentIntent.getClientSecret(),
+                paymentIntent.getId(),
+                total,
+                paymentConfig.getCurrency()
+        );
     }
 
     public Payment getPaymentByStripeIntentId(String stripePaymentIntentId) {
