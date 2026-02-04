@@ -5,6 +5,8 @@ import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.order.entities.Order;
+import com.vpe.finalstore.order.services.OrderService;
 import com.vpe.finalstore.payment.config.PaymentConfig;
 import com.vpe.finalstore.payment.dtos.PaymentIntentResponseDto;
 import com.vpe.finalstore.payment.entities.Invoice;
@@ -12,15 +14,18 @@ import com.vpe.finalstore.payment.entities.Payment;
 import com.vpe.finalstore.payment.entities.PaymentMethod;
 import com.vpe.finalstore.payment.entities.PaymentStatus;
 import com.vpe.finalstore.payment.enums.PaymentStatusType;
+import com.vpe.finalstore.payment.repositories.InvoiceRepository;
 import com.vpe.finalstore.payment.repositories.PaymentMethodRepository;
 import com.vpe.finalstore.payment.repositories.PaymentRepository;
 import com.vpe.finalstore.payment.repositories.PaymentStatusRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -36,9 +41,11 @@ public class PaymentService {
     private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
     private final PaymentConfig paymentConfig;
+    private final OrderService orderService;
+    private final InvoiceRepository invoiceRepository;
 
     @Transactional
-    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, Integer customerId) {
+    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, @NonNull Integer customerId) {
         var cart = cartRepository.getCartWithItems(cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -84,36 +91,16 @@ public class PaymentService {
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
-    /**
-     * Retrieve payment by ID with all details
-     *
-     * @param paymentId Payment ID
-     * @return Payment entity with details
-     */
     public Payment getPaymentById(Integer paymentId) {
         return paymentRepository.findPaymentWithDetails(paymentId)
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
-    /**
-     * Verify payment status with Stripe
-     *
-     * @param paymentIntentId Stripe PaymentIntent ID
-     * @return Payment status from Stripe
-     */
     public String verifyPaymentStatus(String paymentIntentId) {
         PaymentIntent paymentIntent = stripeService.retrievePaymentIntent(paymentIntentId);
         return paymentIntent.getStatus();
     }
 
-    /**
-     * Create payment record for an invoice
-     * This is called when creating an order after successful payment
-     *
-     * @param paymentIntentId Stripe PaymentIntent ID
-     * @param invoice The invoice to associate with this payment
-     * @return Created Payment entity
-     */
     @Transactional
     public Payment createPaymentForInvoice(String paymentIntentId, Invoice invoice) {
         // Retrieve PaymentIntent from Stripe to verify it succeeded
@@ -160,12 +147,47 @@ public class PaymentService {
         return savedPayment;
     }
 
-    /**
-     * Map Stripe payment status to our PaymentStatusType
-     *
-     * @param stripeStatus Stripe payment status
-     * @return Our PaymentStatusType
-     */
+    @Transactional
+    public Order completePayment(String paymentIntentId, UUID cartId, Integer customerId, Integer addressId) {
+        // 1. Verify payment succeeded with Stripe
+        PaymentIntent paymentIntent = stripeService.retrievePaymentIntent(paymentIntentId);
+
+        if (!"succeeded".equals(paymentIntent.getStatus())) {
+            throw new BadRequestException("Payment has not succeeded. Status: " + paymentIntent.getStatus());
+        }
+
+        log.info("Payment {} succeeded, creating order from cart {}", paymentIntentId, cartId);
+
+        // 2. Create order from cart
+        Order order = orderService.createOrderFromCart(cartId, customerId, addressId);
+        log.info("Created order {} from cart {}", order.getOrderId(), cartId);
+
+        // 3. Create invoice for the order
+        Invoice invoice = createInvoiceForOrder(order);
+        log.info("Created invoice {} for order {}", invoice.getInvoiceId(), order.getOrderId());
+
+        // 4. Create payment record linked to invoice
+        Payment payment = createPaymentForInvoice(paymentIntentId, invoice);
+        log.info("Created payment record {} for invoice {}", payment.getPaymentId(), invoice.getInvoiceId());
+
+        // Note: Cart is already cleared by orderService.createOrderFromCart()
+
+        return order;
+    }
+
+    private Invoice createInvoiceForOrder(Order order) {
+        Invoice invoice = new Invoice();
+        invoice.setOrder(order);
+        invoice.setCustomer(order.getCustomer());
+        invoice.setInvoiceTotal(order.getTotal());
+        invoice.setTax(order.getTax());
+        invoice.setDiscount(BigDecimal.ZERO);
+        invoice.setPaymentTotal(BigDecimal.ZERO);
+        invoice.setDueDate(LocalDateTime.now().plusDays(30));
+
+        return invoiceRepository.save(invoice);
+    }
+
     private PaymentStatusType mapStripeStatus(String stripeStatus) {
         return switch (stripeStatus) {
             case "succeeded" -> PaymentStatusType.SUCCEEDED;

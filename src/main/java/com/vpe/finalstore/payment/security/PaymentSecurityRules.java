@@ -15,6 +15,7 @@ public class PaymentSecurityRules implements SecurityRules {
     ) {
         registry
             .requestMatchers(HttpMethod.POST, "/api/payments/create").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/payments/*/complete").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/payments/*").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/payments/verify/*").authenticated();
     }
