@@ -1,22 +1,64 @@
-# Stripe Payment Testing Guide (Without Frontend)
+# Stripe Payment Testing Guide (Webhook-Based Flow)
 
-This guide shows you how to test the Stripe payment integration using **cURL** or **Postman** without a frontend.
+This guide shows you how to test the **webhook-based** Stripe payment integration using **cURL** and **Stripe CLI**.
+
+## ⚡ What Changed?
+
+**Old Flow (Removed):** Frontend → `/complete` endpoint → Create order
+**New Flow (Webhook-Based):** Frontend → Stripe → Webhook → Create order ✅
+
+**Why?** Webhooks are more reliable - even if the user closes their browser, Stripe will notify your backend and the order will be created.
 
 ---
 
 ## 🔑 Prerequisites
 
 1. **Stripe Test API Keys** - Get them from [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
-2. **Test Mode** - Make sure you're using test keys (they start with `sk_test_` and `pk_test_`)
-3. **Running Application** - Your Spring Boot app should be running
+2. **Stripe CLI** - Required for webhook testing: `brew install stripe/stripe-cli/stripe`
+3. **Test Mode** - Make sure you're using test keys (they start with `sk_test_` and `pk_test_`)
+4. **Running Application** - Your Spring Boot app should be running on `http://localhost:8080`
 
 ---
 
 ## 📋 Testing Flow
 
-### **Step 1: Create a Cart and Add Items**
+### **Step 1: Set Up Webhook Forwarding**
 
-First, create a cart and add some products to it (use existing cart endpoints).
+The Stripe CLI forwards webhook events from Stripe to your local server:
+
+```bash
+# Login to Stripe (opens browser)
+stripe login
+
+# Forward webhooks to your local server
+stripe listen --forward-to localhost:8080/api/webhooks/stripe
+```
+
+**Important:** Copy the webhook signing secret that appears (starts with `whsec_`). You'll need it in Step 2.
+
+**Expected output:**
+```
+> Ready! Your webhook signing secret is whsec_xxxxxxxxxxxxx
+> Listening for events...
+```
+
+Keep this terminal window open!
+
+---
+
+### **Step 2: Configure Webhook Secret**
+
+Add the webhook secret to your `.env` file or environment variables:
+
+```bash
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
+```
+
+Restart your Spring Boot application to load the new secret.
+
+---
+
+### **Step 3: Create a Cart and Add Items**
 
 ```bash
 # Create a cart
@@ -30,9 +72,7 @@ curl -X POST http://localhost:8080/api/carts/{cartId}/items \
 
 ---
 
-### **Step 2: Create PaymentIntent**
-
-Call your backend to create a PaymentIntent:
+### **Step 4: Create PaymentIntent**
 
 ```bash
 curl -X POST http://localhost:8080/api/payments/create \
@@ -40,7 +80,8 @@ curl -X POST http://localhost:8080/api/payments/create \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "cartId": "your-cart-uuid",
-    "customerId": 1
+    "customerId": 1,
+    "addressId": 1
   }'
 ```
 
@@ -54,50 +95,43 @@ curl -X POST http://localhost:8080/api/payments/create \
 }
 ```
 
-**Save the `paymentIntentId` and `clientSecret`!**
+**Save the `paymentIntentId`!**
 
 ---
 
-### **Step 3: Confirm Payment Using Stripe CLI**
+### **Step 5: Confirm Payment**
 
-Since you don't have a frontend, use the **Stripe CLI** to simulate payment confirmation:
-
-#### **Option A: Install Stripe CLI**
+Use Stripe CLI to confirm the payment:
 
 ```bash
-# Install Stripe CLI (macOS)
-brew install stripe/stripe-cli/stripe
-
-# Login to Stripe
-stripe login
-
-# Confirm the payment
 stripe payment_intents confirm pi_1234567890 \
   --payment-method=pm_card_visa
 ```
 
-#### **Option B: Use Stripe API Directly with cURL**
-
-```bash
-curl https://api.stripe.com/v1/payment_intents/pi_1234567890/confirm \
-  -u sk_test_YOUR_SECRET_KEY: \
-  -d payment_method=pm_card_visa
-```
+**What happens:**
+1. Stripe confirms the payment
+2. Stripe sends `payment_intent.succeeded` webhook to your server
+3. Your webhook handler automatically creates the order, invoice, and payment record
+4. Check the Stripe CLI terminal - you should see the webhook event!
 
 ---
 
-### **Step 4: Verify Payment Status**
+### **Step 6: Verify Order Was Created**
 
-Check if the payment succeeded:
+Check your application logs for:
+```
+✅ Payment succeeded: pi_1234567890
+Created order XXX from cart YYY via webhook
+Created invoice ZZZ for order XXX via webhook
+Created payment record AAA for invoice ZZZ via webhook
+```
+
+You can also verify via API:
 
 ```bash
+# Check payment status
 curl -X GET http://localhost:8080/api/payments/verify/pi_1234567890 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-**Response:**
-```
-succeeded
 ```
 
 ---
@@ -186,11 +220,14 @@ stripe payment_intents confirm pi_1234567890 \
 
 ---
 
-## 📝 Complete Testing Example
+## 📝 Complete Testing Example (Webhook-Based)
 
-Here's a complete end-to-end test:
+Here's a complete end-to-end test with webhooks:
 
 ```bash
+# 0. Start webhook listener in a separate terminal
+stripe listen --forward-to localhost:8080/api/webhooks/stripe
+
 # 1. Login and get JWT token
 TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
@@ -206,11 +243,11 @@ curl -X POST http://localhost:8080/api/carts/$CART_ID/items \
   -H "Content-Type: application/json" \
   -d '{"variantId": 1}'
 
-# 4. Create PaymentIntent
+# 4. Create PaymentIntent (now requires addressId!)
 PAYMENT_INTENT=$(curl -X POST http://localhost:8080/api/payments/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d "{\"cartId\":\"$CART_ID\",\"customerId\":1}")
+  -d "{\"cartId\":\"$CART_ID\",\"customerId\":1,\"addressId\":1}")
 
 echo $PAYMENT_INTENT | jq '.'
 
@@ -218,27 +255,77 @@ echo $PAYMENT_INTENT | jq '.'
 PAYMENT_INTENT_ID=$(echo $PAYMENT_INTENT | jq -r '.paymentIntentId')
 
 # 5. Confirm payment with Stripe CLI
+# This triggers the webhook automatically!
 stripe payment_intents confirm $PAYMENT_INTENT_ID \
   --payment-method=pm_card_visa
 
-# 6. Verify payment status
+# 6. Check webhook terminal - you should see:
+# payment_intent.succeeded [evt_xxx]
+# And your app logs should show order creation
+
+# 7. Verify payment status
 curl -X GET http://localhost:8080/api/payments/verify/$PAYMENT_INTENT_ID \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
 
-## 🎯 Next Steps
+## 🎯 Testing Different Webhook Events
 
-After confirming the payment is successful, you would typically:
+### Test Failed Payment
 
-1. **Create an Order** - Call your order creation endpoint with the `paymentIntentId`
-2. **Create Invoice** - Generate an invoice for the order
-3. **Save Payment Record** - Use `PaymentService.createPaymentForInvoice()`
+```bash
+# Confirm with a card that will be declined
+stripe payment_intents confirm $PAYMENT_INTENT_ID \
+  --payment-method=pm_card_chargeDeclined
+
+# Check webhook terminal for: payment_intent.payment_failed
+```
+
+### Test Refund
+
+```bash
+# First, complete a successful payment
+stripe payment_intents confirm $PAYMENT_INTENT_ID \
+  --payment-method=pm_card_visa
+
+# Then refund it
+stripe refunds create --payment-intent=$PAYMENT_INTENT_ID
+
+# Check webhook terminal for: charge.refunded
+```
+
+### Test Dispute
+
+```bash
+# Use the special test card that triggers disputes
+stripe payment_intents confirm $PAYMENT_INTENT_ID \
+  --payment-method=pm_card_createDispute
+
+# Check webhook terminal for: charge.dispute.created
+```
 
 ---
 
 ## 🐛 Troubleshooting
+
+### **Webhook not receiving events**
+- Make sure `stripe listen` is running in a separate terminal
+- Check that the webhook secret in `.env` matches the one from `stripe listen`
+- Restart your Spring Boot app after updating the webhook secret
+- Check your app logs for webhook signature verification errors
+
+### **"Invalid signature" error**
+- The webhook secret doesn't match
+- Copy the secret from `stripe listen` output (starts with `whsec_`)
+- Update `STRIPE_WEBHOOK_SECRET` in your `.env` file
+- Restart the application
+
+### **Order not created after payment**
+- Check the Stripe CLI terminal for webhook events
+- Look for `payment_intent.succeeded` event
+- Check your application logs for errors in the webhook handler
+- Verify that `cartId`, `customerId`, and `addressId` are in the PaymentIntent metadata
 
 ### **"Payment already succeeded"**
 - The PaymentIntent can only be confirmed once
@@ -248,15 +335,13 @@ After confirming the payment is successful, you would typically:
 - Make sure you're using test keys (`sk_test_...`)
 - Check your `.env` file has the correct keys
 
-### **"PaymentIntent not found"**
-- Make sure you're using the correct `paymentIntentId`
-- Check Stripe Dashboard to see if it was created
-
 ---
 
 ## 📚 Resources
 
 - [Stripe Testing Guide](https://stripe.com/docs/testing)
 - [Stripe CLI Documentation](https://stripe.com/docs/stripe-cli)
+- [Stripe Webhooks Guide](https://stripe.com/docs/webhooks)
 - [PaymentIntents API](https://stripe.com/docs/api/payment_intents)
+- [Webhook Events Reference](https://stripe.com/docs/api/events/types)
 

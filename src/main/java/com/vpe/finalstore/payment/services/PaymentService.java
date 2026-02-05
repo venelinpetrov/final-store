@@ -45,7 +45,7 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
 
     @Transactional
-    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, @NonNull Integer customerId) {
+    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, @NonNull Integer customerId, @NonNull Integer addressId) {
         var cart = cartRepository.getCartWithItems(cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -65,6 +65,7 @@ public class PaymentService {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("customerId", customerId.toString());
         metadata.put("cartId", cartId.toString());
+        metadata.put("addressId", addressId.toString());
         metadata.put("customerEmail", customer.getUser() != null ? customer.getUser().getEmail() : "");
 
         PaymentIntent paymentIntent = stripeService.createPaymentIntent(
@@ -103,30 +104,25 @@ public class PaymentService {
 
     @Transactional
     public Payment createPaymentForInvoice(String paymentIntentId, Invoice invoice) {
-        // Retrieve PaymentIntent from Stripe to verify it succeeded
         PaymentIntent paymentIntent = stripeService.retrievePaymentIntent(paymentIntentId);
 
         if (!"succeeded".equals(paymentIntent.getStatus())) {
             throw new BadRequestException("Payment has not succeeded yet. Status: " + paymentIntent.getStatus());
         }
 
-        // Check if payment already exists for this PaymentIntent
         var existingPayment = paymentRepository.findByStripePaymentIntentId(paymentIntentId);
         if (existingPayment.isPresent()) {
             log.warn("Payment already exists for PaymentIntent {}", paymentIntentId);
             return existingPayment.get();
         }
 
-        // Get payment status
         PaymentStatusType statusType = mapStripeStatus(paymentIntent.getStatus());
         PaymentStatus status = paymentStatusRepository.findByName(statusType)
                 .orElseThrow(() -> new NotFoundException("Payment status not found: " + statusType));
 
-        // Get payment method (default to "card" for now)
         PaymentMethod method = paymentMethodRepository.findByName("card")
                 .orElse(null);
 
-        // Create payment record
         Payment payment = new Payment();
         payment.setInvoice(invoice);
         payment.setStripePaymentIntentId(paymentIntentId);
@@ -135,44 +131,15 @@ public class PaymentService {
         payment.setStatus(status);
         payment.setMethod(method);
 
-        // Extract Stripe customer ID from PaymentIntent if available
         if (paymentIntent.getCustomer() != null) {
             payment.setStripeCustomerId(paymentIntent.getCustomer());
         }
 
         Payment savedPayment = paymentRepository.save(payment);
         log.info("Created payment record {} for PaymentIntent {} and Invoice {}",
-                savedPayment.getPaymentId(), paymentIntentId, invoice.getInvoiceId());
+            savedPayment.getPaymentId(), paymentIntentId, invoice.getInvoiceId());
 
         return savedPayment;
-    }
-
-    @Transactional
-    public Order completePayment(String paymentIntentId, UUID cartId, Integer customerId, Integer addressId) {
-        // 1. Verify payment succeeded with Stripe
-        PaymentIntent paymentIntent = stripeService.retrievePaymentIntent(paymentIntentId);
-
-        if (!"succeeded".equals(paymentIntent.getStatus())) {
-            throw new BadRequestException("Payment has not succeeded. Status: " + paymentIntent.getStatus());
-        }
-
-        log.info("Payment {} succeeded, creating order from cart {}", paymentIntentId, cartId);
-
-        // 2. Create order from cart
-        Order order = orderService.createOrderFromCart(cartId, customerId, addressId);
-        log.info("Created order {} from cart {}", order.getOrderId(), cartId);
-
-        // 3. Create invoice for the order
-        Invoice invoice = createInvoiceForOrder(order);
-        log.info("Created invoice {} for order {}", invoice.getInvoiceId(), order.getOrderId());
-
-        // 4. Create payment record linked to invoice
-        Payment payment = createPaymentForInvoice(paymentIntentId, invoice);
-        log.info("Created payment record {} for invoice {}", payment.getPaymentId(), invoice.getInvoiceId());
-
-        // Note: Cart is already cleared by orderService.createOrderFromCart()
-
-        return order;
     }
 
     private Invoice createInvoiceForOrder(Order order) {
@@ -197,5 +164,50 @@ public class PaymentService {
             default -> PaymentStatusType.FAILED;
         };
     }
-}
 
+    // ==================== Striep Webhook Handlers ====================
+
+    @Transactional
+    public void handlePaymentSucceeded(String paymentIntentId, UUID cartId, Integer customerId, Integer addressId) {
+        log.info("Processing successful payment webhook for PaymentIntent: {}", paymentIntentId);
+
+        // Check if we already processed this payment
+        var existingPayment = paymentRepository.findByStripePaymentIntentId(paymentIntentId);
+        if (existingPayment.isPresent()) {
+            log.warn("Payment already processed for PaymentIntent {}, skipping", paymentIntentId);
+            return;
+        }
+
+        Order order = orderService.createOrderFromCart(cartId, customerId, addressId);
+        log.info("Created order {} from cart {} via webhook", order.getOrderId(), cartId);
+
+        Invoice invoice = createInvoiceForOrder(order);
+        log.info("Created invoice {} for order {} via webhook", invoice.getInvoiceId(), order.getOrderId());
+
+        Payment payment = createPaymentForInvoice(paymentIntentId, invoice);
+        log.info("Created payment record {} for invoice {} via webhook", payment.getPaymentId(), invoice.getInvoiceId());
+
+        // TODO: Optionally notify customer about successful payment
+    }
+
+    @Transactional
+    public void handlePaymentFailed(String paymentIntentId) {
+        log.warn("Processing failed payment webhook for PaymentIntent: {}", paymentIntentId);
+
+        // Check if payment record exists
+        var existingPayment = paymentRepository.findByStripePaymentIntentId(paymentIntentId);
+
+        if (existingPayment.isPresent()) {
+            Payment payment = existingPayment.get();
+            PaymentStatus failedStatus = paymentStatusRepository.findByName(PaymentStatusType.FAILED)
+                .orElseThrow(() -> new NotFoundException("Payment status FAILED not found"));
+            payment.setStatus(failedStatus);
+            paymentRepository.save(payment);
+            log.info("Updated payment {} status to FAILED", payment.getPaymentId());
+        } else {
+            log.info("No payment record found for failed PaymentIntent {}", paymentIntentId);
+        }
+
+        // TODO: Optionally notify customer about failed payment
+    }
+}

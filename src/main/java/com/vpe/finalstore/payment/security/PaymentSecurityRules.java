@@ -14,8 +14,10 @@ public class PaymentSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry
+            // Webhook endpoint must be publicly accessible for Stripe
+            .requestMatchers(HttpMethod.POST, "/api/webhooks/stripe").permitAll()
+
             .requestMatchers(HttpMethod.POST, "/api/payments/create").authenticated()
-            .requestMatchers(HttpMethod.POST, "/api/payments/*/complete").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/payments/*").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/payments/verify/*").authenticated();
     }

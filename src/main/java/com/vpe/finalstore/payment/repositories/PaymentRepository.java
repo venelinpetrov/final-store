@@ -16,6 +16,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
     Optional<Payment> findByStripePaymentIntentId(String stripePaymentIntentId);
 
+    Optional<Payment> findByStripeChargeId(String stripeChargeId);
+
     @EntityGraph(attributePaths = {"method", "status"})
     @Query("SELECT p FROM Payment p WHERE p.invoice.invoiceId = :invoiceId")
     List<Payment> findByInvoiceId(@Param("invoiceId") Integer invoiceId);

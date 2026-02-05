@@ -11,8 +11,11 @@ import java.util.UUID;
 public class PaymentIntentCreateDto {
     @NotNull(message = "Cart ID is required")
     private UUID cartId;
-    
+
     @NotNull(message = "Customer ID is required")
     private Integer customerId;
+
+    @NotNull(message = "Address ID is required")
+    private Integer addressId;
 }
 
