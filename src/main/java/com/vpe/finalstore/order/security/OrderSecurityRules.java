@@ -14,10 +14,10 @@ public class OrderSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry
-            .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
-            .requestMatchers(HttpMethod.POST, "/api/orders/from-cart/*").authenticated()
+            // Order viewing endpoints
             .requestMatchers(HttpMethod.GET, "/api/orders/*").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/orders/customers/*").authenticated()
+            // Order management endpoints
             .requestMatchers(HttpMethod.PATCH, "/api/orders/*/status").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/orders/*/cancel").authenticated();
     }

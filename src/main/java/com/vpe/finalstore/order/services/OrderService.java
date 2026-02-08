@@ -116,7 +116,7 @@ public class OrderService {
         var pendingStatus = orderStatusRepository.findByName(OrderStatusType.PENDING)
             .orElseThrow(() -> new NotFoundException("Order status PENDING not found"));
 
-        // Create order
+        // Create order with PENDING status
         var order = new Order();
         order.setCustomer(customer);
         order.setAddress(address);

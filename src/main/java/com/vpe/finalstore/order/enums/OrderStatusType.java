@@ -1,7 +1,7 @@
 package com.vpe.finalstore.order.enums;
 
 public enum OrderStatusType {
-    PENDING,
+    PENDING, // Order confirmed, pending fulfillment
     SHIPPED,
     DELIVERED,
     CANCELED,

@@ -1,5 +1,6 @@
 package com.vpe.finalstore.payment.repositories;
 
+import com.vpe.finalstore.payment.entities.Invoice;
 import com.vpe.finalstore.payment.entities.Payment;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,5 +22,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
     @EntityGraph(attributePaths = {"method", "status"})
     @Query("SELECT p FROM Payment p WHERE p.invoice.invoiceId = :invoiceId")
     List<Payment> findByInvoiceId(@Param("invoiceId") Integer invoiceId);
+
+    @EntityGraph(attributePaths = {"status"})
+    @Query("SELECT p FROM Payment p WHERE p.invoice = :invoice")
+    List<Payment> findByInvoice(@Param("invoice") Invoice invoice);
 }
 

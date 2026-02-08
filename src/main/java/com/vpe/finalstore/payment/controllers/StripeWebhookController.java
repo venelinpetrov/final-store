@@ -77,22 +77,18 @@ public class StripeWebhookController {
         log.info("✅ Payment succeeded: {}", paymentIntent.getId());
 
         // Extract metadata
-        String cartId = paymentIntent.getMetadata().get("cartId");
-        String customerId = paymentIntent.getMetadata().get("customerId");
-        String addressId = paymentIntent.getMetadata().get("addressId");
+        String paymentId = paymentIntent.getMetadata().get("paymentId");
 
-        if (cartId == null || customerId == null || addressId == null) {
-            log.error("Missing required metadata in PaymentIntent {}: cartId={}, customerId={}, addressId={}",
-                paymentIntent.getId(), cartId, customerId, addressId);
+        if (paymentId == null) {
+            log.error("Missing required metadata in PaymentIntent {}: paymentId={}",
+                paymentIntent.getId(), paymentId);
             return;
         }
 
         try {
             paymentService.handlePaymentSucceeded(
                     paymentIntent.getId(),
-                    java.util.UUID.fromString(cartId),
-                    Integer.parseInt(customerId),
-                    Integer.parseInt(addressId)
+                    Integer.parseInt(paymentId)
             );
         } catch (Exception e) {
             log.error("Failed to process successful payment {}: {}", paymentIntent.getId(), e.getMessage(), e);
@@ -108,12 +104,34 @@ public class StripeWebhookController {
         }
 
         var paymentIntent = (PaymentIntent) dataObjectDeserializer.getObject().get();
-        log.warn("❌ Payment failed: {} - Reason: {}",
-                paymentIntent.getId(),
-                paymentIntent.getLastPaymentError() != null ?
-                        paymentIntent.getLastPaymentError().getMessage() : "Unknown");
 
-        paymentService.handlePaymentFailed(paymentIntent.getId());
+        // Extract metadata
+        String paymentId = paymentIntent.getMetadata().get("paymentId");
+        if (paymentId == null) {
+            log.error("Missing required metadata in PaymentIntent {}: paymentId={}", paymentIntent.getId(), paymentId);
+            return;
+        }
+
+        // Extract failure details
+        String failureCode = paymentIntent.getLastPaymentError() != null ?
+                paymentIntent.getLastPaymentError().getCode() : "unknown";
+        String failureMessage = paymentIntent.getLastPaymentError() != null ?
+                paymentIntent.getLastPaymentError().getMessage() : "Unknown error";
+
+        log.warn("❌ Payment failed: {} - Reason: {} ({})",
+                paymentIntent.getId(), failureMessage, failureCode);
+
+        try {
+            paymentService.handlePaymentFailed(
+                    paymentIntent.getId(),
+                    Integer.parseInt(paymentId),
+                    failureCode,
+                    failureMessage
+            );
+        } catch (Exception e) {
+            log.error("Failed to process failed payment {}: {}", paymentIntent.getId(), e.getMessage(), e);
+            throw e;
+        }
     }
 }
 
