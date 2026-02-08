@@ -229,18 +229,51 @@ public class PaymentService {
             payment.setStripeCustomerId(paymentIntent.getCustomer());
         }
 
+        // Retrieve payment method details (including card info)
         if (paymentIntent.getPaymentMethod() != null) {
-            String paymentMethodType = paymentIntent.getPaymentMethod();
-            log.info("Payment method used: {}", paymentMethodType);
-            // TODO: Map Stripe payment method to our PaymentMethod entity
-        }
+            String paymentMethodId = paymentIntent.getPaymentMethod();
 
-        if (paymentIntent.getMetadata() != null && !paymentIntent.getMetadata().isEmpty()) {
             try {
-                payment.setMetadata(objectMapper.writeValueAsString(paymentIntent.getMetadata()));
+                com.stripe.model.PaymentMethod paymentMethod = stripeService.retrievePaymentMethod(paymentMethodId);
+
+                // Build metadata with card details
+                Map<String, Object> metadata = new HashMap<>();
+
+                // Add existing metadata from PaymentIntent
+                if (paymentIntent.getMetadata() != null && !paymentIntent.getMetadata().isEmpty()) {
+                    metadata.putAll(paymentIntent.getMetadata());
+                }
+
+                // Add payment method type
+                metadata.put("paymentMethodType", paymentMethod.getType());
+
+                // Add card details if payment method is a card
+                if ("card".equals(paymentMethod.getType()) && paymentMethod.getCard() != null) {
+                    var card = paymentMethod.getCard();
+                    metadata.put("cardBrand", card.getBrand());
+                    metadata.put("cardLast4", card.getLast4());
+                    metadata.put("cardExpMonth", card.getExpMonth());
+                    metadata.put("cardExpYear", card.getExpYear());
+                    metadata.put("cardCountry", card.getCountry());
+                    metadata.put("cardFunding", card.getFunding());
+
+                    if (card.getWallet() != null) {
+                        metadata.put("walletType", card.getWallet().getType());
+                    }
+
+                    log.info("Card details: {} ending in {} (expires {}/{})",
+                            card.getBrand(), card.getLast4(), card.getExpMonth(), card.getExpYear());
+                }
+
+                // Serialize all metadata to JSON
+                payment.setMetadata(objectMapper.writeValueAsString(metadata));
+
             } catch (JsonProcessingException e) {
                 log.error("Failed to serialize payment metadata for PaymentIntent {}: {}",
                         paymentIntentId, e.getMessage());
+            } catch (Exception e) {
+                log.error("Failed to retrieve payment method details for {}: {}",
+                        paymentMethodId, e.getMessage());
             }
         }
 
