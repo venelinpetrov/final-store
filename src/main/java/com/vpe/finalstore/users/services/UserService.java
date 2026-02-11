@@ -38,6 +38,7 @@ public class UserService implements UserDetailsService {
 
         var role = roleRepository.getRoleByName(RoleEnum.USER).orElseThrow(RoleNotFoundException::new);
         userEntity.setRoles(Set.of(role));
+        userEntity.setIsActive(true);
         userRepository.save(userEntity);
 
         Customer customer = new Customer();
@@ -45,6 +46,8 @@ public class UserService implements UserDetailsService {
         customer.setPhone(data.getPhone());
         customer.setUser(userEntity);
         customerRepository.save(customer);
+
+        userEntity.setCustomer(customer);
 
         return userEntity;
     }
