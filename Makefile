@@ -25,11 +25,17 @@ help:
 	@echo "  make db-shell      - Open MySQL shell in container"
 	@echo "  make db-shell-dev  - Open MySQL shell in container (dev)"
 	@echo ""
-	@echo "Migrations:"
+	@echo "Migrations (Local - port 3306):"
 	@echo "  make migrate        - Run Flyway migrations"
 	@echo "  make migrate-info   - Show migration status"
 	@echo "  make migrate-repair - Repair migration metadata"
 	@echo "  make migrate-clean  - Clean database (WARNING: deletes all data)"
+	@echo ""
+	@echo "Migrations (Dev Docker - port 3307):"
+	@echo "  make migrate-dev        - Run Flyway migrations on dev database"
+	@echo "  make migrate-info-dev   - Show migration status on dev database"
+	@echo "  make migrate-repair-dev - Repair migration metadata on dev database"
+	@echo "  make migrate-clean-dev  - Clean dev database (WARNING: deletes all data)"
 	@echo ""
 	@echo "Other:"
 	@echo "  make status        - Show status of all services"
@@ -100,7 +106,7 @@ dev-build:
 	@echo "Rebuilding and starting development environment..."
 	@docker-compose -f docker-compose.dev.yml up -d --build
 
-# Migration commands
+# Migration commands (local database on port 3306)
 migrate:
 	@echo "Running Flyway migrations..."
 	@./mvnw flyway:migrate
@@ -119,6 +125,29 @@ migrate-clean:
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		./mvnw flyway:clean; \
+	else \
+		echo "Operation cancelled."; \
+	fi
+
+# Migration commands for dev Docker database (port 3307)
+migrate-dev:
+	@echo "Running Flyway migrations on dev database..."
+	@./mvnw flyway:migrate -Dflyway.url='jdbc:mysql://localhost:3307/my_store?useSSL=false&allowPublicKeyRetrieval=true' -Dflyway.user=root -Dflyway.password=0000
+
+migrate-info-dev:
+	@echo "Checking migration status on dev database..."
+	@./mvnw flyway:info -Dflyway.url='jdbc:mysql://localhost:3307/my_store?useSSL=false&allowPublicKeyRetrieval=true' -Dflyway.user=root -Dflyway.password=0000
+
+migrate-repair-dev:
+	@echo "Repairing Flyway migration metadata on dev database..."
+	@./mvnw flyway:repair -Dflyway.url='jdbc:mysql://localhost:3307/my_store?useSSL=false&allowPublicKeyRetrieval=true' -Dflyway.user=root -Dflyway.password=0000
+
+migrate-clean-dev:
+	@echo "WARNING: This will delete all data in the dev database!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		./mvnw flyway:clean -Dflyway.url='jdbc:mysql://localhost:3307/my_store?useSSL=false&allowPublicKeyRetrieval=true' -Dflyway.user=root -Dflyway.password=0000; \
 	else \
 		echo "Operation cancelled."; \
 	fi

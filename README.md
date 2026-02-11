@@ -208,7 +208,15 @@ Run the seed script from [here](https://github.com/venelinpetrov/my-store-seed-s
 
 ### Migrations
 
-Flyway migrations run automatically when the application starts. The database schema is created on first startup.
+**Docker Setup:** Flyway migrations run automatically when the application starts. The database schema is created on first startup.
+
+**Local Setup:** Run migrations manually using:
+```bash
+make migrate          # Run migrations
+make migrate-info     # Check migration status
+```
+
+**Troubleshooting:** If migrations fail, see [DEVELOPMENT.md](DEVELOPMENT.md#app-crashes-on-startup-with-flyway-validation-failed) for repair instructions.
 
 ### Common Tasks
 

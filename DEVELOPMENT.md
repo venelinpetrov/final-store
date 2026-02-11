@@ -88,11 +88,17 @@ make build            # Rebuild
 make db-shell         # Open MySQL shell
 make db-connect       # Connect from host
 
-# Migrations
+# Migrations (Local - port 3306)
 make migrate          # Run Flyway migrations
 make migrate-info     # Show migration status
 make migrate-repair   # Repair migration metadata
 make migrate-clean    # Clean database (WARNING: deletes all data)
+
+# Migrations (Dev Docker - port 3307)
+make migrate-dev        # Run Flyway migrations on dev database
+make migrate-info-dev   # Show migration status on dev database
+make migrate-repair-dev # Repair migration metadata on dev database
+make migrate-clean-dev  # Clean dev database (WARNING: deletes all data)
 
 # Other
 make status           # Show container status
@@ -145,6 +151,33 @@ For app port, edit `docker-compose.dev.yml`:
 ports:
   - "8081:8080"  # Change to 8081
 ```
+
+### App crashes on startup with "Flyway validation failed"?
+
+This happens when a migration fails mid-execution, leaving the database in a corrupted state.
+
+**Fix:**
+1. Stop the dev environment:
+   ```bash
+   make dev-stop
+   ```
+
+2. Start only MySQL container:
+   ```bash
+   docker-compose -f docker-compose.dev.yml up -d mysql
+   ```
+
+3. Repair the Flyway schema:
+   ```bash
+   make migrate-repair-dev
+   ```
+
+4. Restart the full environment:
+   ```bash
+   make dev
+   ```
+
+**Note:** Flyway migrations run automatically when the app starts in Docker. You don't need to run migrations manually unless you're troubleshooting or running the app locally outside Docker.
 
 ## What's Next?
 

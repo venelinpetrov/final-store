@@ -166,13 +166,41 @@ docker-compose up -d --build
 
 ### Running migrations
 
-Flyway migrations run automatically when the application starts. To manually trigger migrations:
+Flyway migrations run **automatically** when the application starts. You don't need to run migrations manually.
 
-1. Stop the application
-2. Start it again:
-   ```bash
-   docker-compose restart app
-   ```
+#### Troubleshooting Failed Migrations
+
+If the app crashes on startup with "Flyway validation failed", a migration failed mid-execution:
+
+**For Development Mode (`make dev`):**
+```bash
+# Stop the environment
+make dev-stop
+
+# Start only MySQL
+docker-compose -f docker-compose.dev.yml up -d mysql
+
+# Repair Flyway schema
+make migrate-repair-dev
+
+# Restart everything
+make dev
+```
+
+**For Production Mode (`make start`):**
+```bash
+# Stop the environment
+make stop
+
+# Start only MySQL
+docker-compose up -d mysql
+
+# Repair Flyway schema (connect to port 3307)
+./mvnw flyway:repair -Dflyway.url='jdbc:mysql://localhost:3307/my_store?useSSL=false&allowPublicKeyRetrieval=true' -Dflyway.user=root -Dflyway.password=0000
+
+# Restart everything
+make start
+```
 
 ### Accessing the application
 
