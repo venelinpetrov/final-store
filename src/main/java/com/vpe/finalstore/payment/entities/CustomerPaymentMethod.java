@@ -27,10 +27,6 @@ public class CustomerPaymentMethod {
     @Column(name = "stripe_method_id")
     private String stripeMethodId;
 
-    @NotNull
-    @Column(name = "method_type")
-    private String methodType;
-
     @Column(name = "card_brand")
     private String cardBrand;
 

@@ -13,11 +13,13 @@ import com.vpe.finalstore.order.repositories.OrderStatusRepository;
 import com.vpe.finalstore.order.services.OrderService;
 import com.vpe.finalstore.payment.config.PaymentConfig;
 import com.vpe.finalstore.payment.dtos.PaymentIntentResponseDto;
+import com.vpe.finalstore.payment.entities.CustomerPaymentMethod;
 import com.vpe.finalstore.payment.entities.Invoice;
 import com.vpe.finalstore.payment.entities.Payment;
 import com.vpe.finalstore.payment.entities.PaymentMethod;
 import com.vpe.finalstore.payment.entities.PaymentStatus;
 import com.vpe.finalstore.payment.enums.PaymentStatusType;
+import com.vpe.finalstore.payment.repositories.CustomerPaymentMethodRepository;
 import com.vpe.finalstore.payment.repositories.InvoiceRepository;
 import com.vpe.finalstore.payment.repositories.PaymentMethodRepository;
 import com.vpe.finalstore.payment.repositories.PaymentRepository;
@@ -42,6 +44,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final CustomerPaymentMethodRepository customerPaymentMethodRepository;
     private final CustomerRepository customerRepository;
     private final PaymentConfig paymentConfig;
     private final OrderService orderService;
@@ -229,51 +232,56 @@ public class PaymentService {
             payment.setStripeCustomerId(paymentIntent.getCustomer());
         }
 
-        // Retrieve payment method details (including card info)
+        // Retrieve and save payment method details
         if (paymentIntent.getPaymentMethod() != null) {
-            String paymentMethodId = paymentIntent.getPaymentMethod();
+            String stripePaymentMethodId = paymentIntent.getPaymentMethod();
 
             try {
-                com.stripe.model.PaymentMethod paymentMethod = stripeService.retrievePaymentMethod(paymentMethodId);
+                var stripePaymentMethod = stripeService.retrievePaymentMethod(stripePaymentMethodId);
 
-                // Build metadata with card details
+                var customer = payment.getInvoice().getCustomer();
+
+                var existingPaymentMethod = customerPaymentMethodRepository
+                        .findByStripeMethodId(stripePaymentMethod.getId());
+
+                if (existingPaymentMethod.isEmpty()) {
+                    var customerPaymentMethod = saveCustomerPaymentMethod(
+                            customer.getCustomerId(),
+                            stripePaymentMethod
+                    );
+                    payment.setCustomerPaymentMethod(customerPaymentMethod);
+
+                    log.info("Saved new payment method: {} ending in {} for customer {}",
+                            customerPaymentMethod.getCardBrand(),
+                            customerPaymentMethod.getLast4(),
+                            customer.getCustomerId());
+                }
+
+                // Map Stripe payment method type to our PaymentMethod entity (for reporting)
+                var ourPaymentMethod = mapStripePaymentMethodToOurs(stripePaymentMethod);
+                if (ourPaymentMethod != null) {
+                    payment.setMethod(ourPaymentMethod);
+                }
+
                 Map<String, Object> metadata = new HashMap<>();
 
-                // Add existing metadata from PaymentIntent
                 if (paymentIntent.getMetadata() != null && !paymentIntent.getMetadata().isEmpty()) {
                     metadata.putAll(paymentIntent.getMetadata());
                 }
 
-                // Add payment method type
-                metadata.put("paymentMethodType", paymentMethod.getType());
+                metadata.put("paymentMethodType", stripePaymentMethod.getType());
 
-                // Add card details if payment method is a card
-                if ("card".equals(paymentMethod.getType()) && paymentMethod.getCard() != null) {
-                    var card = paymentMethod.getCard();
-                    metadata.put("cardBrand", card.getBrand());
-                    metadata.put("cardLast4", card.getLast4());
-                    metadata.put("cardExpMonth", card.getExpMonth());
-                    metadata.put("cardExpYear", card.getExpYear());
-                    metadata.put("cardCountry", card.getCountry());
-                    metadata.put("cardFunding", card.getFunding());
-
-                    if (card.getWallet() != null) {
-                        metadata.put("walletType", card.getWallet().getType());
-                    }
-
-                    log.info("Card details: {} ending in {} (expires {}/{})",
-                            card.getBrand(), card.getLast4(), card.getExpMonth(), card.getExpYear());
+                // Serialize metadata to JSON
+                if (!metadata.isEmpty()) {
+                    payment.setMetadata(objectMapper.writeValueAsString(metadata));
                 }
-
-                // Serialize all metadata to JSON
-                payment.setMetadata(objectMapper.writeValueAsString(metadata));
 
             } catch (JsonProcessingException e) {
                 log.error("Failed to serialize payment metadata for PaymentIntent {}: {}",
                         paymentIntentId, e.getMessage());
             } catch (Exception e) {
-                log.error("Failed to retrieve payment method details for {}: {}",
-                        paymentMethodId, e.getMessage());
+                log.error("Failed to save payment method for PaymentIntent {}: {}",
+                        paymentIntentId, e.getMessage());
             }
         }
 
@@ -335,5 +343,79 @@ public class PaymentService {
             log.info("Payment can be retried. {} of {} attempts used", failedAttempts, MAX_PAYMENT_ATTEMPTS);
             // TODO: Notify customer to retry payment
         }
+    }
+
+    /**
+     * Save new customer payment method
+     * Assumes the payment method doesn't already exist (caller should check)
+     */
+    private CustomerPaymentMethod saveCustomerPaymentMethod(
+            Integer customerId,
+            com.stripe.model.PaymentMethod stripePaymentMethod) {
+
+        CustomerPaymentMethod newMethod = new CustomerPaymentMethod();
+
+        // Set customer
+        var customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new NotFoundException("Customer not found: " + customerId));
+        newMethod.setCustomer(customer);
+
+        // Set Stripe payment method ID
+        newMethod.setStripeMethodId(stripePaymentMethod.getId());
+
+        // Extract card details if payment method is a card
+        if ("card".equals(stripePaymentMethod.getType()) && stripePaymentMethod.getCard() != null) {
+            var card = stripePaymentMethod.getCard();
+            newMethod.setCardBrand(card.getBrand());
+            newMethod.setLast4(card.getLast4());
+            newMethod.setExpMonth(Math.toIntExact(card.getExpMonth()));
+            newMethod.setExpYear(Math.toIntExact(card.getExpYear()));
+        }
+
+        // Set as non-default by default (customer can change later)
+        newMethod.setIsDefault(false);
+
+        return customerPaymentMethodRepository.save(newMethod);
+    }
+
+    /**
+     * Map Stripe PaymentMethod to our PaymentMethod entity
+     * Stripe payment method types: card, us_bank_account, sepa_debit, ideal, etc.
+     * Our payment method types: Credit Card, Bank Transfer, PayPal, Cash, Other
+     */
+    private PaymentMethod mapStripePaymentMethodToOurs(com.stripe.model.PaymentMethod stripePaymentMethod) {
+        String stripeType = stripePaymentMethod.getType();
+        String ourType;
+
+        // Map Stripe payment method type to our enum
+        switch (stripeType) {
+            case "card":
+                ourType = "Credit Card";
+                break;
+            case "us_bank_account":
+            case "sepa_debit":
+            case "bacs_debit":
+            case "au_becs_debit":
+                ourType = "Bank Transfer";
+                break;
+            case "paypal":
+                ourType = "PayPal";
+                break;
+            default:
+                ourType = "Other";
+                log.warn("Unknown Stripe payment method type: {}. Mapping to 'Other'", stripeType);
+        }
+
+        // Find or create payment method in database
+        return paymentMethodRepository.findByName(ourType)
+                .orElseGet(() -> {
+                    // Create new payment method if it doesn't exist
+                    PaymentMethod newMethod = new PaymentMethod();
+                    newMethod.setType(ourType);
+                    newMethod.setName(ourType); // Use type as name for simplicity
+                    PaymentMethod saved = paymentMethodRepository.save(newMethod);
+                    log.info("Created new payment method: {} ({})", saved.getName(), saved.getType());
+                    return saved;
+                });
     }
 }

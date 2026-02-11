@@ -11,7 +11,6 @@ public class CustomerPaymentMethodDto {
     private Integer methodId;
     private Integer customerId;
     private String stripeMethodId;
-    private String methodType;
     private String cardBrand;
     private String last4;
     private Integer expMonth;

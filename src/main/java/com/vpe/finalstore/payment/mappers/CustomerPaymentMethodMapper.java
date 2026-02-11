@@ -18,7 +18,6 @@ public class CustomerPaymentMethodMapper {
         dto.setMethodId(entity.getMethodId());
         dto.setCustomerId(entity.getCustomer().getCustomerId());
         dto.setStripeMethodId(entity.getStripeMethodId());
-        dto.setMethodType(entity.getMethodType());
         dto.setCardBrand(entity.getCardBrand());
         dto.setLast4(entity.getLast4());
         dto.setExpMonth(entity.getExpMonth());

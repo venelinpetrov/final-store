@@ -34,6 +34,10 @@ public class Payment {
     @JoinColumn(name = "method_id")
     private PaymentMethod method;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_payment_method_id")
+    private CustomerPaymentMethod customerPaymentMethod;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")
