@@ -34,14 +34,15 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Customer customer;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    private LocalDateTime updatedAt;
 
     @Column(name = "token_version")
     private Integer tokenVersion = 0;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @ManyToMany
     @JoinTable(name = "user_roles",
