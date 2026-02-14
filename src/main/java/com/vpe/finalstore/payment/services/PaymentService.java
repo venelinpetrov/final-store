@@ -296,6 +296,7 @@ public class PaymentService {
         // Business rule: We only support full payment, no partial payments
         // Therefore, payment_total will always equal invoice_total when paid
         invoice.setPaymentTotal(payment.getAmount());
+        invoice.setPaymentDate(LocalDateTime.now());
         invoiceRepository.save(invoice);
         var order = invoice.getOrder();
 
