@@ -1,7 +1,8 @@
-package com.vpe.finalstore.payment.entities;
+package com.vpe.finalstore.invoice.entities;
 
 import com.vpe.finalstore.customer.entities.Customer;
 import com.vpe.finalstore.order.entities.Order;
+import com.vpe.finalstore.payment.entities.Payment;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
