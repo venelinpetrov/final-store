@@ -1,0 +1,3 @@
+ALTER TABLE order_items
+    MODIFY quantity SMALLINT UNSIGNED NOT NULL;
+

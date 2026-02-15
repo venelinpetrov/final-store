@@ -20,7 +20,7 @@ public class ProductVariantCreateDto {
     private BigDecimal unitPrice;
 
     @NotNull
-    private Integer quantityInStock;
+    private short quantityInStock;
 
     @NotNull
     private Boolean isArchived;

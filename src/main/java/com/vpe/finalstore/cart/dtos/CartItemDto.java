@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 public class CartItemDto {
     private ProductVariantDto variant;
-    private Integer quantity;
+    private short quantity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

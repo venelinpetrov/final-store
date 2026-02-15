@@ -35,7 +35,7 @@ public class InventoryMovement {
 
     @NotNull
     @Column(name = "quantity")
-    private Integer quantity;
+    private short quantity;
 
     @Column(name = "reason")
     private String reason;

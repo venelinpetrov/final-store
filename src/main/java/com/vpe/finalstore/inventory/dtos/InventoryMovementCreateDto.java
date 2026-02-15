@@ -17,7 +17,7 @@ public class InventoryMovementCreateDto {
     private MovementType movementType;
 
     @Positive
-    private Integer quantity;
+    private short quantity;
 
     @NotBlank
     private String reason;

@@ -12,7 +12,7 @@ public class InventoryMovementDto {
     private Integer movementId;
     private Integer variantId;
     private MovementType movementType;
-    private Integer quantity;
+    private short quantity;
     private String reason;
     private LocalDateTime createdAt;
 }

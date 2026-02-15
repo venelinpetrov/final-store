@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Setter
 public class OrderItemDto {
     private Integer variantId;
-    private Integer quantity;
+    private short quantity;
     private String productName;
     private String sku;
     private String brandName;
