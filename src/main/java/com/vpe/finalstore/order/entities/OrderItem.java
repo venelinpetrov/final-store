@@ -27,7 +27,7 @@ public class OrderItem {
     private ProductVariant variant;
 
     @Column(name = "quantity")
-    private short quantity;
+    private Integer quantity;
 
     @Column(name = "product_name")
     private String productName;

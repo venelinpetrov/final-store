@@ -43,7 +43,7 @@ public class CartService {
         return cartItem;
     }
 
-    public CartItem updateCartItem(UUID cartId, Integer variantId, short quantity) {
+    public CartItem updateCartItem(UUID cartId, Integer variantId, Integer quantity) {
         var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
         var cartItem = cart.getItem(variantId);
 

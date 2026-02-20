@@ -13,5 +13,5 @@ public class OrderItemCreateDto {
 
     @NotNull
     @Min(1)
-    private short quantity;
+    private Integer quantity;
 }
