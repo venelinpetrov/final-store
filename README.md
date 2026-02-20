@@ -8,7 +8,6 @@ A comprehensive Java Spring Boot e-commerce store API.
 
 - [Roadmap](https://github.com/users/venelinpetrov/projects/2/views/1)
 - [Database design](https://github.com/venelinpetrov/db-my-store)
-- [Seed script](https://github.com/venelinpetrov/my-store-seed-script)
 
 ## Documentation
 
@@ -26,7 +25,6 @@ Choose one of the following setup options:
 **Required:**
 - Java 21
 - MySQL 8.0
-- Python 3 (for seed script)
 
 **Installation (macOS):**
 ```bash
@@ -133,9 +131,15 @@ Common locations:
 3. Select main class: `com.vpe.finalstore.FinalStoreApplication`
 4. Run the application
 
-#### 4. Seed the Database
+#### 4. Seed the database
 
-Run the seed script from [here](https://github.com/venelinpetrov/my-store-seed-script)
+After you run the app you can seed the database with test data by running the following command:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"cleanStart": true, "userCount": 100, "productCount": 50, "orderCount": 200}' http://localhost:8080/api/seeder/db-seed
+```
+
+or via Swagger UI: http://localhost:8080/swagger-ui.html#. Look for `/api/seeder/db-seed` and `/api/seeder/clean`
 
 #### 5. Access the Application
 
