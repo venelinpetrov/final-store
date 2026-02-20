@@ -136,7 +136,7 @@ public class OrderService {
             orderItem.setOrderItemId(orderItemId);
             orderItem.setOrder(order);
             orderItem.setVariant(variant);
-            orderItem.setQuantity((int) cartItem.getQuantity());
+            orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setProductName(variant.getProduct().getName());
             orderItem.setSku(variant.getSku());
             orderItem.setBrandName(variant.getProduct().getBrand() != null ?

@@ -52,11 +52,11 @@ public class Cart {
         var cartItem = getItem(variant.getVariantId());
 
         if (cartItem != null) {
-            cartItem.setQuantity((short) (cartItem.getQuantity() + 1));
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
         } else {
             cartItem = new CartItem();
             cartItem.setVariant(variant);
-            cartItem.setQuantity((short) 1);
+            cartItem.setQuantity(1);
             cartItem.setCart(this);
             cartItems.add(cartItem);
         }

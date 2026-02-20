@@ -1,5 +1,6 @@
-package com.vpe.finalstore.payment.dtos;
+package com.vpe.finalstore.invoice.dtos;
 
+import com.vpe.finalstore.payment.dtos.PaymentDto;
 import lombok.Getter;
 import lombok.Setter;
 

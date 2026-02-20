@@ -1,7 +1,8 @@
-package com.vpe.finalstore.payment.mappers;
+package com.vpe.finalstore.invoice.mappers;
 
-import com.vpe.finalstore.payment.dtos.InvoiceDto;
-import com.vpe.finalstore.payment.entities.Invoice;
+import com.vpe.finalstore.invoice.dtos.InvoiceDto;
+import com.vpe.finalstore.invoice.entities.Invoice;
+import com.vpe.finalstore.payment.mappers.PaymentMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

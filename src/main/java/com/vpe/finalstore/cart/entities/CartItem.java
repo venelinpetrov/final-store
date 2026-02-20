@@ -29,7 +29,7 @@ public class CartItem {
 
     @NotNull
     @Column(name = "quantity")
-    private short quantity;
+    private Integer quantity;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

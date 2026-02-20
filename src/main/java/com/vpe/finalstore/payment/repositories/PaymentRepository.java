@@ -1,6 +1,6 @@
 package com.vpe.finalstore.payment.repositories;
 
-import com.vpe.finalstore.payment.entities.Invoice;
+import com.vpe.finalstore.invoice.entities.Invoice;
 import com.vpe.finalstore.payment.entities.Payment;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
