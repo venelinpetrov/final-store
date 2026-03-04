@@ -56,11 +56,6 @@ public class PaymentService {
     /**
      * Create order from cart, invoice, initial payment record, and PaymentIntent
      * Flow: Order (PENDING) → Invoice → Payment (PENDING) → PaymentIntent
-     *
-     * @param cartId Cart ID
-     * @param customerId Customer ID
-     * @param addressId Shipping address ID
-     * @return PaymentIntent response with clientSecret
      */
     @Transactional
     public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, @NonNull Integer customerId, @NonNull Integer addressId) {
