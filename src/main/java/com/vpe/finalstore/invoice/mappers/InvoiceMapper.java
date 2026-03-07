@@ -3,37 +3,14 @@ package com.vpe.finalstore.invoice.mappers;
 import com.vpe.finalstore.invoice.dtos.InvoiceDto;
 import com.vpe.finalstore.invoice.entities.Invoice;
 import com.vpe.finalstore.payment.mappers.PaymentMapper;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.ArrayList;
-
-@AllArgsConstructor
-@Component
-public class InvoiceMapper {
-    private final PaymentMapper paymentMapper;
-
-    public InvoiceDto toDto(Invoice invoice) {
-        if (invoice == null) {
-            return null;
-        }
-
-        var dto = new InvoiceDto();
-        dto.setInvoiceId(invoice.getInvoiceId());
-        dto.setOrderId(invoice.getOrder().getOrderId());
-        dto.setCustomerId(invoice.getCustomer().getCustomerId());
-        dto.setInvoiceTotal(invoice.getInvoiceTotal());
-        dto.setTax(invoice.getTax());
-        dto.setDiscount(invoice.getDiscount());
-        dto.setPaymentTotal(invoice.getPaymentTotal());
-        dto.setInvoiceDate(invoice.getInvoiceDate());
-        dto.setDueDate(invoice.getDueDate());
-        dto.setPaymentDate(invoice.getPaymentDate());
-        dto.setPayments(invoice.getPayments() != null 
-            ? paymentMapper.toDto(new ArrayList<>(invoice.getPayments())) 
-            : null);
-
-        return dto;
-    }
+@Mapper(componentModel = "spring", uses = PaymentMapper.class)
+public interface InvoiceMapper {
+    @Mapping(target = "status", source = "status.name")
+    @Mapping(target = "orderId", source = "order.orderId")
+    @Mapping(target = "customerId", source = "customer.customerId")
+    InvoiceDto toDto(Invoice invoice);
 }
 

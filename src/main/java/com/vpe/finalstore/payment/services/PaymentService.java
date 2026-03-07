@@ -7,6 +7,8 @@ import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.invoice.entities.Invoice;
+import com.vpe.finalstore.invoice.enums.InvoiceStatusType;
+import com.vpe.finalstore.invoice.repositories.InvoiceStatusRepository;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.enums.OrderStatusType;
 import com.vpe.finalstore.order.repositories.OrderRepository;
@@ -51,6 +53,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceStatusRepository invoiceStatusRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -110,7 +113,7 @@ public class PaymentService {
      */
     private Payment createInitialPaymentRecord(Invoice invoice) {
         var pendingStatus = paymentStatusRepository.findByName(PaymentStatusType.PENDING)
-                .orElseThrow(() -> new NotFoundException("Payment status PENDING not found"));
+            .orElseThrow(() -> new NotFoundException("Payment status PENDING not found"));
 
         var payment = new Payment();
         payment.setInvoice(invoice);
@@ -177,7 +180,11 @@ public class PaymentService {
     }
 
     private Invoice createInvoiceForOrder(Order order) {
+        var issuedStatus = invoiceStatusRepository.findByName(InvoiceStatusType.ISSUED)
+            .orElseThrow(() -> new IllegalStateException("ISSUED status not found in database"));
+
         Invoice invoice = new Invoice();
+        invoice.setStatus(issuedStatus);
         invoice.setOrder(order);
         invoice.setCustomer(order.getCustomer());
         invoice.setInvoiceTotal(order.getTotal());
@@ -288,8 +295,13 @@ public class PaymentService {
 
         var invoice = payment.getInvoice();
 
+        // Get PAID status
+        var paidStatus = invoiceStatusRepository.findByName(InvoiceStatusType.PAID)
+            .orElseThrow(() -> new IllegalStateException("PAID status not found in database"));
+
         // Business rule: We only support full payment, no partial payments
         // Therefore, payment_total will always equal invoice_total when paid
+        invoice.setStatus(paidStatus);
         invoice.setPaymentTotal(payment.getAmount());
         invoice.setPaymentDate(LocalDateTime.now());
         invoiceRepository.save(invoice);
