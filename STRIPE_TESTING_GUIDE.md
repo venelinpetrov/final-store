@@ -2,16 +2,9 @@
 
 This guide shows you how to test the **webhook-based** Stripe payment integration using **cURL** and **Stripe CLI**.
 
-## ⚡ What Changed?
-
-**Old Flow (Removed):** Frontend → `/complete` endpoint → Create order
-**New Flow (Webhook-Based):** Frontend → Stripe → Webhook → Create order ✅
-
-**Why?** Webhooks are more reliable - even if the user closes their browser, Stripe will notify your backend and the order will be created.
-
 ---
 
-## 🔑 Prerequisites
+## Prerequisites
 
 1. **Stripe Test API Keys** - Get them from [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
 2. **Stripe CLI** - Required for webhook testing: `brew install stripe/stripe-cli/stripe`
@@ -20,7 +13,7 @@ This guide shows you how to test the **webhook-based** Stripe payment integratio
 
 ---
 
-## 📋 Testing Flow
+## Testing Flow
 
 ### **Step 1: Set Up Webhook Forwarding**
 
