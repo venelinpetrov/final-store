@@ -56,11 +56,6 @@ public class Payment {
     @Column(name = "metadata", columnDefinition = "TEXT")
     private String metadata;
 
-    // Payment attempt tracking
-    @NotNull
-    @Column(name = "attempt_number")
-    private Integer attemptNumber = 1;
-
     @Column(name = "failure_reason")
     private String failureReason;
 

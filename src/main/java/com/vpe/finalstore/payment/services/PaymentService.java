@@ -119,7 +119,6 @@ public class PaymentService {
         payment.setInvoice(invoice);
         payment.setAmount(invoice.getInvoiceTotal());
         payment.setStatus(pendingStatus);
-        payment.setAttemptNumber(1);
 
         return paymentRepository.save(payment);
     }
@@ -289,9 +288,9 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        log.info("✅ Payment {} succeeded for invoice {} (attempt {}) - Charge: {}",
+        log.info("✅ Payment {} succeeded for invoice {} - Charge: {}",
                 payment.getPaymentId(), payment.getInvoice().getInvoiceId(),
-                payment.getAttemptNumber(), payment.getStripeChargeId());
+                payment.getStripeChargeId());
 
         var invoice = payment.getInvoice();
 
@@ -328,8 +327,8 @@ public class PaymentService {
         currentPayment.setFailureReason(failureMessage);
         paymentRepository.save(currentPayment);
 
-        log.info("❌ Payment {} failed (attempt {}) - Reason: {}",
-                currentPayment.getPaymentId(), currentPayment.getAttemptNumber(), failureMessage);
+        log.info("❌ Payment {} failed - Reason: {}",
+                currentPayment.getPaymentId(), failureMessage);
 
         // Check how many failed attempts exist for this invoice
         Invoice invoice = currentPayment.getInvoice();
