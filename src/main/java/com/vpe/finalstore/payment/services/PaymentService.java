@@ -339,13 +339,26 @@ public class PaymentService {
 
         final int MAX_PAYMENT_ATTEMPTS = 3;
         if (failedAttempts >= MAX_PAYMENT_ATTEMPTS) {
-            // Cancel order after 3 failed attempts
+            if (invoice.getStatus().getName() == InvoiceStatusType.PAID) {
+                log.error("⚠️ Cannot cancel invoice {} - already PAID.",
+                    invoice.getInvoiceId());
+                return;
+            }
+
+            var cancelledInvoiceStatus = invoiceStatusRepository.findByName(InvoiceStatusType.CANCELLED)
+                .orElseThrow(() -> new IllegalStateException("CANCELLED invoice status not found in database"));
+
+            invoice.setStatus(cancelledInvoiceStatus);
+            invoiceRepository.save(invoice);
+
             Order order = invoice.getOrder();
-            var canceledStatus = orderStatusRepository.findByName(OrderStatusType.CANCELED)
-                    .orElseThrow(() -> new NotFoundException("Order status CANCELED not found"));
-            order.setStatus(canceledStatus);
+            var canceledOrderStatus = orderStatusRepository.findByName(OrderStatusType.CANCELED)
+                .orElseThrow(() -> new NotFoundException("Order status CANCELED not found"));
+            order.setStatus(canceledOrderStatus);
             orderRepository.save(order);
-            log.warn("⚠️ Order {} CANCELED after {} failed payment attempts", order.getOrderId(), failedAttempts);
+
+            log.warn("⚠️ Order {} and Invoice {} CANCELED after {} failed payment attempts",
+                order.getOrderId(), invoice.getInvoiceId(), failedAttempts);
             // TODO: Notify customer about order cancellation
         } else {
             log.info("Payment can be retried. {} of {} attempts used", failedAttempts, MAX_PAYMENT_ATTEMPTS);
