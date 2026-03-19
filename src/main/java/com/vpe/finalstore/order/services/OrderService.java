@@ -9,6 +9,9 @@ import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
+import com.vpe.finalstore.invoice.enums.InvoiceStatusType;
+import com.vpe.finalstore.invoice.repositories.InvoiceRepository;
+import com.vpe.finalstore.invoice.repositories.InvoiceStatusRepository;
 import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.entities.Order;
@@ -40,6 +43,8 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final CartService cartService;
     private final OrderSummaryCalculator orderSummaryCalculator;
+    private final InvoiceStatusRepository invoiceStatusRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @Transactional
     public Order createOrder(OrderCreateDto dto) {
@@ -181,6 +186,9 @@ public class OrderService {
         handleInventoryForStatusChange(order, currentStatus, newStatus);
 
         order.setStatus(newStatusEntity);
+        if (newStatus == OrderStatusType.CANCELED) {
+            cancelInvoiceIfExists(orderId);
+        }
         return orderRepository.save(order);
     }
 
@@ -242,10 +250,38 @@ public class OrderService {
             );
         }
 
-        var canceledStatus = orderStatusRepository.findByName(OrderStatusType.CANCELED)
+        var canceledOrderStatus = orderStatusRepository.findByName(OrderStatusType.CANCELED)
             .orElseThrow(() -> new NotFoundException("Order status CANCELED not found"));
 
-        order.setStatus(canceledStatus);
+        order.setStatus(canceledOrderStatus);
+
+        cancelInvoiceIfExists(orderId);
+
         return orderRepository.save(order);
+    }
+
+    private void cancelInvoiceIfExists(Integer orderId) {
+        var invoice = invoiceRepository.findByOrderId(orderId);
+
+        if (invoice.isEmpty()) {
+            return;
+        }
+
+        var invoiceEntity = invoice.get();
+        var currentInvoiceStatus = invoiceEntity.getStatus().getName();
+
+        if (currentInvoiceStatus == InvoiceStatusType.PAID) {
+            throw new BadRequestException(
+                "Cannot cancel order with a paid invoice. Please process a refund first."
+            );
+        }
+
+        if (currentInvoiceStatus != InvoiceStatusType.CANCELLED) {
+            var canceledInvoiceStatus = invoiceStatusRepository.findByName(InvoiceStatusType.CANCELLED)
+                .orElseThrow(() -> new NotFoundException("Invoice status CANCELLED not found"));
+
+            invoiceEntity.setStatus(canceledInvoiceStatus);
+            invoiceRepository.save(invoiceEntity);
+        }
     }
 }
