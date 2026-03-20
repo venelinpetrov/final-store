@@ -55,5 +55,16 @@ public class InvoiceController {
         var invoice = invoiceService.getInvoiceByOrderId(orderId);
         return ResponseEntity.ok(invoiceMapper.toDto(invoice));
     }
+
+    @Operation(
+        summary = "Void an invoice",
+        description = "Mark an invoice as void. Only admins can void invoices. Cannot void paid or refunded invoices."
+    )
+    @PreAuthorize("hasAuthority(T(com.vpe.finalstore.users.enums.RoleEnum).ADMIN.authority())")
+    @PostMapping("/{invoiceId}/void")
+    public ResponseEntity<Void> voidInvoice(@PathVariable Integer invoiceId) {
+        invoiceService.voidInvoice(invoiceId);
+        return ResponseEntity.noContent().build();
+    }
 }
 

@@ -48,7 +48,7 @@ class OrderController {
     @Operation(
         summary = "Update order status"
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.vpe.finalstore.users.enums.RoleEnum).ADMIN.authority())")
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderDto> updateOrderStatus(
         @PathVariable Integer orderId,
