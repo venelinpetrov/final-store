@@ -20,6 +20,8 @@ import com.vpe.finalstore.payment.repositories.PaymentMethodRepository;
 import com.vpe.finalstore.payment.repositories.PaymentStatusRepository;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
+import com.vpe.finalstore.shipment.entities.Carrier;
+import com.vpe.finalstore.shipment.repositories.CarrierRepository;
 import com.vpe.finalstore.users.entities.Role;
 import com.vpe.finalstore.users.entities.User;
 import com.vpe.finalstore.users.enums.RoleEnum;
@@ -58,6 +60,7 @@ public class DatabaseSeederService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final InventoryLevelRepository inventoryLevelRepository;
+    private final CarrierRepository carrierRepository;
     private final PasswordEncoder passwordEncoder;
 
     private final Faker faker = new Faker();
@@ -112,6 +115,7 @@ public class DatabaseSeederService {
         entityManager.createNativeQuery("TRUNCATE TABLE order_statuses").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE payment_methods").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE payment_statuses").executeUpdate();
+        entityManager.createNativeQuery("TRUNCATE TABLE carriers").executeUpdate();
 
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
 
@@ -178,6 +182,56 @@ public class DatabaseSeederService {
         }
 
         log.info("Payment statuses seeded successfully");
+    }
+
+    @Transactional
+    public void seedCarriers() {
+        log.info("Seeding carriers...");
+
+        List<Carrier> carriers = new ArrayList<>();
+
+        // DHL
+        Carrier dhl = new Carrier();
+        dhl.setName("DHL Express");
+        dhl.setCode("DHL");
+        dhl.setTrackingUrlTemplate("https://www.dhl.com/en/express/tracking.html?AWB={trackingNumber}");
+        dhl.setApiEndpoint("https://api-eu.dhl.com/track/shipments");
+        carriers.add(dhl);
+
+        // FedEx
+        Carrier fedex = new Carrier();
+        fedex.setName("FedEx");
+        fedex.setCode("FEDEX");
+        fedex.setTrackingUrlTemplate("https://www.fedex.com/fedextrack/?tracknumbers={trackingNumber}");
+        fedex.setApiEndpoint("https://apis.fedex.com/track/v1/trackingnumbers");
+        carriers.add(fedex);
+
+        // UPS
+        Carrier ups = new Carrier();
+        ups.setName("UPS");
+        ups.setCode("UPS");
+        ups.setTrackingUrlTemplate("https://www.ups.com/track?trackingNumber={trackingNumber}");
+        ups.setApiEndpoint("https://onlinetools.ups.com/api/track/v1/details/{trackingNumber}");
+        carriers.add(ups);
+
+        // USPS
+        Carrier usps = new Carrier();
+        usps.setName("USPS");
+        usps.setCode("USPS");
+        usps.setTrackingUrlTemplate("https://tools.usps.com/go/TrackConfirmAction?tLabels={trackingNumber}");
+        usps.setApiEndpoint("https://secure.shippingapis.com/ShippingAPI.dll");
+        carriers.add(usps);
+
+        // Royal Mail
+        Carrier royalMail = new Carrier();
+        royalMail.setName("Royal Mail");
+        royalMail.setCode("ROYAL_MAIL");
+        royalMail.setTrackingUrlTemplate("https://www.royalmail.com/track-your-item#/tracking-results/{trackingNumber}");
+        royalMail.setApiEndpoint("https://api.royalmail.net/mailpieces/v2/summary");
+        carriers.add(royalMail);
+
+        carrierRepository.saveAll(carriers);
+        log.info("Seeded {} carriers successfully", carriers.size());
     }
 
     @Transactional
@@ -681,60 +735,67 @@ public class DatabaseSeederService {
             return;
         }
 
-        // Fetch all orders
+        var issuedStatusId = ((Number) entityManager.createNativeQuery(
+            "SELECT status_id FROM invoice_statuses WHERE name = 'ISSUED'"
+        ).getSingleResult()).intValue();
+
+        var paidStatusId = ((Number) entityManager.createNativeQuery(
+            "SELECT status_id FROM invoice_statuses WHERE name = 'PAID'"
+        ).getSingleResult()).intValue();
+
         List<Order> orders = entityManager
             .createQuery("SELECT o FROM Order o", Order.class)
             .getResultList();
 
         for (Order order : orders) {
-            // Invoice date is same as order date
             var invoiceDate = order.getCreatedAt();
 
-            // Due date is 15-30 days after invoice date
             var dueDate = invoiceDate.plusDays(random.nextInt(16) + 15);
 
-            // Insert invoice with custom dates
+            boolean isPaid = random.nextDouble() < 0.8;
+            int invoiceStatusId = isPaid ? paidStatusId : issuedStatusId;
+
             entityManager.createNativeQuery(
-                "INSERT INTO invoices (order_id, customer_id, invoice_total, tax, discount, payment_total, invoice_date, due_date) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO invoices (order_id, customer_id, status_id, invoice_total, tax, discount, payment_total, invoice_date, due_date) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .setParameter(1, order.getOrderId())
             .setParameter(2, order.getCustomer().getCustomerId())
-            .setParameter(3, order.getTotal())
-            .setParameter(4, order.getTax())
-            .setParameter(5, BigDecimal.ZERO)
+            .setParameter(3, invoiceStatusId)
+            .setParameter(4, order.getTotal())
+            .setParameter(5, order.getTax())
             .setParameter(6, BigDecimal.ZERO)
-            .setParameter(7, invoiceDate)
-            .setParameter(8, dueDate)
+            .setParameter(7, BigDecimal.ZERO)
+            .setParameter(8, invoiceDate)
+            .setParameter(9, dueDate)
             .executeUpdate();
 
-            // Get the last inserted invoice_id
             var invoiceId = ((Number) entityManager.createNativeQuery(
                 "SELECT LAST_INSERT_ID()"
             ).getSingleResult()).intValue();
 
-            // Create one payment for the full invoice amount
-            // Payment date is between invoice date and due date
-            long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(invoiceDate, dueDate);
-            int paymentDaysAfterInvoice = random.nextInt((int) daysBetween + 1);
-            var paymentDate = invoiceDate.plusDays(paymentDaysAfterInvoice)
-                .plusHours(random.nextInt(24))
-                .plusMinutes(random.nextInt(60));
+            if (isPaid) {
+                // Payment date is between invoice date and due date
+                long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(invoiceDate, dueDate);
+                int paymentDaysAfterInvoice = random.nextInt((int) daysBetween + 1);
+                var paymentDate = invoiceDate.plusDays(paymentDaysAfterInvoice)
+                    .plusHours(random.nextInt(24))
+                    .plusMinutes(random.nextInt(60));
 
-            var method = paymentMethods.get(random.nextInt(paymentMethods.size()));
-            var status = paymentStatuses.get(random.nextInt(paymentStatuses.size()));
+                var method = paymentMethods.get(random.nextInt(paymentMethods.size()));
+                var status = paymentStatuses.get(random.nextInt(paymentStatuses.size()));
 
-            // Insert payment with custom payment_date
-            entityManager.createNativeQuery(
-                "INSERT INTO payments (invoice_id, amount, payment_date, method_id, status_id) " +
-                "VALUES (?, ?, ?, ?, ?)"
-            )
-            .setParameter(1, invoiceId)
-            .setParameter(2, order.getTotal())
-            .setParameter(3, paymentDate)
-            .setParameter(4, method.getMethodId())
-            .setParameter(5, status.getStatusId())
-            .executeUpdate();
+                entityManager.createNativeQuery(
+                    "INSERT INTO payments (invoice_id, amount, payment_date, method_id, status_id) " +
+                    "VALUES (?, ?, ?, ?, ?)"
+                )
+                .setParameter(1, invoiceId)
+                .setParameter(2, order.getTotal())
+                .setParameter(3, paymentDate)
+                .setParameter(4, method.getMethodId())
+                .setParameter(5, status.getStatusId())
+                .executeUpdate();
+            }
         }
 
         log.info("Invoices and payments seeded successfully");
@@ -884,6 +945,7 @@ public class DatabaseSeederService {
         seedPaymentMethods();
         seedPaymentStatuses();
         seedAddressTypes();
+        seedCarriers();
 
         // User + customer data
         seedUsers(userCount);
