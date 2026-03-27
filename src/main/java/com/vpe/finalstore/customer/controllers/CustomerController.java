@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/customers")
-class CustomerController {
+public class CustomerController {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 

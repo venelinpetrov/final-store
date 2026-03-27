@@ -23,7 +23,7 @@ public class CarrierController {
         summary = "Get all carriers"
     )
     @GetMapping
-    ResponseEntity<List<CarrierDto>> getAllCarriers() {
+    public ResponseEntity<List<CarrierDto>> getAllCarriers() {
         var carriers = carrierService.findAll();
 
         return ResponseEntity.ok(carrierMapper.toDto(carriers));

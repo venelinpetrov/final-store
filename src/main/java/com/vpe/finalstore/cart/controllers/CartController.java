@@ -22,7 +22,7 @@ import java.util.UUID;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/carts")
-class CartController {
+public class CartController {
     private final CartService cartService;
     private final CartMapper cartMapper;
     private final UserRepository userRepository;
