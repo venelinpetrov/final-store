@@ -14,7 +14,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,7 +21,6 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@Controller
 @RequestMapping("/api/carts")
 class CartController {
     private final CartService cartService;
