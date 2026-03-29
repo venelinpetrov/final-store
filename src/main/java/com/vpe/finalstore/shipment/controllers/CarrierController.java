@@ -1,5 +1,6 @@
 package com.vpe.finalstore.shipment.controllers;
 
+import com.vpe.finalstore.shipment.dtos.CarrierCreateDto;
 import com.vpe.finalstore.shipment.dtos.CarrierDto;
 import com.vpe.finalstore.shipment.mappers.CarrierMapper;
 import com.vpe.finalstore.shipment.services.CarrierService;
@@ -11,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @AllArgsConstructor
@@ -28,4 +32,12 @@ public class CarrierController {
 
         return ResponseEntity.ok(carrierMapper.toDto(carriers));
     }
+
+    @PostMapping
+    public ResponseEntity<CarrierDto> createCarrier(@RequestBody CarrierCreateDto dto) {
+        var carrier = carrierService.create(dto);
+
+        return ResponseEntity.ok(carrierMapper.toDto(carrier));
+    }
+
 }
