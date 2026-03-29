@@ -16,7 +16,6 @@ import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
-import com.vpe.finalstore.order.entities.OrderItemId;
 import com.vpe.finalstore.order.enums.OrderStatusType;
 import com.vpe.finalstore.order.repositories.OrderRepository;
 import com.vpe.finalstore.order.repositories.OrderStatusRepository;
@@ -79,8 +78,6 @@ public class OrderService {
 
             // Create order item with denormalized data
             var orderItem = new OrderItem();
-            var orderItemId = new OrderItemId();
-            orderItem.setOrderItemId(orderItemId);
             orderItem.setOrder(order);
             orderItem.setVariant(variant);
             orderItem.setQuantity(itemDto.getQuantity());
@@ -137,8 +134,6 @@ public class OrderService {
 
             // Create order item with denormalized data
             var orderItem = new OrderItem();
-            var orderItemId = new OrderItemId();
-            orderItem.setOrderItemId(orderItemId);
             orderItem.setOrder(order);
             orderItem.setVariant(variant);
             orderItem.setQuantity(cartItem.getQuantity());

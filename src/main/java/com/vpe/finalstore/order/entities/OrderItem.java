@@ -13,15 +13,15 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
-    @EmbeddedId
-    private OrderItemId orderItemId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_item_id")
+    private Integer orderItemId;
 
-    @MapsId("orderId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @MapsId("variantId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "variant_id")
     private ProductVariant variant;
