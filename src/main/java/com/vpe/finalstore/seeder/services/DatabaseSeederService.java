@@ -21,6 +21,7 @@ import com.vpe.finalstore.payment.repositories.PaymentStatusRepository;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
 import com.vpe.finalstore.shipment.entities.Carrier;
+import com.vpe.finalstore.shipment.enums.ShipmentStatusType;
 import com.vpe.finalstore.shipment.repositories.CarrierRepository;
 import com.vpe.finalstore.users.entities.Role;
 import com.vpe.finalstore.users.entities.User;
@@ -116,6 +117,7 @@ public class DatabaseSeederService {
         entityManager.createNativeQuery("TRUNCATE TABLE payment_methods").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE payment_statuses").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE carriers").executeUpdate();
+        entityManager.createNativeQuery("TRUNCATE TABLE shipment_statuses").executeUpdate();
 
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
 
@@ -232,6 +234,19 @@ public class DatabaseSeederService {
 
         carrierRepository.saveAll(carriers);
         log.info("Seeded {} carriers successfully", carriers.size());
+    }
+
+    @Transactional
+    public void seedShipmentStatuses() {
+        log.info("Seeding shipment statuses...");
+
+        for (ShipmentStatusType statusType : ShipmentStatusType.values()) {
+            entityManager.createNativeQuery(
+                "INSERT IGNORE INTO shipment_statuses (name) VALUES (?)"
+            ).setParameter(1, statusType.name()).executeUpdate();
+        }
+
+        log.info("Shipment statuses seeded successfully");
     }
 
     @Transactional
@@ -946,6 +961,7 @@ public class DatabaseSeederService {
         seedPaymentStatuses();
         seedAddressTypes();
         seedCarriers();
+        seedShipmentStatuses();
 
         // User + customer data
         seedUsers(userCount);

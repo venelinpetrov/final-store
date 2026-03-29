@@ -1,5 +1,7 @@
 package com.vpe.finalstore.shipment.entities;
 
+import com.vpe.finalstore.shipment.enums.ShipmentStatusType;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -17,5 +19,6 @@ public class ShipmentStatus {
 
     @NotNull
     @Column(name = "name")
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private ShipmentStatusType name;
 }
