@@ -12,15 +12,12 @@ import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.invoice.enums.InvoiceStatusType;
 import com.vpe.finalstore.invoice.repositories.InvoiceRepository;
 import com.vpe.finalstore.invoice.repositories.InvoiceStatusRepository;
-import com.vpe.finalstore.order.dtos.OrderCreateDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
 import com.vpe.finalstore.order.enums.OrderStatusType;
 import com.vpe.finalstore.order.repositories.OrderRepository;
 import com.vpe.finalstore.order.repositories.OrderStatusRepository;
-import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
-import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,64 +34,12 @@ public class OrderService {
     private final OrderStatusRepository orderStatusRepository;
     private final CustomerRepository customerRepository;
     private final CustomerAddressRepository customerAddressRepository;
-    private final ProductVariantRepository variantRepository;
     private final InventoryMovementService inventoryMovementService;
     private final CartRepository cartRepository;
     private final CartService cartService;
     private final OrderSummaryCalculator orderSummaryCalculator;
     private final InvoiceStatusRepository invoiceStatusRepository;
     private final InvoiceRepository invoiceRepository;
-
-    @Transactional
-    public Order createOrder(OrderCreateDto dto) {
-        var customer = customerRepository.findById(dto.getCustomerId())
-            .orElseThrow(() -> new NotFoundException("Customer not found"));
-
-        var address = customerAddressRepository.findById(dto.getAddressId())
-            .orElseThrow(() -> new NotFoundException("Address not found"));
-
-        if (!address.getCustomer().getCustomerId().equals(customer.getCustomerId())) {
-            throw new BadRequestException("Address does not belong to customer");
-        }
-
-        var pendingStatus = orderStatusRepository.findByName(OrderStatusType.PENDING)
-            .orElseThrow(() -> new NotFoundException("Order status PENDING not found"));
-
-        // Create order
-        var order = new Order();
-        order.setCustomer(customer);
-        order.setAddress(address);
-        order.setStatus(pendingStatus);
-
-        // Create order items (inventory will be deducted when order is confirmed/shipped)
-        for (var itemDto : dto.getItems()) {
-            var variant = variantRepository.findByVariantId(itemDto.getVariantId())
-                .orElseThrow(VariantNotFoundException::new);
-
-            // Check if variant is archived
-            if (Boolean.TRUE.equals(variant.getIsArchived())) {
-                throw new BadRequestException("Cannot order archived variant: " + variant.getSku());
-            }
-
-            // Create order item with denormalized data
-            var orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setVariant(variant);
-            orderItem.setQuantity(itemDto.getQuantity());
-            orderItem.setProductName(variant.getProduct().getName());
-            orderItem.setSku(variant.getSku());
-            orderItem.setBrandName(variant.getProduct().getBrand() != null ?
-                variant.getProduct().getBrand().getName() : null);
-            orderItem.setUnitPrice(variant.getUnitPrice());
-
-            order.getOrderItems().add(orderItem);
-        }
-
-        // Calculates and sets the order summary (subtotal, tax, shipping, total)
-        orderSummaryCalculator.calculateOrderSummary(order);
-
-        return orderRepository.save(order);
-    }
 
     @Transactional
     public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId) {
