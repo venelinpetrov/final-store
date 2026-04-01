@@ -25,7 +25,7 @@ public class OrderController {
     @Operation(
         summary = "Get order by ID"
     )
-    @PreAuthorize("@orderSecurity.canViewOrder(#orderId, authentication)")
+    @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Integer orderId) {
         var order = orderService.getOrderById(orderId);
@@ -61,7 +61,7 @@ public class OrderController {
     @Operation(
         summary = "Cancel order"
     )
-    @PreAuthorize("@orderSecurity.canCancelOrder(#orderId, authentication)")
+    @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<OrderDto> cancelOrder(@PathVariable Integer orderId) {
         var order = orderService.cancelOrder(orderId);

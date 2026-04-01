@@ -49,7 +49,7 @@ public class InvoiceController {
         summary = "Get invoice by order ID",
         description = "Retrieve the invoice associated with a specific order. Only the order owner can access it."
     )
-    @PreAuthorize("@orderSecurity.canViewOrder(#orderId, authentication)")
+    @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<InvoiceDto> getInvoiceByOrder(@PathVariable Integer orderId) {
         var invoice = invoiceService.getInvoiceByOrderId(orderId);
