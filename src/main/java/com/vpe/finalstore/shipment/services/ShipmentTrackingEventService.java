@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,5 +25,9 @@ public class ShipmentTrackingEventService {
         shipmentTrackingEventRepository.save(event);
 
         // TODO: location; description
+    }
+
+    public List<ShipmentTrackingEvent> getEventsForShipment(Integer shipmentId) {
+        return shipmentTrackingEventRepository.getAllByEventId(shipmentId);
     }
 }
