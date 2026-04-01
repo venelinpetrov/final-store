@@ -1,5 +1,6 @@
 package com.vpe.finalstore.cart.services;
 
+import com.vpe.finalstore.auth.config.AuthService;
 import com.vpe.finalstore.cart.entities.Cart;
 import com.vpe.finalstore.cart.entities.CartItem;
 import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
@@ -21,13 +22,20 @@ public class CartService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository variantRepository;
     private final CustomerRepository customerRepository;
+    private final AuthService authService;
 
     public Optional<Cart> getCartWithItems(UUID cartId) {
         return cartRepository.getCartWithItems(cartId);
     }
 
     public Cart createCart() {
-        return  cartRepository.save(new Cart());
+        var cart = new Cart();
+        var user = authService.getCurrentuser();
+        if (user != null) {
+            var customer = user.getCustomer();
+            cart.setCustomer(customer);
+        }
+        return  cartRepository.save(cart);
     }
 
     public CartItem addToCart(UUID cartId, Integer variantId) {
