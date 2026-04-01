@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 public class ShipmentTrackingEventDto {
     private Integer eventId;
-    private ShipmentDto shipment;
-    private ShipmentStatusDto status;
+    private String status;
     private LocalDateTime eventDate;
     private String location;
     private String description;
