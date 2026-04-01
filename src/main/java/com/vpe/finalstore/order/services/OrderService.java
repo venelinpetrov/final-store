@@ -18,6 +18,7 @@ import com.vpe.finalstore.order.entities.OrderItem;
 import com.vpe.finalstore.order.enums.OrderStatusType;
 import com.vpe.finalstore.order.repositories.OrderRepository;
 import com.vpe.finalstore.order.repositories.OrderStatusRepository;
+import com.vpe.finalstore.shipment.services.ShipmentService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,9 +41,10 @@ public class OrderService {
     private final OrderSummaryCalculator orderSummaryCalculator;
     private final InvoiceStatusRepository invoiceStatusRepository;
     private final InvoiceRepository invoiceRepository;
+    private final ShipmentService shipmentService;
 
     @Transactional
-    public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId) {
+    public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId, Integer carrierId) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -95,6 +97,8 @@ public class OrderService {
         orderSummaryCalculator.calculateOrderSummary(order);
 
         order = orderRepository.save(order);
+
+        shipmentService.createShipment(carrierId, order);
 
         cartService.clearCart(cartId);
 

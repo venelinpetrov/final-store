@@ -61,9 +61,14 @@ public class PaymentService {
      * Flow: Order (PENDING) → Invoice → Payment (PENDING) → PaymentIntent
      */
     @Transactional
-    public PaymentIntentResponseDto createPaymentIntentForCart(UUID cartId, @NonNull Integer customerId, @NonNull Integer addressId) {
+    public PaymentIntentResponseDto createPaymentIntentForCart(
+            @NonNull UUID cartId,
+            @NonNull Integer customerId,
+            @NonNull Integer addressId,
+            @NonNull Integer carrierId
+    ) {
         // 1. Create order from cart (status: PENDING)
-        Order order = orderService.createOrderFromCart(cartId, customerId, addressId);
+        Order order = orderService.createOrderFromCart(cartId, customerId, addressId, carrierId);
         log.info("Created order {} from cart {} with status PENDING", order.getOrderId(), cartId);
 
         // 2. Create invoice for the order

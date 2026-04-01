@@ -11,8 +11,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
-
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/payments")
@@ -30,8 +28,9 @@ public class PaymentController {
     ) {
         PaymentIntentResponseDto response = paymentService.createPaymentIntentForCart(
             dto.getCartId(),
-            Objects.requireNonNull(dto.getCustomerId(), "Customer ID must not be null"),
-            Objects.requireNonNull(dto.getAddressId(), "Address ID must not be null")
+            dto.getCustomerId(),
+            dto.getAddressId(),
+            dto.getCarrierId()
         );
 
         return ResponseEntity.ok(response);

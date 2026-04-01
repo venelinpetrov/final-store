@@ -17,5 +17,8 @@ public class PaymentIntentCreateDto {
 
     @NotNull(message = "Address ID is required")
     private Integer addressId;
+
+    @NotNull(message = "Carrier ID is required")
+    private Integer carrierId;
 }
 
