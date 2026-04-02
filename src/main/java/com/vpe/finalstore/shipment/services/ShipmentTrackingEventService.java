@@ -28,6 +28,6 @@ public class ShipmentTrackingEventService {
     }
 
     public List<ShipmentTrackingEvent> getEventsForShipment(Integer shipmentId) {
-        return shipmentTrackingEventRepository.getAllByEventId(shipmentId);
+        return shipmentTrackingEventRepository.getAllByShipmentShipmentIdOrderByEventDateDesc(shipmentId);
     }
 }

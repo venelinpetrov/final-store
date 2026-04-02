@@ -8,6 +8,7 @@ import com.vpe.finalstore.shipment.enums.ShipmentStatusType;
 import com.vpe.finalstore.shipment.repositories.CarrierRepository;
 import com.vpe.finalstore.shipment.repositories.ShipmentRepository;
 import com.vpe.finalstore.shipment.repositories.ShipmentStatusRepository;
+import com.vpe.finalstore.shipment.repositories.ShipmentTrackingEventRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,18 @@ public class ShipmentService {
     private final CarrierRepository carrierRepository;
     private final ShipmentTrackingEventService shipmentTrackingEventService;
     private final ShipmentStatusRepository shipmentStatusRepository;
+    private final ShipmentTrackingEventRepository shipmentTrackingEventRepository;
+
+    public ShipmentStatusType getShipmentStatus(Integer shipmentId) {
+        var latestEvent = shipmentTrackingEventRepository.getLatestEvent(shipmentId);
+
+        return latestEvent.getStatus().getName();
+    }
+
+    public Shipment getShipmentDetail(Integer shipmentId) {
+        return shipmentRepository.findShipmentWithDetails(shipmentId)
+            .orElseThrow(() -> new NotFoundException("Shipment not found"));
+    }
 
     @Transactional
     public Shipment createShipment(Integer carrierId, Order order) {

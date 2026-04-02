@@ -1,5 +1,6 @@
 package com.vpe.finalstore.shipment.dtos;
 
+import com.vpe.finalstore.shipment.enums.ShipmentStatusType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,4 +15,5 @@ public class ShipmentDto {
     private LocalDateTime shipmentDate;
     private LocalDateTime deliveryDate;
     private Integer orderId;
+    private ShipmentStatusType status;
 }
