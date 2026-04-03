@@ -15,4 +15,5 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Integer> {
     @Query("SELECT s FROM Shipment s WHERE s.shipmentId = :shipmentId")
     Optional<Shipment> findShipmentWithDetails(@Param("shipmentId") Integer shipmentId);
 
+    Optional<Shipment> getShipmentByShipmentId(Integer shipmentId);
 }

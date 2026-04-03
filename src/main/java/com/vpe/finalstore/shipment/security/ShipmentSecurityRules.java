@@ -19,5 +19,6 @@ public class ShipmentSecurityRules implements SecurityRules {
         registry.requestMatchers(HttpMethod.PUT, "/api/carriers/*").hasAuthority(ADMIN.authority());
         registry.requestMatchers(HttpMethod.GET, "/api/shipments/*/tracking-events").authenticated();
         registry.requestMatchers(HttpMethod.GET, "/api/shipments/*").authenticated();
+        registry.requestMatchers(HttpMethod.POST, "/api/shipments/*/tracking-events").hasAuthority(ADMIN.authority());
     }
 }

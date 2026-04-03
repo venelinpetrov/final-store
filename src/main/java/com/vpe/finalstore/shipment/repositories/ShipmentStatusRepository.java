@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface ShipmentStatusRepository extends JpaRepository<ShipmentStatus, Integer> {
     Optional<ShipmentStatus> findByName(ShipmentStatusType name);
+
+    Optional<ShipmentStatus> findByStatusId(Integer statusId);
 }
