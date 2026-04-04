@@ -48,6 +48,20 @@ sudo systemctl start mysql
 sudo systemctl enable mysql
 ```
 
+**Note:** If there are multiple jdk versions on the machine, and you want to run from terminal, use 21.
+
+```bash
+# .bashrc
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+then
+
+```bash
+./mvnw spring-boot:run
+```
+
 **Optional:**
 - [DBeaver](https://dbeaver.io/download/) for database management
 - IntelliJ IDEA for development
