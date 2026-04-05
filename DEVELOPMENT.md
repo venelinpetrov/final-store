@@ -69,41 +69,16 @@ Add to `.vscode/launch.json`:
 }
 ```
 
-## Common Commands
+## List the commands
 
-```bash
-# Development mode
-make dev              # Start development environment
-make dev-stop         # Stop development environment
-make dev-logs         # View logs
-make dev-build        # Rebuild (after pom.xml changes)
+   ```bash
+   make
 
-# Production mode
-make start            # Start production environment
-make stop             # Stop
-make logs             # View logs
-make build            # Rebuild
+   # or
 
-# Database
-make db-shell         # Open MySQL shell
-make db-connect       # Connect from host
+   make help
+   ```
 
-# Migrations (Local - port 3306)
-make migrate          # Run Flyway migrations
-make migrate-info     # Show migration status
-make migrate-repair   # Repair migration metadata
-make migrate-clean    # Clean database (WARNING: deletes all data)
-
-# Migrations (Dev Docker - port 3307)
-make migrate-dev        # Run Flyway migrations on dev database
-make migrate-info-dev   # Show migration status on dev database
-make migrate-repair-dev # Repair migration metadata on dev database
-make migrate-clean-dev  # Clean dev database (WARNING: deletes all data)
-
-# Other
-make status           # Show container status
-make help             # Show all commands
-```
 
 ## Troubleshooting
 

@@ -5,6 +5,10 @@ help:
 	@echo "Final Store - Available Commands"
 	@echo "================================="
 	@echo ""
+	@echo "Local development:"
+	@echo "  make start-local   - Start the application locally"
+	@echo "  make build-local   - Build the application locally"
+	@echo ""
 	@echo "Production Mode:"
 	@echo "  make start         - Start the application (production mode)"
 	@echo "  make stop          - Stop the application"
@@ -40,6 +44,14 @@ help:
 	@echo "Other:"
 	@echo "  make status        - Show status of all services"
 	@echo ""
+
+start-local:
+	@echo "Starting Final Store..."
+	@./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+build-local:
+	@echo "Build Final Store"
+	@./mvnw clean install
 
 # Start the application
 start:
