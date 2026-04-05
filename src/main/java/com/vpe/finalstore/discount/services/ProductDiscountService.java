@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.vpe.finalstore.discount.dtos.ProductDiscountCreateDto;
 import com.vpe.finalstore.discount.entities.ProductDiscount;
 import com.vpe.finalstore.discount.repositories.ProductDiscountRepository;
+import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 
@@ -18,6 +19,12 @@ import lombok.AllArgsConstructor;
 public class ProductDiscountService {
 	private final ProductVariantRepository productVariantRepository;
 	private final ProductDiscountRepository productDiscountRepository;
+
+
+	public ProductDiscount getDiscount(Integer discountId) {
+		return productDiscountRepository.findById(discountId)
+			.orElseThrow(() -> new NotFoundException("Product discount not found"));
+	}
 
 	@Transactional
 	public ProductDiscount createDiscount(ProductDiscountCreateDto dto) {

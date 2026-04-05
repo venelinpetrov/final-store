@@ -17,5 +17,6 @@ public class ProductDiscountSecurity implements SecurityRules {
 		AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
 	) {
 		registry.requestMatchers(HttpMethod.POST, "/api/product-discounts").hasAuthority(ADMIN.authority());
+		registry.requestMatchers(HttpMethod.GET,"/api/product-discounts/{discountId}").hasAuthority(ADMIN.authority());
 	}
 }
