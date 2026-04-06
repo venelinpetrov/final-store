@@ -1,10 +1,14 @@
 package com.vpe.finalstore.product.services;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
+import com.vpe.finalstore.product.mappers.ProductVariantMapper;
+import com.vpe.finalstore.discount.repositories.ProductDiscountRepository;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.enums.MovementType;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
+import com.vpe.finalstore.product.dtos.ActiveDiscountDto;
 import com.vpe.finalstore.product.dtos.ProductVariantCreateDto;
+import com.vpe.finalstore.product.dtos.ProductVariantDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.repositories.*;
@@ -12,8 +16,10 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -24,6 +30,61 @@ public class ProductVariantService {
     private final ProductVariantOptionValueRepository optionValueRepository;
     private final ProductVariantImageAssignmentRepository imageAssignmentRepository;
     private final InventoryMovementService inventoryMovementService;
+    private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantMapper productVariantMapper;
+    private final ProductDiscountRepository productDiscountRepository;
+
+    public ProductVariantDto getVariantById(Integer variantId) {
+        var variant = variantRepository.findByVariantId(variantId)
+            .orElseThrow(VariantNotFoundException::new);
+
+        return mapWithDiscount(variant);
+    }
+
+    public List<ProductVariantDto> getVariantsByProductId(Integer productId) {
+        var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        return mapWithDisocunt(variants);
+    }
+
+    private ProductVariantDto mapWithDiscount(ProductVariant variant) {
+        var dto = productVariantMapper.toDto(variant);
+
+        var activeDiscount = productDiscountRepository
+            .findActiveDiscount(variant.getVariantId(), LocalDateTime.now());
+
+        activeDiscount.ifPresent(d ->
+            dto.setDiscount(new ActiveDiscountDto(d.getDiscountPercentage(), d.getValidUntil()))
+        );
+
+        return dto;
+    }
+
+    private List<ProductVariantDto> mapWithDisocunt(List<ProductVariant> variants) {
+        var variantIds = variants.stream()
+            .map(ProductVariant::getVariantId)
+            .toList();
+
+        var discounts = productDiscountRepository
+            .findActiveDiscounts(variantIds, LocalDateTime.now());
+
+        var discountMap = discounts.stream()
+                .collect(Collectors.toMap(
+                    d -> d.getProductVariant().getVariantId(),
+                    d -> new ActiveDiscountDto(d.getDiscountPercentage(), d.getValidUntil())
+                ));
+
+        return variants.stream()
+            .map(v -> {
+                var dto = productVariantMapper.toDto(v);
+                dto.setDiscount(
+                    discountMap.get(v.getVariantId())
+                );
+                return dto;
+            })
+            .toList();
+    }
 
     @Transactional
     public void archiveVariant(Integer variantId) {

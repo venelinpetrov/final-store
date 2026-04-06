@@ -4,7 +4,6 @@ import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.dtos.ProductImageAssignmentDto;
 import com.vpe.finalstore.product.dtos.ProductVariantDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
-import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,17 +19,16 @@ import org.springframework.web.bind.annotation.*;
 class ProductVariantController {
     private final ProductVariantService variantService;
     private final ProductVariantRepository variantRepository;
-    private final ProductVariantMapper variantMapper;
+    private final ProductVariantService productVariantService;
 
     @Operation(
         summary = "Get variant by ID"
     )
     @GetMapping("/{variantId}")
     public ResponseEntity<ProductVariantDto> getVariant(@PathVariable Integer variantId) {
-        var variant = variantRepository.findByVariantId(variantId)
-            .orElseThrow(VariantNotFoundException::new);
+        var variant = productVariantService.getVariantById(variantId);
 
-        return ResponseEntity.ok(variantMapper.toDto(variant));
+        return ResponseEntity.ok(variant);
     }
 
     @Operation(

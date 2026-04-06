@@ -18,4 +18,5 @@ public class ProductVariantDto {
     private Integer quantityInStock;
     private List<ProductVariantOptionAssignmentDto> options;
     private Set<ProductImageDto> images;
+    private ActiveDiscountDto discount;
 }

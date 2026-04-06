@@ -6,7 +6,6 @@ import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
-import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
 import com.vpe.finalstore.product.services.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +31,6 @@ public class ProductController {
     private final ProductMapper productMapper;
     private final ProductVariantMapper productVariantMapper;
     private final ProductService productService;
-    private final ProductVariantRepository productVariantRepository;
     private final ProductVariantService productVariantService;
 
     @Operation(
@@ -74,11 +72,10 @@ public class ProductController {
         summary = "Get all variants for a product"
     )
     @GetMapping("/{productId}/variants")
-    public List<ProductVariantDto> getProductVariants(@PathVariable Integer productId) {
-        var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
-            .orElseThrow(() -> new NotFoundException("Product not found"));
+    public ResponseEntity<List<ProductVariantDto>> getProductVariants(@PathVariable Integer productId) {
+        var variants = productVariantService.getVariantsByProductId(productId);
 
-        return productVariantMapper.toDto(variants);
+        return ResponseEntity.ok(variants);
     }
 
     @Operation(
