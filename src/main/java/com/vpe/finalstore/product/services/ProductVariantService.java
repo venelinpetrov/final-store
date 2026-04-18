@@ -1,4 +1,8 @@
 package com.vpe.finalstore.product.services;
+import com.vpe.finalstore.discount.enums.DiscountType;
+import com.vpe.finalstore.discount.repositories.DiscountRepository;
+import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
+import com.vpe.finalstore.product.dtos.ActiveDiscountDto;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.exceptions.NotFoundException;
@@ -28,19 +32,50 @@ public class ProductVariantService {
     private final InventoryMovementService inventoryMovementService;
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantMapper productVariantMapper;
+    private final InventoryLevelRepository inventoryLevelRepository;
+    private final DiscountRepository discountRepository;
 
     public ProductVariantDto getVariantById(Integer variantId) {
         var variant = variantRepository.findByVariantId(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
-        return productVariantMapper.toDto(variant);
+        var dto = productVariantMapper.toDto(variant);
+        enrichVariantDto(dto);
+        return dto;
     }
 
     public List<ProductVariantDto> getVariantsByProductId(Integer productId) {
         var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        return productVariantMapper.toDto(variants);
+        var dtos = productVariantMapper.toDto(variants);
+        dtos.forEach(this::enrichVariantDto);
+        return dtos;
+    }
+
+    private void enrichVariantDto(ProductVariantDto dto) {
+        if (dto == null || dto.getVariantId() == null) {
+            return;
+        }
+
+        var inventory = inventoryLevelRepository.findByVariantVariantId(dto.getVariantId());
+        dto.setQuantityInStock(inventory.map(inv -> inv.getQuantityInStock()).orElse(0));
+
+        var discountOpt = discountRepository.findActiveDiscountForVariant(dto.getVariantId());
+        if (discountOpt.isPresent()) {
+            var discount = discountOpt.get();
+
+            // Map PERCENTAGE and FIXED discounts
+            if (discount.getDiscountType() == DiscountType.PERCENTAGE ||
+                discount.getDiscountType() == DiscountType.FIXED) {
+                dto.setDiscount(new ActiveDiscountDto(
+                    discount.getDiscountType(),
+                    discount.getValue(),
+                    discount.getValidUntil()
+                ));
+            }
+            // BUY_X_GET_Y is too complex for this simplified DTO, skip it
+        }
     }
 
 

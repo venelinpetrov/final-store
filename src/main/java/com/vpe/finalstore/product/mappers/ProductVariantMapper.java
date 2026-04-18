@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface ProductVariantMapper {
     @Mapping(source = "optionAssignments", target = "options")
+    @Mapping(target = "discount", ignore = true)
+    @Mapping(target = "quantityInStock", ignore = true)
     ProductVariantDto toDto(ProductVariant variant);
 
     List<ProductVariantDto> toDto(List<ProductVariant> variants);
