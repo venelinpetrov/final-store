@@ -29,9 +29,9 @@ public class ShipmentService {
     private final ShipmentTrackingEventRepository shipmentTrackingEventRepository;
 
     public ShipmentStatusType getShipmentStatus(Integer shipmentId) {
-        var latestEvent = shipmentTrackingEventRepository.getLatestEvent(shipmentId);
-
-        return latestEvent.getStatus().getName();
+        return shipmentTrackingEventRepository.getLatestEvent(shipmentId)
+            .map(event -> event.getStatus().getName())
+            .orElseThrow(() -> new NotFoundException("No tracking events found for shipment"));
     }
 
     public Shipment getShipmentDetail(Integer shipmentId) {

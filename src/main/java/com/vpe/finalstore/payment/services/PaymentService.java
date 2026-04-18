@@ -193,7 +193,7 @@ public class PaymentService {
         invoice.setCustomer(order.getCustomer());
         invoice.setInvoiceTotal(order.getTotal());
         invoice.setTax(order.getTax());
-        invoice.setDiscount(BigDecimal.ZERO);
+        invoice.setDiscount(order.getDiscountAmount());
         invoice.setPaymentTotal(BigDecimal.ZERO);
         invoice.setDueDate(LocalDateTime.now().plusDays(30));
 

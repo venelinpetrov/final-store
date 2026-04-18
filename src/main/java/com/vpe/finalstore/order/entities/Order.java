@@ -52,6 +52,10 @@ public class Order {
     private BigDecimal tax = BigDecimal.ZERO;
 
     @NotNull
+    @Column(name = "discount_amount", precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @NotNull
     @Column(name = "shipping_cost", precision = 10, scale = 2)
     private BigDecimal shippingCost = BigDecimal.ZERO;
 

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ShipmentTrackingEventRepository extends JpaRepository<ShipmentTrackingEvent, Integer> {
     @EntityGraph(attributePaths = {"status"})
@@ -17,7 +18,7 @@ public interface ShipmentTrackingEventRepository extends JpaRepository<ShipmentT
         ORDER BY ste.eventDate DESC
         LIMIT 1
     """)
-    ShipmentTrackingEvent getLatestEvent(@Param("shipmentId") Integer shipmentShipmentId);
+    Optional<ShipmentTrackingEvent> getLatestEvent(@Param("shipmentId") Integer shipmentShipmentId);
 
     List<ShipmentTrackingEvent> getAllByShipmentShipmentIdOrderByEventDateDesc(Integer shipmentShipmentId);
 }

@@ -18,11 +18,14 @@ public class ShipmentTrackingEventService {
     private final ShipmentTrackingEventRepository shipmentTrackingEventRepository;
 
     public ShipmentTrackingEvent createEvent(Shipment shipment, ShipmentStatus status) {
-        var prevEvent = shipmentTrackingEventRepository.getLatestEvent(shipment.getShipmentId());
+        var prevEventOpt = shipmentTrackingEventRepository.getLatestEvent(shipment.getShipmentId());
+
+        // Validate status transition (skip for first event)
+        if (prevEventOpt.isPresent()) {
+            validateStatusTransition(prevEventOpt.get().getStatus().getName(), status.getName());
+        }
+
         var newEvent = new ShipmentTrackingEvent();
-
-        validateStatusTransition(prevEvent.getStatus().getName(), status.getName());
-
         newEvent.setShipment(shipment);
         newEvent.setStatus(status);
         newEvent.setEventDate(LocalDateTime.now());

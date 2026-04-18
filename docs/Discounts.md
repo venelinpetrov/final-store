@@ -8,7 +8,7 @@ We need a flexible system that allows to have different types of discounts and a
 
 These are some common discounts in e-commerce that we want to support. The list can grow in time.
 
-- %10 off for orders above €100
+- 10% off for orders above €100
 - Free shipping for orders above €200
 - Free shipping for VIP users
 - 5% off for product variant ABC
@@ -69,6 +69,13 @@ For accounting purposes it's good to have some way to tell what discounts were a
 ### Stacking discounts, exclusivity, priority
 
 TBD
+
+### Edge cases to consider
+
+- What happens when discount expires while cart is active?
+- What happens if e.g. variant price change after discount calculation?
+- Rounding? Half up? Half down?
+- Currency is not taken into account for now.
 
 ## DB schema design
 
