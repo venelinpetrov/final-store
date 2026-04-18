@@ -88,7 +88,7 @@ CREATE TABLE discounts (
 
     discount_type ENUM('PERCENTAGE', 'FIXED', 'BUY_X_GET_Y'),
 
-    scope ENUM('PRODUCT', 'ORDER', 'SHIPPING'),
+    scope ENUM('VARIANT', 'ORDER', 'SHIPPING'),
 
     value DECIMAL(10,2),
 
@@ -123,7 +123,7 @@ CREATE TABLE discount_conditions (
     condition_type ENUM(
         'MIN_QUANTITY',
         'CUSTOMER_GROUP',
-        'PRODUCT',
+        'VARIANT',
         'CATEGORY',
         ...
     ),
