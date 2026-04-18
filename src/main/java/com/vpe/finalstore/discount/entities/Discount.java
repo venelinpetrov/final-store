@@ -69,7 +69,7 @@ public class Discount {
     @OneToMany(mappedBy = "discount")
     private Set<Coupon> coupons = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "discount", cascade = {CascadeType.PERSIST})
+    @OneToMany(mappedBy = "discount", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<DiscountCondition> discountConditions = new LinkedHashSet<>();
 
 }
