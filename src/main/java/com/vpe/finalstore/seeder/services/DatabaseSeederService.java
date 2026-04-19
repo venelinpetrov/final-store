@@ -901,8 +901,8 @@ public class DatabaseSeederService {
 
             for (OrderItemData itemData : orderItemsData) {
                 entityManager.createNativeQuery(
-                    "INSERT INTO order_items (order_id, variant_id, quantity, unit_price, product_name, sku, brand_name) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO order_items (order_id, variant_id, quantity, unit_price, product_name, sku, brand_name, discount_amount) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 )
                 .setParameter(1, orderId)
                 .setParameter(2, itemData.variantId)
@@ -911,6 +911,7 @@ public class DatabaseSeederService {
                 .setParameter(5, itemData.productName)
                 .setParameter(6, itemData.sku)
                 .setParameter(7, itemData.brandName)
+                .setParameter(8, BigDecimal.ZERO)
                 .executeUpdate();
             }
         }
