@@ -93,7 +93,6 @@ public class OrderService {
             order.getOrderItems().add(orderItem);
         }
 
-        // Calculate order summary (subtotal, tax, shipping, total)
         orderSummaryCalculator.calculateOrderSummary(order);
 
         order = orderRepository.save(order);

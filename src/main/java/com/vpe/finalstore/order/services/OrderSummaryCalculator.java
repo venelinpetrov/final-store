@@ -9,16 +9,13 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/**
- * Service for calculating order financial summaries (subtotal, tax, discount, shipping, total).
- */
 @Service
 @AllArgsConstructor
 public class OrderSummaryCalculator {
 
     private final DiscountRepository discountRepository;
 
-    // Configuration constants - these could be moved to database at later stage
+    // TODO remove hardcoding rates and costs and implement them
     private static final BigDecimal TAX_RATE = new BigDecimal("0.10"); // 10% tax rate
     private static final BigDecimal SHIPPING_COST = new BigDecimal("5.00"); // $5.00 flat shipping
 
@@ -66,34 +63,31 @@ public class OrderSummaryCalculator {
         var existingDiscount = discountRepository.findActiveDiscountForVariant(variant.getVariantId());
 
         if (existingDiscount.isEmpty()) {
+            item.setDiscountAmount(BigDecimal.ZERO);
             return BigDecimal.ZERO;
         }
 
         var discount = existingDiscount.get();
         var unitPrice = variant.getUnitPrice();
 
-        return switch (discount.getDiscountType()) {
+        BigDecimal discountAmount = switch (discount.getDiscountType()) {
             case PERCENTAGE -> unitPrice
                 .multiply(discount.getValue())
                 .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(item.getQuantity()));
             case FIXED -> {
-                // Fixed discount per item, capped at unit price
                 BigDecimal discountPerItem = discount.getValue().min(unitPrice);
                 yield discountPerItem.multiply(BigDecimal.valueOf(item.getQuantity()));
             }
             case BUY_X_GET_Y -> BigDecimal.ZERO;
         };
+
+        item.setDiscountAmount(discountAmount);
+        return discountAmount;
     }
 
-    /**
-     * Calculate shipping cost for an order.
-     * Currently uses a flat rate, but could be enhanced to:
-     * - Calculate based on weight/dimensions
-     * - Vary by shipping address (domestic vs international)
-     * - Offer free shipping for orders above a threshold
-     */
     private BigDecimal calculateShippingCost(Order order) {
+        // TODO: implement shipping cost calculation
         // Simple flat rate for now
         return SHIPPING_COST;
     }

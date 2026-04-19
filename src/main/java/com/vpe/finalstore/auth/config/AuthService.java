@@ -13,8 +13,15 @@ public class AuthService {
 
     public User getCurrentuser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        var userId = (Integer) authentication.getPrincipal();
 
+        // Return null if user is not authenticated or principal is not an Integer (e.g., "anonymousUser")
+        if (authentication == null ||
+            authentication.getPrincipal() == null ||
+            !(authentication.getPrincipal() instanceof Integer)) {
+            return null;
+        }
+
+        var userId = (Integer) authentication.getPrincipal();
         return userRepository.findByUserId(userId).orElse(null);
     }
 }

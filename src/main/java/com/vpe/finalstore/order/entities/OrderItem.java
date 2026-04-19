@@ -42,4 +42,8 @@ public class OrderItem {
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
 
+    @NotNull
+    @Column(name = "discount_amount")
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
 }

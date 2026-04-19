@@ -47,8 +47,8 @@ public class Invoice {
     private BigDecimal tax = BigDecimal.ZERO;
 
     @NotNull
-    @Column(name = "discount")
-    private BigDecimal discount = BigDecimal.ZERO;
+    @Column(name = "discount_amount")
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @NotNull
     @Column(name = "payment_total")

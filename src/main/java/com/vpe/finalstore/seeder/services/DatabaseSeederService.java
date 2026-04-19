@@ -771,7 +771,7 @@ public class DatabaseSeederService {
             int invoiceStatusId = isPaid ? paidStatusId : issuedStatusId;
 
             entityManager.createNativeQuery(
-                "INSERT INTO invoices (order_id, customer_id, status_id, invoice_total, tax, discount, payment_total, invoice_date, due_date) " +
+                "INSERT INTO invoices (order_id, customer_id, status_id, invoice_total, tax, discount_amount, payment_total, invoice_date, due_date) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .setParameter(1, order.getOrderId())
@@ -779,7 +779,7 @@ public class DatabaseSeederService {
             .setParameter(3, invoiceStatusId)
             .setParameter(4, order.getTotal())
             .setParameter(5, order.getTax())
-            .setParameter(6, BigDecimal.ZERO)
+            .setParameter(6, order.getDiscountAmount())
             .setParameter(7, BigDecimal.ZERO)
             .setParameter(8, invoiceDate)
             .setParameter(9, dueDate)

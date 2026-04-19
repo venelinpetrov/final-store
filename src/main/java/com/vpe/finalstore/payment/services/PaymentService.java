@@ -113,9 +113,6 @@ public class PaymentService {
         );
     }
 
-    /**
-     * Create initial payment record with PENDING status
-     */
     private Payment createInitialPaymentRecord(Invoice invoice) {
         var pendingStatus = paymentStatusRepository.findByName(PaymentStatusType.PENDING)
             .orElseThrow(() -> new NotFoundException("Payment status PENDING not found"));
@@ -126,11 +123,6 @@ public class PaymentService {
         payment.setStatus(pendingStatus);
 
         return paymentRepository.save(payment);
-    }
-
-    public Payment getPaymentByStripeIntentId(String stripePaymentIntentId) {
-        return paymentRepository.findByStripePaymentIntentId(stripePaymentIntentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
     public Payment getPaymentById(Integer paymentId) {
@@ -193,7 +185,7 @@ public class PaymentService {
         invoice.setCustomer(order.getCustomer());
         invoice.setInvoiceTotal(order.getTotal());
         invoice.setTax(order.getTax());
-        invoice.setDiscount(order.getDiscountAmount());
+        invoice.setDiscountAmount(order.getDiscountAmount());
         invoice.setPaymentTotal(BigDecimal.ZERO);
         invoice.setDueDate(LocalDateTime.now().plusDays(30));
 

@@ -26,26 +26,25 @@ public class AppliedDiscount {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_item_id")
-    private OrderItem orderItem;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discount_id")
     private Discount discount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id")
-    private Coupon coupon;
-
     @NotNull
     @Column(name = "discount_amount")
     private BigDecimal discountAmount;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_item_id")
+    private OrderItem orderItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
+
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
-
 
 }
