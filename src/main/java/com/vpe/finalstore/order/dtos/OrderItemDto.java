@@ -14,4 +14,5 @@ public class OrderItemDto {
     private String sku;
     private String brandName;
     private BigDecimal unitPrice;
+    private BigDecimal discountAmount;
 }

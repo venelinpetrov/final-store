@@ -4,6 +4,8 @@ import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.customer.repositories.CustomerAddressRepository;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
+import com.vpe.finalstore.discount.entities.AppliedDiscount;
+import com.vpe.finalstore.discount.repositories.AppliedDiscountRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
@@ -42,6 +44,7 @@ public class OrderService {
     private final InvoiceStatusRepository invoiceStatusRepository;
     private final InvoiceRepository invoiceRepository;
     private final ShipmentService shipmentService;
+    private final AppliedDiscountRepository appliedDiscountRepository;
 
     @Transactional
     public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId, Integer carrierId) {
@@ -95,7 +98,24 @@ public class OrderService {
 
         orderSummaryCalculator.calculateOrderSummary(order);
 
-        order = orderRepository.save(order);
+        orderRepository.save(order);
+
+        var appliedDiscountsMap = orderSummaryCalculator.getAppliedDiscounts(order);
+        var appliedDiscountsList = appliedDiscountsMap.entrySet().stream()
+            .map(entry -> {
+                var orderItem = entry.getKey();
+                var discount = entry.getValue();
+
+                var appliedDiscount = new AppliedDiscount();
+                appliedDiscount.setOrder(order);
+                appliedDiscount.setOrderItem(orderItem);
+                appliedDiscount.setDiscount(discount);
+                appliedDiscount.setDiscountAmount(orderItem.getDiscountAmount());
+                return appliedDiscount;
+            })
+            .toList();
+
+        appliedDiscountRepository.saveAll(appliedDiscountsList);
 
         shipmentService.createShipment(carrierId, order);
 

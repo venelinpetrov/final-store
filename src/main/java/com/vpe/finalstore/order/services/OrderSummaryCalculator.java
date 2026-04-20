@@ -1,5 +1,6 @@
 package com.vpe.finalstore.order.services;
 
+import com.vpe.finalstore.discount.entities.Discount;
 import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -31,6 +34,24 @@ public class OrderSummaryCalculator {
         order.setDiscountAmount(discount);
         order.setShippingCost(shippingCost);
         order.setTotal(total);
+    }
+
+    public Map<OrderItem, Discount> getAppliedDiscounts(Order order) {
+        Map<OrderItem, Discount> appliedDiscounts = new HashMap<>();
+
+        for (OrderItem item : order.getOrderItems()) {
+            if (item.getDiscountAmount() != null &&
+                item.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
+
+                var discount = discountRepository.findActiveDiscountForVariant(
+                    item.getVariant().getVariantId()
+                );
+
+                discount.ifPresent(d -> appliedDiscounts.put(item, d));
+            }
+        }
+
+        return appliedDiscounts;
     }
 
     private BigDecimal calculateSubtotal(Order order) {
