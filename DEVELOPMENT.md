@@ -1,10 +1,39 @@
 # Development Guide
 
-This guide explains how to develop the Final Store application using Docker, even without Java installed locally.
+This guide explains how to develop the Final Store application.
 
-## Two Modes Available
+## Three Modes Available
 
-### 1. Development Mode
+### 1. Local Development Mode
+
+**Features:**
+- Runs directly on your machine (no Docker)
+- Fastest startup and reload
+- Remote debugging support (port 5005)
+- Requires Java installed locally
+- Direct access to application
+
+**Requirements:**
+- Java 17 or higher installed
+- MySQL database running (local or Docker)
+
+**Start:**
+```bash
+make start
+```
+
+**Build:**
+```bash
+make build
+```
+
+**How it works:**
+- Runs Spring Boot directly with Maven wrapper
+- Uses local application.properties configuration
+- Automatically enables remote debugging on port 5005
+- Hot reload via Spring Boot DevTools
+
+### 2. Development Mode (Docker)
 
 **Features:**
 - Hot reload - changes are reflected automatically
@@ -15,7 +44,7 @@ This guide explains how to develop the Final Store application using Docker, eve
 
 **Start:**
 ```bash
-make dev
+make start-dev
 ```
 
 **How it works:**
@@ -24,7 +53,7 @@ make dev
 - When you save a file, the app automatically restarts (~5-10 seconds)
 - No need to rebuild the Docker image
 
-### 2. Production Mode
+### 3. Production Mode (Docker)
 
 **Features:**
 - Optimized Docker image
@@ -33,12 +62,12 @@ make dev
 
 **Start:**
 ```bash
-make start
+make start-prod
 ```
 
 **Note:** Requires rebuild after code changes:
 ```bash
-make build
+make build-prod
 ```
 
 ## Remote Debugging
@@ -86,7 +115,7 @@ Add to `.vscode/launch.json`:
 
 1. **Check if the app restarted:**
    ```bash
-   make dev-logs
+   make logs-dev
    ```
    Look for "Restarting due to class path change"
 
@@ -102,7 +131,7 @@ Add to `.vscode/launch.json`:
 
 1. **Check logs:**
    ```bash
-   make dev-logs
+   make logs-dev
    ```
 
 2. **Check for compilation errors:**
@@ -110,8 +139,8 @@ Add to `.vscode/launch.json`:
 
 3. **Rebuild from scratch:**
    ```bash
-   make dev-stop
-   make dev-build
+   make stop-dev
+   make build-dev
    ```
 
 ### Port conflicts?
@@ -134,7 +163,7 @@ This happens when a migration fails mid-execution, leaving the database in a cor
 **Fix:**
 1. Stop the dev environment:
    ```bash
-   make dev-stop
+   make stop-dev
    ```
 
 2. Start only MySQL container:
@@ -144,12 +173,12 @@ This happens when a migration fails mid-execution, leaving the database in a cor
 
 3. Repair the Flyway schema:
    ```bash
-   make migrate-repair-dev
+   make repair-migrate-dev
    ```
 
 4. Restart the full environment:
    ```bash
-   make dev
+   make start-dev
    ```
 
 **Note:** Flyway migrations run automatically when the app starts in Docker. You don't need to run migrations manually unless you're troubleshooting or running the app locally outside Docker.

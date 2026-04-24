@@ -145,6 +145,12 @@ Common locations:
 3. Select main class: `com.vpe.finalstore.FinalStoreApplication`
 4. Run the application
 
+**Alternative: Use Make commands:**
+```bash
+make start  # Start the application locally
+make build  # Build the application locally
+```
+
 #### 4. Seed the database
 
 After you run the app you can seed the database with test data by running the following command:
@@ -178,9 +184,9 @@ openssl rand -base64 64
 
 #### 2. Start the Application
 
-**Development mode (with hot reload):**
+**Development mode with Docker (hot reload):**
 ```bash
-make dev
+make start-dev
 ```
 
 Features:
@@ -189,14 +195,14 @@ Features:
 - Debug port available on 5005
 - Useful when you don't have Java installed locally
 
-**Production mode:**
+**Production mode with Docker:**
 ```bash
-make start
+make start-prod
 ```
 
 Note: In production mode, rebuild after code changes:
 ```bash
-make build
+make build-prod
 ```
 
 **All available commands:**
@@ -230,8 +236,8 @@ Run the seed script from [here](https://github.com/venelinpetrov/my-store-seed-s
 
 **Local Setup:** Run migrations manually using:
 ```bash
-make migrate          # Run migrations
-make migrate-info     # Check migration status
+make migrate       # Run migrations
+make info-migrate  # Check migration status
 ```
 
 **Troubleshooting:** If migrations fail, see [DEVELOPMENT.md](DEVELOPMENT.md#app-crashes-on-startup-with-flyway-validation-failed) for repair instructions.
@@ -240,13 +246,14 @@ make migrate-info     # Check migration status
 
 **View logs (Docker):**
 ```bash
-make logs
+make logs-prod     # Production mode
+make logs-dev      # Development mode
 ```
 
 **Stop the application (Docker):**
 ```bash
-make stop          # Production mode
-make dev-stop      # Development mode
+make stop-prod     # Production mode
+make stop-dev      # Development mode
 ```
 
 **Database shell (Docker):**
