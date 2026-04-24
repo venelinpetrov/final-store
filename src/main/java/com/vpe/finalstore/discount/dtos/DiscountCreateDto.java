@@ -5,7 +5,7 @@ import com.vpe.finalstore.discount.enums.DiscountType;
 import com.vpe.finalstore.discount.validation.ValidDiscount;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,13 +30,13 @@ public class DiscountCreateDto {
     private DiscountScopeType scope;
 
     @NotNull
-    @PositiveOrZero
+    @Positive
     private BigDecimal value;
 
-    @PositiveOrZero
+    @Positive(message = "Min order amount must be greater than 0 or null")
     private BigDecimal minOrderAmount;
 
-    @PositiveOrZero
+    @Positive(message = "Max discount amount must be greater than 0 or null")
     private BigDecimal maxDiscountAmount;
 
     private LocalDateTime validFrom;

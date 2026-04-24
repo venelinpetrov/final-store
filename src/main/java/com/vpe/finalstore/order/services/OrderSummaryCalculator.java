@@ -25,7 +25,7 @@ public class OrderSummaryCalculator {
     public void calculateOrderSummary(Order order) {
         BigDecimal subtotal = calculateSubtotal(order);
         BigDecimal tax = calculateTax(subtotal);
-        BigDecimal discount = calculateDiscount(order);
+        BigDecimal discount = calculateDiscount(order, subtotal);
         BigDecimal shippingCost = calculateShippingCost(order);
         BigDecimal total = calculateTotal(subtotal, tax, discount, shippingCost);
 
@@ -72,8 +72,15 @@ public class OrderSummaryCalculator {
             .setScale(2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal calculateDiscount(Order order) {
-       return order.getOrderItems().stream()
+    private BigDecimal calculateDiscount(Order order, BigDecimal subtotal) {
+        BigDecimal itemsDiscount = calculateItemsDiscount(order);
+        BigDecimal subtotalAfterItemDiscounts = subtotal.subtract(itemsDiscount);
+        BigDecimal orderDiscount = calculateOrderDiscount(order, subtotalAfterItemDiscounts);
+        return itemsDiscount.add(orderDiscount);
+    }
+
+    private BigDecimal calculateItemsDiscount(Order order) {
+        return order.getOrderItems().stream()
             .map(this::calculateItemDiscount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -105,6 +112,28 @@ public class OrderSummaryCalculator {
 
         item.setDiscountAmount(discountAmount);
         return discountAmount;
+    }
+
+    private BigDecimal calculateOrderDiscount(Order order, BigDecimal subtotalAfterItemDiscounts) {
+        var existingDiscount = discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts);
+
+        if (existingDiscount.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        var discount = existingDiscount.get();
+
+        BigDecimal discountAmount = switch (discount.getDiscountType()) {
+            case PERCENTAGE -> subtotalAfterItemDiscounts
+                .multiply(discount.getValue())
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            case FIXED -> discount.getValue();
+            case BUY_X_GET_Y -> BigDecimal.ZERO; // TODO
+        };
+
+        return discount.getMaxDiscountAmount() != null && discount.getMaxDiscountAmount().compareTo(BigDecimal.ZERO) > 0
+            ? discountAmount.min(discount.getMaxDiscountAmount())
+            : discountAmount;
     }
 
     private BigDecimal calculateShippingCost(Order order) {
