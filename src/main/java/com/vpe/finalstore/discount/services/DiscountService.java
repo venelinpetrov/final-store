@@ -10,6 +10,11 @@ import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 
 import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
+
+import java.time.LocalDateTime;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +26,12 @@ public class DiscountService {
     private final DiscountMapper discountMapper;
     private final EntityManager entityManager;
     private final ProductVariantRepository variantRepository;
+
+    public Page<DiscountDto> getDiscounts(Boolean isActive,LocalDateTime validFrom, LocalDateTime validUntil, Pageable pageable) {
+        return discountRepository
+            .getDiscounts(isActive, validFrom, validUntil, pageable)
+            .map(discountMapper::toDto);
+    }
 
     @Transactional
     public DiscountDto createDiscount(DiscountCreateDto discountCreateDto) {
