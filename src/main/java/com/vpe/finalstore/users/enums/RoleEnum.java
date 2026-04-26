@@ -5,6 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public enum RoleEnum {
     USER,
+    MERCHANT,
     ADMIN;
 
     public String role() {

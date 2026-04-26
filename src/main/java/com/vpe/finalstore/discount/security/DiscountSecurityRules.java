@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.stereotype.Component;
 import static com.vpe.finalstore.users.enums.RoleEnum.ADMIN;
+import static com.vpe.finalstore.users.enums.RoleEnum.MERCHANT;
 
 @Component
 public class DiscountSecurityRules implements SecurityRules {
@@ -15,8 +16,8 @@ public class DiscountSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry
-            .requestMatchers(HttpMethod.GET, "/api/discounts").hasAuthority(ADMIN.authority()) // TODO Make Merchant role
-            .requestMatchers(HttpMethod.GET, "/api/discounts/applied").hasAuthority(ADMIN.authority())
-            .requestMatchers(HttpMethod.POST, "/api/discounts").hasAuthority(ADMIN.authority());
+            .requestMatchers(HttpMethod.GET, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
+            .requestMatchers(HttpMethod.GET, "/api/discounts/applied").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
+            .requestMatchers(HttpMethod.POST, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority());
     }
 }
