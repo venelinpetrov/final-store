@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,6 +112,7 @@ public class OrderService {
                 appliedDiscount.setOrderItem(orderItem);
                 appliedDiscount.setDiscount(discount);
                 appliedDiscount.setDiscountAmount(orderItem.getDiscountAmount());
+                appliedDiscount.setAppliedAt(LocalDateTime.now());
                 return appliedDiscount;
             })
             .toList();

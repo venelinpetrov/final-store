@@ -1,5 +1,6 @@
 package com.vpe.finalstore.discount.controllers;
 
+import com.vpe.finalstore.discount.dtos.AppliedDiscountDto;
 import com.vpe.finalstore.discount.dtos.DiscountCreateDto;
 import com.vpe.finalstore.discount.dtos.DiscountDto;
 import com.vpe.finalstore.discount.services.DiscountService;
@@ -7,7 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
-import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +28,11 @@ public class DiscountController {
 
     private final DiscountService discountService;
 
+    @Operation(
+        summary = "Get all discounts with optional filters"
+    )
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<DiscountDto>> getAllDiscounts(
+    public ResponseEntity<Page<DiscountDto>> getAllDiscounts(
         @RequestParam(defaultValue = "true") Boolean isActive,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
@@ -37,6 +41,19 @@ public class DiscountController {
     ) {
         var pageable = PageRequest.of(page, size);
         var discounts = discountService.getDiscounts(isActive, validFrom, validUntil, pageable);
+        return ResponseEntity.ok(discounts);
+    }
+
+    @Operation(
+        summary = "Gett applied discounts"
+    )
+    @GetMapping("/applied")
+    public ResponseEntity<Page<AppliedDiscountDto>> getAppliedDiscounts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        var pageable = PageRequest.of(page, size);
+        var discounts = discountService.getAppliedDiscounts(pageable);
         return ResponseEntity.ok(discounts);
     }
 

@@ -16,6 +16,7 @@ public class DiscountSecurityRules implements SecurityRules {
     ) {
         registry
             .requestMatchers(HttpMethod.GET, "/api/discounts").hasAuthority(ADMIN.authority()) // TODO Make Merchant role
+            .requestMatchers(HttpMethod.GET, "/api/discounts/applied").hasAuthority(ADMIN.authority())
             .requestMatchers(HttpMethod.POST, "/api/discounts").hasAuthority(ADMIN.authority());
     }
 }
