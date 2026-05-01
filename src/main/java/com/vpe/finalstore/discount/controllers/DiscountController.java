@@ -45,7 +45,7 @@ public class DiscountController {
     }
 
     @Operation(
-        summary = "Gett applied discounts"
+        summary = "Get applied discounts"
     )
     @GetMapping("/applied")
     public ResponseEntity<Page<AppliedDiscountDto>> getAppliedDiscounts(

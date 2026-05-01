@@ -18,17 +18,17 @@ import java.util.Set;
 public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "coupon_id", nullable = false)
+    @Column(name = "coupon_id")
     private Integer couponId;
 
     @Size(max = 50)
     @NotNull
-    @Column(name = "code", nullable = false, length = 50)
+    @Column(name = "code")
     private String code;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "discount_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "discount_id")
     private Discount discount;
 
     @Column(name = "usage_limit")

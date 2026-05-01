@@ -2,7 +2,7 @@
 
 This document explains how discounts are designed and why
 
-We need a flexible system that allows to have different types of discounts and application rules.
+We need a flexible system that supports different types of discounts and application rules.
 
 ## Example of common discounts
 
@@ -25,7 +25,7 @@ From the examples above, it becomes clear that discounts can be modeled with 2 c
 	- 5% off of product
 	- free shipping
 
-2. How it gets applied. This can be called a **trigger**, or **condition**
+2. How it gets applied. This can be called a **trigger** (or **condition**)
 	- applies for order above €100
 	- applies for user group (e.g. VIP)
 	- applies for specific product variant ABC
@@ -33,7 +33,7 @@ From the examples above, it becomes clear that discounts can be modeled with 2 c
 	- applies for specific product variant ABC, for this month
 	- applies with code SUMMER10
 
-**Note**: copuon codes are not a different type of discount. They are just a special case of trigger. Unlike all other discounts, which are applied automatically by the app, when a condition is met, the coupon is applied manually by the user.
+**Note**: copuon codes are not a different type of discount. They are just a special case of trigger. Unlike all other discounts though, which are applied automatically by the app, when a condition is met, the coupon is applied manually by the user.
 
 ### Discount scope
 
@@ -45,7 +45,7 @@ A discount type can be a **% off**, **fixed**, **buy_x_get_y**
 
 ### Discount condition type
 
-Unlike discount types, which are normally around 3-5, condition types could be many
+Unlike discount types, which are normally around 3-5, condition types could be many more
 
 - min order amount
 - variant related: applies for specific variants
@@ -56,7 +56,7 @@ Unlike discount types, which are normally around 3-5, condition types could be m
 - customer id
 - time: valid from / valid until
 
-**Note**: One discount can have multiple conditions. For example "variant_id: 5" + "valid until: end of the mont".
+**Note**: One discount can have multiple conditions. For example "variant_id: 5" + "valid until: end of the month".
 
 ### Discount condition value
 
