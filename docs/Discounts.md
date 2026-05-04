@@ -1,6 +1,6 @@
 # Discounts
 
-This document explains how discounts are designed and why
+This document explains how discounts should work and why.
 
 We need a flexible system that supports different types of discounts and application rules.
 
@@ -61,6 +61,41 @@ Unlike discount types, which are normally around 3-5, condition types could be m
 ### Discount condition value
 
 This is just the specific value of the condtion. For example if the condition is "variant", the value could be 5.
+
+### Coupons
+
+We want to support Shared (e.g. SUMMER26) and Single-use (e.g. ABC123) coupons.
+
+#### Shared coupon codes
+
+Often used for public promotions and campaigns
+
+- `usage_limit`: High number (e.g., 1000, 5000, or NULL for unlimited)
+- Purpose: Marketing campaigns where many customers use the same code
+- Behavior:
+    - Code is publicly advertised
+    - Multiple customers can use it until the limit is reached
+    - Typically has a date range (`valid_from` / `valid_until`)
+- Generated manually by the merchant
+
+
+
+#### Single-use coupon codes
+
+Often used for referral programs, customer service compensation, or personalized incentives
+
+- `usage_limit`: 1 (single use)
+- Purpose: Personalized rewards, gift cards, or one-time promotions
+- Behavior:
+    - Code is sent to a specific customer
+    - Can only be used once
+    - Once `times_used` reaches 1, the coupon becomes invalid
+    - May have a date range (`valid_from` / `valid_until`)
+- Generated via code generator
+    - Could use e.g. `java.security.SecureRandom`
+    - Always check for collisions in DB
+    - (optional) Could have prefixes, e.g. "GIFT-" or "REFERRAL-" etc.
+
 
 ### Tracking
 
