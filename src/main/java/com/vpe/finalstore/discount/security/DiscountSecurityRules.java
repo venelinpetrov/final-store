@@ -18,6 +18,7 @@ public class DiscountSecurityRules implements SecurityRules {
         registry
             .requestMatchers(HttpMethod.GET, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
             .requestMatchers(HttpMethod.GET, "/api/discounts/applied").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
-            .requestMatchers(HttpMethod.POST, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority());
+            .requestMatchers(HttpMethod.POST, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
+            .requestMatchers(HttpMethod.POST, "/api/coupons").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority());
     }
 }

@@ -42,16 +42,10 @@ public class Coupon {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "coupon")
-    private Set<AppliedDiscount> appliedDiscounts = new LinkedHashSet<>();
-
 
 }
