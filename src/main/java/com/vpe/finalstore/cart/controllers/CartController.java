@@ -45,7 +45,7 @@ public class CartController {
     ResponseEntity<CartDto> createCart(UriComponentsBuilder uriBuilder) {
         var cart = cartService.createCart();
         var cartDto = cartMapper.toDto(cart);
-        var uri = uriBuilder.path("/carts/{cart_id}")
+        var uri = uriBuilder.path("api/carts/{cart_id}")
             .buildAndExpand(cartDto.getCartId())
             .toUri();
 
