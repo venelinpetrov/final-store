@@ -16,9 +16,15 @@ public class DiscountSecurityRules implements SecurityRules {
         AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry
     ) {
         registry
+            // Discount endpoints
             .requestMatchers(HttpMethod.GET, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
             .requestMatchers(HttpMethod.GET, "/api/discounts/applied").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
             .requestMatchers(HttpMethod.POST, "/api/discounts").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
-            .requestMatchers(HttpMethod.POST, "/api/coupons").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority());
+
+            // Coupon endpoints
+            .requestMatchers(HttpMethod.POST, "/api/coupons").hasAnyAuthority(MERCHANT.authority(), ADMIN.authority())
+            .requestMatchers(HttpMethod.GET, "/api/coupons/validate/*").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/carts/*/coupon").authenticated()
+            .requestMatchers(HttpMethod.DELETE, "/api/carts/*/coupon").authenticated();
     }
 }

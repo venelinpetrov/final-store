@@ -1,6 +1,7 @@
 package com.vpe.finalstore.cart.entities;
 
 import com.vpe.finalstore.customer.entities.Customer;
+import com.vpe.finalstore.discount.entities.Coupon;
 import com.vpe.finalstore.product.entities.ProductVariant;
 import org.hibernate.annotations.Generated;
 import jakarta.persistence.*;
@@ -29,6 +30,10 @@ public class Cart {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     @Generated

@@ -212,3 +212,11 @@ CREATE TABLE applied_discounts (
 ### API design
 
 TBD
+
+## Security
+
+### Protection Against
+    - Users applying coupons to other users' carts
+    - Users removing coupons from other users' carts
+    - Users accessing anonymous carts via direct cart ID
+    - Unauthorized cart modifications

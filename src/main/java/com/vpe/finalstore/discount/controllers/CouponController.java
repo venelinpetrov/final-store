@@ -1,42 +1,67 @@
 package com.vpe.finalstore.discount.controllers;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
-
+import com.vpe.finalstore.cart.dtos.CartDto;
+import com.vpe.finalstore.cart.mappers.CartMapper;
+import com.vpe.finalstore.discount.dtos.ApplyCouponDto;
 import com.vpe.finalstore.discount.dtos.CouponCreateDto;
 import com.vpe.finalstore.discount.dtos.CouponDto;
 import com.vpe.finalstore.discount.services.CouponService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.util.UUID;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/coupons")
+@RequestMapping("/api")
 public class CouponController {
 
-	private final CouponService couponService;
+    private final CouponService couponService;
+    private final CartMapper cartMapper;
 
-	@Operation(
-		summary = "Create shared coupon"
-	)
-	@PostMapping
-	public ResponseEntity<CouponDto> postMethodName(@Valid @RequestBody CouponCreateDto body, UriComponentsBuilder uriBuilder) {
+    @Operation(summary = "Create a new coupon")
+    @PostMapping("/coupons")
+    public ResponseEntity<CouponDto> createCoupon(@Valid @RequestBody CouponCreateDto body) {
+        var couponDto = couponService.createCoupon(body);
 
-		var couponDto = couponService.createSharedCoupon(body);
-		var uri = uriBuilder
-			.path("/api/coupons/{id}")
-			.buildAndExpand(couponDto.getCouponId())
-			.toUri();
+        return ResponseEntity
+            .created(URI.create("/api/coupons/" + couponDto.getCouponId()))
+            .body(couponDto);
+    }
 
-		return ResponseEntity.created(uri).body(couponDto);
-	}
+    @Operation(summary = "Apply a coupon to a cart", description = "Apply a coupon code to the cart. Only the cart owner can apply coupons.")
+    @PreAuthorize("@cartSecurity.isOwner(#cartId, authentication)")
+    @PostMapping("/carts/{cartId}/coupon")
+    public ResponseEntity<CartDto> applyCoupon(
+        @PathVariable UUID cartId,
+        @Valid @RequestBody ApplyCouponDto body
+    ) {
+        var cart = couponService.applyCouponToCart(cartId, body.getCode());
+        var cartDto = cartMapper.toDto(cart);
 
+        return ResponseEntity.ok(cartDto);
+    }
+
+    @Operation(summary = "Remove coupon from a cart", description = "Remove the applied coupon from the cart. Only the cart owner can remove coupons.")
+    @PreAuthorize("@cartSecurity.isOwner(#cartId, authentication)")
+    @DeleteMapping("/carts/{cartId}/coupon")
+    public ResponseEntity<CartDto> removeCoupon(@PathVariable UUID cartId) {
+        var cart = couponService.removeCouponFromCart(cartId);
+        var cartDto = cartMapper.toDto(cart);
+
+        return ResponseEntity.ok(cartDto);
+    }
+
+    @Operation(summary = "Validate a coupon code", description = "Check if a coupon code is valid and can be used")
+    @GetMapping("/coupons/validate/{code}")
+    public ResponseEntity<Boolean> validateCoupon(@PathVariable String code) {
+        boolean isValid = couponService.isValidCoupon(code);
+
+        return ResponseEntity.ok(isValid);
+    }
 }

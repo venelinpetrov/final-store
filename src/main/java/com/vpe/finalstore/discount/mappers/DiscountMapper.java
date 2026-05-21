@@ -1,10 +1,12 @@
 package com.vpe.finalstore.discount.mappers;
 
 import com.vpe.finalstore.discount.dtos.AppliedDiscountDto;
+import com.vpe.finalstore.discount.dtos.CouponDto;
 import com.vpe.finalstore.discount.dtos.DiscountConditionDto;
 import com.vpe.finalstore.discount.dtos.DiscountCreateDto;
 import com.vpe.finalstore.discount.dtos.DiscountDto;
 import com.vpe.finalstore.discount.entities.AppliedDiscount;
+import com.vpe.finalstore.discount.entities.Coupon;
 import com.vpe.finalstore.discount.entities.Discount;
 import com.vpe.finalstore.discount.entities.DiscountCondition;
 import org.mapstruct.*;
@@ -27,4 +29,8 @@ public interface DiscountMapper {
     @Mapping(target = "discountId", source = "discount.discountId")
     @Mapping(target = "couponId", source = "coupon.couponId")
     AppliedDiscountDto toDto(AppliedDiscount appliedDiscount);
+
+    @Mapping(target = "discountId", source = "discount.discountId")
+    @Mapping(target = "discountName", source = "discount.name")
+    CouponDto toDto(Coupon coupon);
 }

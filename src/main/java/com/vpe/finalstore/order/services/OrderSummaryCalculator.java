@@ -1,5 +1,6 @@
 package com.vpe.finalstore.order.services;
 
+import com.vpe.finalstore.discount.entities.Coupon;
 import com.vpe.finalstore.discount.entities.Discount;
 import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.order.entities.Order;
@@ -23,9 +24,13 @@ public class OrderSummaryCalculator {
     private static final BigDecimal SHIPPING_COST = new BigDecimal("5.00"); // $5.00 flat shipping
 
     public void calculateOrderSummary(Order order) {
+        calculateOrderSummary(order, null);
+    }
+
+    public void calculateOrderSummary(Order order, Coupon coupon) {
         BigDecimal subtotal = calculateSubtotal(order);
         BigDecimal tax = calculateTax(subtotal);
-        BigDecimal discount = calculateDiscount(order, subtotal);
+        BigDecimal discount = calculateDiscount(order, subtotal, coupon);
         BigDecimal shippingCost = calculateShippingCost(order);
         BigDecimal total = calculateTotal(subtotal, tax, discount, shippingCost);
 
@@ -37,6 +42,10 @@ public class OrderSummaryCalculator {
     }
 
     public Map<OrderItem, Discount> getAppliedDiscounts(Order order) {
+        return getAppliedDiscounts(order, null);
+    }
+
+    public Map<OrderItem, Discount> getAppliedDiscounts(Order order, Coupon orderLevelCoupon) {
         Map<OrderItem, Discount> appliedDiscounts = new HashMap<>();
 
         for (OrderItem item : order.getOrderItems()) {
@@ -52,6 +61,18 @@ public class OrderSummaryCalculator {
         }
 
         return appliedDiscounts;
+    }
+
+    public Discount getOrderLevelDiscount(Order order, Coupon coupon) {
+        if (coupon != null) {
+            return coupon.getDiscount();
+        }
+
+        BigDecimal subtotal = calculateSubtotal(order);
+        BigDecimal itemsDiscount = calculateItemsDiscount(order);
+        BigDecimal subtotalAfterItemDiscounts = subtotal.subtract(itemsDiscount);
+
+        return discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts).orElse(null);
     }
 
     private BigDecimal calculateSubtotal(Order order) {
@@ -72,10 +93,10 @@ public class OrderSummaryCalculator {
             .setScale(2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal calculateDiscount(Order order, BigDecimal subtotal) {
+    private BigDecimal calculateDiscount(Order order, BigDecimal subtotal, Coupon coupon) {
         BigDecimal itemsDiscount = calculateItemsDiscount(order);
         BigDecimal subtotalAfterItemDiscounts = subtotal.subtract(itemsDiscount);
-        BigDecimal orderDiscount = calculateOrderDiscount(order, subtotalAfterItemDiscounts);
+        BigDecimal orderDiscount = calculateOrderDiscount(order, subtotalAfterItemDiscounts, coupon);
         return itemsDiscount.add(orderDiscount);
     }
 
@@ -114,14 +135,26 @@ public class OrderSummaryCalculator {
         return discountAmount;
     }
 
-    private BigDecimal calculateOrderDiscount(Order order, BigDecimal subtotalAfterItemDiscounts) {
-        var existingDiscount = discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts);
+    private BigDecimal calculateOrderDiscount(Order order, BigDecimal subtotalAfterItemDiscounts, Coupon coupon) {
+        Discount discount = null;
 
-        if (existingDiscount.isEmpty()) {
-            return BigDecimal.ZERO;
+        // Priority 1: Coupon-based discount
+        if (coupon != null) {
+            discount = coupon.getDiscount();
+        } else {
+            // Priority 2: Automatic order-level discount
+            var existingDiscount = discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts);
+            if (existingDiscount.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            discount = existingDiscount.get();
         }
 
-        var discount = existingDiscount.get();
+        // Validate min order amount for coupon discounts
+        if (coupon != null && discount.getMinOrderAmount() != null &&
+            subtotalAfterItemDiscounts.compareTo(discount.getMinOrderAmount()) < 0) {
+            return BigDecimal.ZERO;
+        }
 
         BigDecimal discountAmount = switch (discount.getDiscountType()) {
             case PERCENTAGE -> subtotalAfterItemDiscounts
