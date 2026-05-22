@@ -10,7 +10,6 @@ import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 
-import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -26,7 +25,6 @@ public class DiscountService {
 
     private final DiscountRepository discountRepository;
     private final DiscountMapper discountMapper;
-    private final EntityManager entityManager;
     private final ProductVariantRepository variantRepository;
     private final AppliedDiscountRepository appliedDiscountRepository;
 
@@ -59,11 +57,9 @@ public class DiscountService {
         }
 
         var discountEntity = discountMapper.toEntity(discountCreateDto);
-        discountEntity = discountRepository.save(discountEntity);
+        var savedDiscount = discountRepository.save(discountEntity);
 
-        entityManager.refresh(discountEntity);
-
-        return discountMapper.toDto(discountEntity);
+        return discountMapper.toDto(savedDiscount);
     }
 
 }
