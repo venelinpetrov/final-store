@@ -1,6 +1,7 @@
 package com.vpe.finalstore.discount.services;
 
-import com.vpe.finalstore.cart.entities.Cart;
+import com.vpe.finalstore.cart.dtos.CartDto;
+import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
@@ -10,7 +11,6 @@ import com.vpe.finalstore.discount.entities.Coupon;
 import com.vpe.finalstore.discount.mappers.DiscountMapper;
 import com.vpe.finalstore.discount.repositories.CouponRepository;
 import com.vpe.finalstore.discount.repositories.DiscountRepository;
-import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +25,7 @@ public class CouponService {
     private final DiscountRepository discountRepository;
     private final CartRepository cartRepository;
     private final DiscountMapper discountMapper;
-    private final EntityManager entityManager;
+    private final CartMapper cartMapper;
 
     @Transactional
     public CouponDto createCoupon(CouponCreateDto dto) {
@@ -45,14 +45,13 @@ public class CouponService {
         coupon.setTimesUsed(0);
         coupon.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
 
-        coupon = couponRepository.save(coupon);
-        entityManager.refresh(coupon);
+        var savedCoupon = couponRepository.save(coupon);
 
-        return discountMapper.toDto(coupon);
+        return discountMapper.toDto(savedCoupon);
     }
 
     @Transactional
-    public Cart applyCouponToCart(UUID cartId, String code) {
+    public CartDto applyCouponToCart(UUID cartId, String code) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(() -> new NotFoundException("Cart not found"));
 
@@ -68,16 +67,18 @@ public class CouponService {
         }
 
         cart.setCoupon(coupon);
-        return cartRepository.save(cart);
+        var savedCart = cartRepository.save(cart);
+        return cartMapper.toDto(savedCart);
     }
 
     @Transactional
-    public Cart removeCouponFromCart(UUID cartId) {
+    public CartDto removeCouponFromCart(UUID cartId) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(() -> new NotFoundException("Cart not found"));
 
         cart.setCoupon(null);
-        return cartRepository.save(cart);
+        var savedCart = cartRepository.save(cart);
+        return cartMapper.toDto(savedCart);
     }
 
     @Transactional

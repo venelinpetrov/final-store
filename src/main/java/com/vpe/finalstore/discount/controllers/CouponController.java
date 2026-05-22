@@ -1,7 +1,6 @@
 package com.vpe.finalstore.discount.controllers;
 
 import com.vpe.finalstore.cart.dtos.CartDto;
-import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.discount.dtos.ApplyCouponDto;
 import com.vpe.finalstore.discount.dtos.CouponCreateDto;
 import com.vpe.finalstore.discount.dtos.CouponDto;
@@ -22,7 +21,6 @@ import java.util.UUID;
 public class CouponController {
 
     private final CouponService couponService;
-    private final CartMapper cartMapper;
 
     @Operation(summary = "Create a new coupon")
     @PostMapping("/coupons")
@@ -41,8 +39,7 @@ public class CouponController {
         @PathVariable UUID cartId,
         @Valid @RequestBody ApplyCouponDto body
     ) {
-        var cart = couponService.applyCouponToCart(cartId, body.getCode());
-        var cartDto = cartMapper.toDto(cart);
+        var cartDto = couponService.applyCouponToCart(cartId, body.getCode());
 
         return ResponseEntity.ok(cartDto);
     }
@@ -51,8 +48,7 @@ public class CouponController {
     @PreAuthorize("@cartSecurity.isOwner(#cartId, authentication)")
     @DeleteMapping("/carts/{cartId}/coupon")
     public ResponseEntity<CartDto> removeCoupon(@PathVariable UUID cartId) {
-        var cart = couponService.removeCouponFromCart(cartId);
-        var cartDto = cartMapper.toDto(cart);
+        var cartDto = couponService.removeCouponFromCart(cartId);
 
         return ResponseEntity.ok(cartDto);
     }

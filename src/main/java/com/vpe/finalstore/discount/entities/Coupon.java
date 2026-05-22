@@ -6,10 +6,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -43,9 +42,11 @@ public class Coupon {
     private Boolean isActive;
 
     @Column(name = "created_at", insertable = false, updatable = false)
+    @Generated
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", insertable = false, updatable = false)
+    @Generated
     private LocalDateTime updatedAt;
 
 }
