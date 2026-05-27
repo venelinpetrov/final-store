@@ -32,28 +32,28 @@ public class CouponController {
             .body(couponDto);
     }
 
-    @Operation(summary = "Apply a coupon to a cart", description = "Apply a coupon code to the cart. Only the cart owner can apply coupons.")
+    @Operation(summary = "Apply a coupon to a cart")
     @PreAuthorize("@cartSecurity.isOwner(#cartId, authentication)")
     @PostMapping("/carts/{cartId}/coupon")
-    public ResponseEntity<CartDto> applyCoupon(
+    public ResponseEntity<Void> applyCoupon(
         @PathVariable UUID cartId,
         @Valid @RequestBody ApplyCouponDto body
     ) {
-        var cartDto = couponService.applyCouponToCart(cartId, body.getCode());
+        couponService.applyCouponToCart(cartId, body.getCode());
 
-        return ResponseEntity.ok(cartDto);
+        return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Remove coupon from a cart", description = "Remove the applied coupon from the cart. Only the cart owner can remove coupons.")
+    @Operation(summary = "Remove coupon from a cart")
     @PreAuthorize("@cartSecurity.isOwner(#cartId, authentication)")
     @DeleteMapping("/carts/{cartId}/coupon")
-    public ResponseEntity<CartDto> removeCoupon(@PathVariable UUID cartId) {
-        var cartDto = couponService.removeCouponFromCart(cartId);
+    public ResponseEntity<Void> removeCoupon(@PathVariable UUID cartId) {
+        couponService.removeCouponFromCart(cartId);
 
-        return ResponseEntity.ok(cartDto);
+        return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Validate a coupon code", description = "Check if a coupon code is valid and can be used")
+    @Operation(summary = "Validate a coupon code")
     @GetMapping("/coupons/validate/{code}")
     public ResponseEntity<Boolean> validateCoupon(@PathVariable String code) {
         boolean isValid = couponService.isValidCoupon(code);
