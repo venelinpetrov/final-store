@@ -15,6 +15,7 @@ public interface OrderMapper {
     @Mapping(target = "status", source = "status.name")
     @Mapping(target = "customerId", source = "customer.customerId")
     @Mapping(target = "addressId", source = "address.addressId")
+    @Mapping(target = "taxBreakdown", ignore = true)
     OrderDto toDto(Order order);
 
     List<OrderDto> toDto(List<Order> orders);

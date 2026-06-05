@@ -27,6 +27,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "tax_code")
+    private String taxCode;
+
     @Column(name = "is_archived")
     private Boolean isArchived;
 

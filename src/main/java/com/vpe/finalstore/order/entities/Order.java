@@ -63,6 +63,12 @@ public class Order {
     @Column(name = "total", precision = 10, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(name = "tax_breakdown", columnDefinition = "JSON")
+    private String taxBreakdown;
+
+    @Column(name = "stripe_tax_calculation_id")
+    private String stripeTaxCalculationId;
+
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
 

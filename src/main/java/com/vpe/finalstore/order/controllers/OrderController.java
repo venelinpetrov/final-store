@@ -2,7 +2,6 @@ package com.vpe.finalstore.order.controllers;
 
 import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
-import com.vpe.finalstore.order.mappers.OrderMapper;
 import com.vpe.finalstore.order.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/orders")
 public class OrderController {
     private final OrderService orderService;
-    private final OrderMapper orderMapper;
 
     @Operation(
         summary = "Get order by ID"
@@ -28,8 +26,7 @@ public class OrderController {
     @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Integer orderId) {
-        var order = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(orderMapper.toDto(order));
+        return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
     @Operation(
@@ -41,8 +38,7 @@ public class OrderController {
         @PathVariable Integer customerId,
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        var orders = orderService.getOrdersByCustomer(customerId, pageable);
-        return ResponseEntity.ok(orders.map(orderMapper::toDto));
+        return ResponseEntity.ok(orderService.getOrdersByCustomer(customerId, pageable));
     }
 
     @Operation(
@@ -54,8 +50,7 @@ public class OrderController {
         @PathVariable Integer orderId,
         @Valid @RequestBody OrderUpdateStatusDto dto
     ) {
-        var order = orderService.updateOrderStatus(orderId, dto);
-        return ResponseEntity.ok(orderMapper.toDto(order));
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, dto));
     }
 
     @Operation(
@@ -64,7 +59,6 @@ public class OrderController {
     @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<OrderDto> cancelOrder(@PathVariable Integer orderId) {
-        var order = orderService.cancelOrder(orderId);
-        return ResponseEntity.ok(orderMapper.toDto(order));
+        return ResponseEntity.ok(orderService.cancelOrder(orderId));
     }
 }

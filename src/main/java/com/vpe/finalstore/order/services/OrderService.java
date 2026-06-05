@@ -15,13 +15,16 @@ import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.invoice.enums.InvoiceStatusType;
 import com.vpe.finalstore.invoice.repositories.InvoiceRepository;
 import com.vpe.finalstore.invoice.repositories.InvoiceStatusRepository;
+import com.vpe.finalstore.order.dtos.OrderDto;
 import com.vpe.finalstore.order.dtos.OrderUpdateStatusDto;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
 import com.vpe.finalstore.order.enums.OrderStatusType;
+import com.vpe.finalstore.order.mappers.OrderMapper;
 import com.vpe.finalstore.order.repositories.OrderRepository;
 import com.vpe.finalstore.order.repositories.OrderStatusRepository;
 import com.vpe.finalstore.shipment.services.ShipmentService;
+import com.vpe.finalstore.tax.utils.TaxBreakdownMapper;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -49,6 +52,8 @@ public class OrderService {
     private final ShipmentService shipmentService;
     private final AppliedDiscountRepository appliedDiscountRepository;
     private final CouponService couponService;
+    private final OrderMapper orderMapper;
+    private final TaxBreakdownMapper taxBreakdownMapper;
 
     @Transactional
     public Order createOrderFromCart(UUID cartId, Integer customerId, Integer addressId, Integer carrierId) {
@@ -166,17 +171,19 @@ public class OrderService {
         return order;
     }
 
-    public Order getOrderById(Integer orderId) {
-        return orderRepository.findOrderWithDetails(orderId)
+    public OrderDto getOrderById(Integer orderId) {
+        var order = orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
+        return toDto(order);
     }
 
-    public Page<Order> getOrdersByCustomer(Integer customerId, Pageable pageable) {
-        return orderRepository.findByCustomerCustomerId(customerId, pageable);
+    public Page<OrderDto> getOrdersByCustomer(Integer customerId, Pageable pageable) {
+        return orderRepository.findByCustomerCustomerId(customerId, pageable)
+            .map(this::toDto);
     }
 
     @Transactional
-    public Order updateOrderStatus(Integer orderId, OrderUpdateStatusDto dto) {
+    public OrderDto updateOrderStatus(Integer orderId, OrderUpdateStatusDto dto) {
         var order = orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
 
@@ -194,7 +201,8 @@ public class OrderService {
         if (newStatus == OrderStatusType.CANCELED) {
             cancelInvoiceIfExists(orderId);
         }
-        return orderRepository.save(order);
+        var savedOrder = orderRepository.save(order);
+        return toDto(savedOrder);
     }
 
     private void validateStatusTransition(OrderStatusType currentStatus, OrderStatusType newStatus) {
@@ -242,7 +250,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order cancelOrder(Integer orderId) {
+    public OrderDto cancelOrder(Integer orderId) {
         var order = orderRepository.findOrderWithDetails(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found"));
 
@@ -262,7 +270,8 @@ public class OrderService {
 
         cancelInvoiceIfExists(orderId);
 
-        return orderRepository.save(order);
+        var savedOrder = orderRepository.save(order);
+        return toDto(savedOrder);
     }
 
     private void cancelInvoiceIfExists(Integer orderId) {
@@ -288,5 +297,11 @@ public class OrderService {
             invoiceEntity.setStatus(canceledInvoiceStatus);
             invoiceRepository.save(invoiceEntity);
         }
+    }
+
+    private OrderDto toDto(Order order) {
+        var dto = orderMapper.toDto(order);
+        taxBreakdownMapper.populateTaxBreakdown(dto, order);
+        return dto;
     }
 }

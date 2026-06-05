@@ -1,7 +1,6 @@
 package com.vpe.finalstore.invoice.controllers;
 
 import com.vpe.finalstore.invoice.dtos.InvoiceDto;
-import com.vpe.finalstore.invoice.mappers.InvoiceMapper;
 import com.vpe.finalstore.invoice.services.InvoiceService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/invoices")
 public class InvoiceController {
     private final InvoiceService invoiceService;
-    private final InvoiceMapper invoiceMapper;
 
     @Operation(
         summary = "Get invoice by ID",
@@ -27,8 +25,7 @@ public class InvoiceController {
     @PreAuthorize("@invoiceSecurity.isOwner(#invoiceId, authentication)")
     @GetMapping("/{invoiceId}")
     public ResponseEntity<InvoiceDto> getInvoice(@PathVariable Integer invoiceId) {
-        var invoice = invoiceService.getInvoiceById(invoiceId);
-        return ResponseEntity.ok(invoiceMapper.toDto(invoice));
+        return ResponseEntity.ok(invoiceService.getInvoiceById(invoiceId));
     }
 
     @Operation(
@@ -41,8 +38,7 @@ public class InvoiceController {
         @PathVariable Integer customerId,
         @PageableDefault(size = 20, sort = "invoiceDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        var invoices = invoiceService.getInvoicesByCustomer(customerId, pageable);
-        return ResponseEntity.ok(invoices.map(invoiceMapper::toDto));
+        return ResponseEntity.ok(invoiceService.getInvoicesByCustomer(customerId, pageable));
     }
 
     @Operation(
@@ -52,8 +48,7 @@ public class InvoiceController {
     @PreAuthorize("@orderSecurity.isOwner(#orderId, authentication)")
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<InvoiceDto> getInvoiceByOrder(@PathVariable Integer orderId) {
-        var invoice = invoiceService.getInvoiceByOrderId(orderId);
-        return ResponseEntity.ok(invoiceMapper.toDto(invoice));
+        return ResponseEntity.ok(invoiceService.getInvoiceByOrderId(orderId));
     }
 
     @Operation(

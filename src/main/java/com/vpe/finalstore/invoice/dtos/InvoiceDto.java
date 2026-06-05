@@ -2,6 +2,7 @@ package com.vpe.finalstore.invoice.dtos;
 
 import com.vpe.finalstore.invoice.enums.InvoiceStatusType;
 import com.vpe.finalstore.payment.dtos.PaymentDto;
+import com.vpe.finalstore.tax.dtos.TaxBreakdownDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class InvoiceDto {
     private Integer customerId;
     private BigDecimal invoiceTotal;
     private BigDecimal tax;
+    private TaxBreakdownDto taxBreakdown;
     private BigDecimal discountAmount;
     private BigDecimal paymentTotal;
     private LocalDateTime invoiceDate;

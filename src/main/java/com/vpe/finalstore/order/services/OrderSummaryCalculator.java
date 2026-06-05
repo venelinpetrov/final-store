@@ -5,7 +5,11 @@ import com.vpe.finalstore.discount.entities.Discount;
 import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
+import com.vpe.finalstore.payment.config.PaymentConfig;
+import com.vpe.finalstore.tax.dtos.TaxCalculationResult;
+import com.vpe.finalstore.tax.services.TaxService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,14 +17,16 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class OrderSummaryCalculator {
 
     private final DiscountRepository discountRepository;
+    private final TaxService taxService;
+    private final PaymentConfig paymentConfig;
 
-    // TODO remove hardcoding rates and costs and implement them
-    private static final BigDecimal TAX_RATE = new BigDecimal("0.10"); // 10% tax rate
+    // TODO remove hardcoding costs and implement them
     private static final BigDecimal SHIPPING_COST = new BigDecimal("5.00"); // $5.00 flat shipping
 
     public void calculateOrderSummary(Order order) {
@@ -29,13 +35,18 @@ public class OrderSummaryCalculator {
 
     public void calculateOrderSummary(Order order, Coupon coupon) {
         BigDecimal subtotal = calculateSubtotal(order);
-        BigDecimal tax = calculateTax(subtotal);
-        BigDecimal discount = calculateDiscount(order, subtotal, coupon);
         BigDecimal shippingCost = calculateShippingCost(order);
+
+        TaxCalculationResult taxResult = calculateTax(order, shippingCost);
+        BigDecimal tax = taxResult.getTaxAmount();
+
+        BigDecimal discount = calculateDiscount(order, subtotal, coupon);
         BigDecimal total = calculateTotal(subtotal, tax, discount, shippingCost);
 
         order.setSubtotal(subtotal);
         order.setTax(tax);
+        order.setStripeTaxCalculationId(taxResult.getStripeTaxCalculationId());
+        order.setTaxBreakdown(taxService.serializeTaxBreakdown(taxResult.getBreakdown()));
         order.setDiscountAmount(discount);
         order.setShippingCost(shippingCost);
         order.setTotal(total);
@@ -87,10 +98,18 @@ public class OrderSummaryCalculator {
             .multiply(BigDecimal.valueOf(item.getQuantity()));
     }
 
-    private BigDecimal calculateTax(BigDecimal subtotal) {
-        return subtotal
-            .multiply(TAX_RATE)
-            .setScale(2, RoundingMode.HALF_UP);
+    private TaxCalculationResult calculateTax(Order order, BigDecimal shippingCost) {
+        // Convert shipping cost to cents for Stripe
+        Long shippingCostInCents = shippingCost != null
+            ? shippingCost.multiply(new BigDecimal("100")).longValue()
+            : null;
+
+        return taxService.calculateTax(
+            order,
+            order.getAddress(),
+            paymentConfig.getCurrency(),
+            shippingCostInCents
+        );
     }
 
     private BigDecimal calculateDiscount(Order order, BigDecimal subtotal, Coupon coupon) {
