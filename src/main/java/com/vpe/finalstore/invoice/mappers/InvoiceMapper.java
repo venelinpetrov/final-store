@@ -11,6 +11,7 @@ public interface InvoiceMapper {
     @Mapping(target = "status", source = "status.name")
     @Mapping(target = "orderId", source = "order.orderId")
     @Mapping(target = "customerId", source = "customer.customerId")
+    @Mapping(target = "taxBreakdown", ignore = true) // This is mapped in the service layer
     InvoiceDto toDto(Invoice invoice);
 }
 

@@ -4,14 +4,19 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.PaymentMethod;
+import com.stripe.model.tax.Calculation;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.PaymentMethodAttachParams;
+import com.stripe.param.tax.CalculationCreateParams;
 import com.vpe.finalstore.exceptions.BadRequestException;
+import com.vpe.finalstore.tax.dtos.TaxLineItemDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -153,5 +158,73 @@ public class StripeService {
             throw new BadRequestException("Failed to retrieve payment method: " + e.getMessage());
         }
     }
-}
 
+    public Calculation calculateTax(
+        String currency,
+        List<TaxLineItemDto> lineItems,
+        Long shippingCostInCents,
+        String customerCountry,
+        String customerPostalCode,
+        String customerState,
+        String customerCity,
+        String customerAddressLine1
+    ) throws StripeException {
+        log.info("Calculating tax for {} line items in country: {}, postal code: {}", lineItems.size(), customerCountry, customerPostalCode);
+
+        var stripeLineItems = lineItems.stream()
+            .map(item -> CalculationCreateParams.LineItem.builder()
+                .setAmount(item.getAmountInCents())
+                .setReference(item.getReference())
+                .setTaxCode(item.getTaxCode())
+                .build()
+            ).toList();
+
+        var addressParams = new HashMap<String, Object>();
+        addressParams.put("country", customerCountry);
+
+        if (customerPostalCode != null && !customerPostalCode.isEmpty()) {
+            addressParams.put("postal_code", customerPostalCode);
+        }
+
+        if (customerState != null && !customerState.isEmpty()) {
+            addressParams.put("state", customerState);
+        }
+
+        if (customerCity != null && !customerCity.isEmpty()) {
+            addressParams.put("city", customerCity);
+        }
+
+        if (customerAddressLine1 != null && !customerAddressLine1.isEmpty()) {
+            addressParams.put("line1", customerAddressLine1);
+        }
+
+        // Build Stripe Tax Calculation params
+        var params = new HashMap<String, Object>();
+        params.put("currency", currency);
+        params.put("customer_details", new HashMap<String, Object>() {{
+            put("address", addressParams);
+            put("address_source", "shipping");
+        }});
+
+        params.put("line_items", stripeLineItems.stream()
+            .map(item -> {
+                var lineItem = new HashMap<String, Object>();
+                lineItem.put("amount", item.getAmount());
+                lineItem.put("reference", item.getReference());
+                lineItem.put("tax_code", item.getTaxCode());
+                return lineItem;
+            }).toList());
+
+        // Add shipping cost using the dedicated shipping_cost parameter
+        if (shippingCostInCents != null && shippingCostInCents > 0) {
+            params.put("shipping_cost", new HashMap<String, Object>() {{
+                put("amount", shippingCostInCents);
+            }});
+        }
+
+        Calculation calculation = Calculation.create(params);
+        log.info("Tax calculated successfully. Calculation ID: {}, Tax amount: {} cents", calculation.getId(), calculation.getTaxAmountExclusive());
+
+        return calculation;
+    }
+}

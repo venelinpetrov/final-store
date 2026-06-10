@@ -1,6 +1,7 @@
 package com.vpe.finalstore.order.dtos;
 
 import com.vpe.finalstore.order.enums.OrderStatusType;
+import com.vpe.finalstore.tax.dtos.TaxBreakdownDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,9 @@ public class OrderDto {
     private Integer addressId;
     private BigDecimal subtotal;
     private BigDecimal tax;
+    private TaxBreakdownDto taxBreakdown;
+    private String stripeTaxCalculationId;
+    private BigDecimal discountAmount;
     private BigDecimal shippingCost;
     private BigDecimal total;
     private Set<OrderItemDto> orderItems;

@@ -64,6 +64,9 @@ public class Invoice {
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
+    @Column(name = "tax_breakdown", columnDefinition = "JSON")
+    private String taxBreakdown;
+
     @OneToMany(mappedBy = "invoice", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<Payment> payments = new LinkedHashSet<>();
 }
