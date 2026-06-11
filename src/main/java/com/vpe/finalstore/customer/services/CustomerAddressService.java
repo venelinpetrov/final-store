@@ -40,9 +40,11 @@ public class CustomerAddressService {
         var address = new CustomerAddress();
         address.setCustomer(customer);
         address.setCountry(dto.getCountry());
+        address.setCountryCode(dto.getCountryCode());
         address.setState(dto.getState());
         address.setCity(dto.getCity());
         address.setStreet(dto.getStreet());
+        address.setPostalCode(dto.getPostalCode());
         address.setFloor(dto.getFloor());
         address.setApartmentNo(dto.getApartmentNo());
         address.setAddressType(addressType);
@@ -64,6 +66,9 @@ public class CustomerAddressService {
         if (dto.getCountry() != null) {
             address.setCountry(dto.getCountry());
         }
+        if (dto.getCountryCode() != null) {
+            address.setCountryCode(dto.getCountryCode());
+        }
         if (dto.getState() != null) {
             address.setState(dto.getState());
         }
@@ -72,6 +77,9 @@ public class CustomerAddressService {
         }
         if (dto.getStreet() != null) {
             address.setStreet(dto.getStreet());
+        }
+        if (dto.getPostalCode() != null) {
+            address.setPostalCode(dto.getPostalCode());
         }
         if (dto.getFloor() != null) {
             address.setFloor(dto.getFloor());

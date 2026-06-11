@@ -321,16 +321,40 @@ public class DatabaseSeederService {
             addressTypes = addressTypeRepository.findAll();
         }
 
+        String[][] countries = {
+            {"US", "United States"},
+            {"CA", "Canada"},
+            {"GB", "United Kingdom"},
+            {"DE", "Germany"},
+            {"FR", "France"},
+            {"ES", "Spain"},
+            {"IT", "Italy"},
+            {"AU", "Australia"},
+            {"JP", "Japan"},
+            {"CN", "China"},
+            {"BG", "Bulgaria"},
+            {"RO", "Romania"},
+            {"GR", "Greece"},
+            {"NL", "Netherlands"},
+            {"BE", "Belgium"}
+        };
+
         for (Customer customer : customers) {
             int addressCount = random.nextInt(3) + 1; // 1-3 addresses per customer
 
             for (int i = 0; i < addressCount; i++) {
                 CustomerAddress address = new CustomerAddress();
                 address.setCustomer(customer);
-                address.setCountry(faker.address().country());
+
+                // Pick a random country to ensure code and name are consistent
+                var country = countries[random.nextInt(countries.length)];
+                address.setCountryCode(country[0]);
+                address.setCountry(country[1]);
+
                 address.setState(faker.address().state());
                 address.setCity(faker.address().city());
                 address.setStreet(faker.address().streetAddress());
+                address.setPostalCode(faker.address().zipCode());
                 address.setFloor(String.valueOf(random.nextInt(20) + 1));
                 address.setApartmentNo(String.valueOf(random.nextInt(100) + 1));
                 address.setIsDefault(i == 0); // First address is default

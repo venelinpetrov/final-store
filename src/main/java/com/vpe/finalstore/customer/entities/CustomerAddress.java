@@ -27,6 +27,9 @@ public class CustomerAddress {
     @Column(name = "country")
     private String country;
 
+    @Column(name = "country_code", length = 2)
+    private String countryCode;
+
     @Column(name = "state")
     private String state;
 
@@ -37,6 +40,9 @@ public class CustomerAddress {
     @NotNull
     @Column(name = "street")
     private String street;
+
+    @Column(name = "postal_code", length = 20)
+    private String postalCode;
 
     @Column(name = "floor")
     private String floor;

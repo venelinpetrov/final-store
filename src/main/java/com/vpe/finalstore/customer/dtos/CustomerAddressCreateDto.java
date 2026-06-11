@@ -11,6 +11,9 @@ public class CustomerAddressCreateDto {
     @Size(max = 100, message = "Country must be less than 100 characters")
     private String country;
 
+    @Size(max = 2, message = "Country code must be 2 characters")
+    private String countryCode;
+
     @Size(max = 100, message = "State must be less than 100 characters")
     private String state;
 
@@ -21,6 +24,9 @@ public class CustomerAddressCreateDto {
     @NotBlank(message = "Street is required")
     @Size(max = 100, message = "Street must be less than 100 characters")
     private String street;
+
+    @Size(max = 20, message = "Postal code must be less than 20 characters")
+    private String postalCode;
 
     @Size(max = 10, message = "Floor must be less than 10 characters")
     private String floor;

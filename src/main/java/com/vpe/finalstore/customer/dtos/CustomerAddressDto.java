@@ -7,9 +7,11 @@ public class CustomerAddressDto {
     private Integer addressId;
     private Integer customerId;
     private String country;
+    private String countryCode;
     private String state;
     private String city;
     private String street;
+    private String postalCode;
     private String floor;
     private String apartmentNo;
     private Integer addressTypeId;

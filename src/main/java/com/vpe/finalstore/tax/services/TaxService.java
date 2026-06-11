@@ -57,8 +57,8 @@ public class TaxService {
                 currency,
                 lineItems,
                 shippingCostInCents,
-                address.getCountry(),
-                "1000", // TODO remove hardcoded value and implement postalCode in CustomerAddress
+                address.getCountryCode(), // By "country" Stripe means "country code" (e.g., "US", "CA")
+                address.getPostalCode(),
                 address.getState(),
                 address.getCity(),
                 address.getStreet()
