@@ -36,4 +36,7 @@ public class ProductCreateDto {
 
     @NotNull
     private Set<ProductImageCreateDto> images;
+
+    @NotBlank
+    private String taxCode;
 }

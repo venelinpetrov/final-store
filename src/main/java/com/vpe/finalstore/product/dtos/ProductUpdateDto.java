@@ -29,4 +29,7 @@ public class ProductUpdateDto {
 
     @NotNull
     private Boolean isArchived;
+
+    @NotBlank
+    private String taxCode;
 }

@@ -37,6 +37,7 @@ public class ProductService {
             .categories(categories)
             .tags(tags)
             .isArchived(req.getIsArchived())
+            .taxCode(req.getTaxCode())
             .build();
 
         productRepository.save(product);
@@ -73,6 +74,7 @@ public class ProductService {
         product.setName(req.getName());
         product.setDescription(req.getDescription());
         product.setIsArchived(req.getIsArchived());
+        product.setTaxCode(req.getTaxCode());
 
         // Brand
         var brandId = req.getBrandId();
