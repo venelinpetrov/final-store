@@ -19,4 +19,5 @@ public class ProductDto {
     private Integer brandId;
     private Set<TagSummaryDto> tags;
     private Set<ProductImageDto> images;
+    private String taxCode;
 }
