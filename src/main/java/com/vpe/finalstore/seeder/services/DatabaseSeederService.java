@@ -445,6 +445,15 @@ public class DatabaseSeederService {
         List<Brand> brands = brandRepository.findAll();
         List<ProductCategory> categories = categoryRepository.findAll();
         List<Tag> tags = tagRepository.findAll();
+        String[] taxCodes = {
+            "txcd_99999999",
+            "txcd_34020027",
+            "txcd_30011000",
+            "txcd_30031404",
+            "txcd_30060018",
+            "txcd_30060016",
+            "txcd_30011201"
+        };
 
         if (brands.isEmpty() || categories.isEmpty()) {
             log.warn("Cannot seed products: brands or categories are empty");
@@ -458,6 +467,7 @@ public class DatabaseSeederService {
                 .description(faker.lorem().sentence(15))
                 .brand(brands.get(random.nextInt(brands.size())))
                 .isArchived(false)
+                .taxCode(taxCodes[random.nextInt(taxCodes.length)])
                 .build();
 
             // Add 1-3 random categories
