@@ -3,6 +3,7 @@ package com.vpe.finalstore.users.services;
 import com.vpe.finalstore.customer.entities.Customer;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.users.dtos.UserCreateDto;
+import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.entities.User;
 import com.vpe.finalstore.users.enums.RoleEnum;
 import com.vpe.finalstore.users.exceptions.RoleNotFoundException;
@@ -31,7 +32,7 @@ public class UserService implements UserDetailsService {
     private final CustomerRepository customerRepository;
 
     @Transactional
-    public User createUser(UserCreateDto data) {
+    public UserDto createUser(UserCreateDto data) {
         var userEntity = userMapper.toEntity(data);
 
         userEntity.setPasswordHash(passwordEncoder.encode(data.getPassword()));
@@ -49,7 +50,7 @@ public class UserService implements UserDetailsService {
 
         userEntity.setCustomer(customer);
 
-        return userEntity;
+        return userMapper.toDto(userEntity);
     }
 
     @Override

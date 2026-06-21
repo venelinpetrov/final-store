@@ -33,9 +33,8 @@ class UserController {
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto data, UriComponentsBuilder uriBuilder) {
         // Note that we don't need to check for user existence beforehand as this is handled
         // by the unique constraint on user.email column
-        var user = userService.createUser(data);
+        var userDto = userService.createUser(data);
 
-        var userDto = userMapper.toDto(user);
         var uri = uriBuilder
             .path("/api/users/{id}")
             .buildAndExpand(userDto.getUserId())
