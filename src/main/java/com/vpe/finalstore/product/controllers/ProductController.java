@@ -83,11 +83,10 @@ public class ProductController {
     )
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateDto req) {
-        var product = productService.createProduct(req);
-        var dto = productMapper.toDto(product);
+        var dto = productService.createProduct(req);
 
         return ResponseEntity
-            .created(URI.create("/api/products/" + product.getProductId()))
+            .created(URI.create("/api/products/" + dto.getProductId()))
             .body(dto);
     }
 
@@ -100,11 +99,7 @@ public class ProductController {
             return ResponseEntity.badRequest().build();
         }
 
-        Page<Product> productPage = productService.getProductsByAnyTagNames(tagNames, pageable);
-
-        Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
-
-        return ResponseEntity.ok(productDtoPage);
+        return ResponseEntity.ok(productService.getProductsByAnyTagNames(tagNames, pageable));
     }
 
     @Operation(
@@ -116,11 +111,7 @@ public class ProductController {
             return ResponseEntity.badRequest().build();
         }
 
-        Page<Product> productPage = productService.getProductsByAllTagNames(tagNames, pageable);
-
-        Page<ProductDto> productDtoPage = productPage.map(productMapper::toDto);
-
-        return ResponseEntity.ok(productDtoPage);
+        return ResponseEntity.ok(productService.getProductsByAllTagNames(tagNames, pageable));
     }
 
     @Operation(
@@ -131,9 +122,7 @@ public class ProductController {
         @PathVariable Integer productId,
         @Valid @RequestBody ProductUpdateDto updatedProduct
     ) {
-        var product = productService.updateProduct(updatedProduct, productId);
-
-        return ResponseEntity.ok(productMapper.toDto(product));
+        return ResponseEntity.ok(productService.updateProduct(updatedProduct, productId));
     }
 
     @Operation(

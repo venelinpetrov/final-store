@@ -2,8 +2,10 @@ package com.vpe.finalstore.product.services;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCreateDto;
+import com.vpe.finalstore.product.dtos.ProductDto;
 import com.vpe.finalstore.product.dtos.ProductUpdateDto;
 import com.vpe.finalstore.product.entities.*;
+import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.repositories.*;
 import com.vpe.finalstore.product.repositories.TagRepository;
 import jakarta.transaction.Transactional;
@@ -24,9 +26,10 @@ public class ProductService {
     private final ProductImageAssignmentRepository imageAssignmentRepository;
     private final ProductImageRepository imageRepository;
     private final ProductVariantService variantService;
+    private final ProductMapper productMapper;
 
     @Transactional
-    public Product createProduct(ProductCreateDto req) {
+    public ProductDto createProduct(ProductCreateDto req) {
         var brand = brandRepository.findById(req.getBrandId()).orElseThrow(() -> new NotFoundException("Brand does not exist"));
         var categories = new HashSet<>(categoryRepository.findAllById(req.getCategoryIds()));
         var tags = Set.copyOf(tagRepository.findAllById(req.getTags()));
@@ -62,11 +65,11 @@ public class ProductService {
             }
         }
 
-        return product;
+        return productMapper.toDto(product);
     }
 
     @Transactional
-    public Product updateProduct(ProductUpdateDto req, Integer productId) {
+    public ProductDto updateProduct(ProductUpdateDto req, Integer productId) {
         var product = productRepository.findById(productId)
             .orElseThrow(() -> new NotFoundException("Product not found with id " + productId));
 
@@ -98,15 +101,17 @@ public class ProductService {
             product.setTags(tags);
         }
 
-        return productRepository.save(product);
+        var updatedProduct = productRepository.save(product);
+        return productMapper.toDto(updatedProduct);
     }
 
-    public Page<Product> getProductsByAnyTagNames(Set<String> tagNames, Pageable pageable) {
+    public Page<ProductDto> getProductsByAnyTagNames(Set<String> tagNames, Pageable pageable) {
         Set<Tag> tags = tagRepository.findByNameIn(tagNames);
-        return productRepository.getByAnyTagsIn(tags, pageable);
+        return productRepository.getByAnyTagsIn(tags, pageable)
+            .map(productMapper::toDto);
     }
 
-    public Page<Product> getProductsByAllTagNames(Set<String> tagNames, Pageable pageable) {
+    public Page<ProductDto> getProductsByAllTagNames(Set<String> tagNames, Pageable pageable) {
         Set<Tag> tags = tagRepository.findByNameIn(tagNames);
 
         long tagCount = tags.size();
@@ -115,8 +120,8 @@ public class ProductService {
             return Page.empty(pageable);
         }
 
-        return productRepository.getByAllTagsIn(tags, tagCount, pageable);
-
+        return productRepository.getByAllTagsIn(tags, tagCount, pageable)
+            .map(productMapper::toDto);
     }
 
     @Transactional

@@ -3,8 +3,10 @@ package com.vpe.finalstore.product.services;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCategoryCreateDto;
+import com.vpe.finalstore.product.dtos.ProductCategoryDto;
 import com.vpe.finalstore.product.dtos.ProductCategoryUpdateDto;
 import com.vpe.finalstore.product.entities.ProductCategory;
+import com.vpe.finalstore.product.mappers.ProductCategoryMapper;
 import com.vpe.finalstore.product.repositories.ProductCategoryRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,8 +15,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class ProductCategoryService {
     private final ProductCategoryRepository productCategoryRepository;
+    private final ProductCategoryMapper productCategoryMapper;
 
-    public ProductCategory createCategory(ProductCategoryCreateDto dto) {
+    public ProductCategoryDto createCategory(ProductCategoryCreateDto dto) {
         ProductCategory parentCategory = null;
         if (dto.getParentCategoryId() != null) {
             parentCategory = productCategoryRepository.findById(dto.getParentCategoryId())
@@ -27,7 +30,8 @@ public class ProductCategoryService {
 
         validateParentCategory(category, parentCategory);
 
-        return productCategoryRepository.save(category);
+        var savedCategory = productCategoryRepository.save(category);
+        return productCategoryMapper.toDto(savedCategory);
     }
 
     public void updateCategory(Integer categoryId, ProductCategoryUpdateDto dto) {

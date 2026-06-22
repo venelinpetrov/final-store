@@ -41,8 +41,8 @@ public class ProductCategoryController {
         var category = categoryService.createCategory(dto);
 
         return ResponseEntity
-            .created(URI.create("/api/categories/" + category.getCategoryId()))
-            .body(productCategoryMapper.toDto(category));
+            .created(URI.create("/api/categories/" + category.categoryId()))
+            .body(category);
     }
 
     @Operation(
