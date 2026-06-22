@@ -1,8 +1,6 @@
 package com.vpe.finalstore.inventory.controllers;
 
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
-import com.vpe.finalstore.inventory.mappers.InventoryMovementMapper;
-import com.vpe.finalstore.inventory.repositories.InventoryMovementRepository;
 import com.vpe.finalstore.inventory.services.InventoryMovementService;
 import com.vpe.finalstore.product.dtos.InventoryMovementDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,8 +20,6 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/inventory-movements")
 class InventoryMovementController {
     private final InventoryMovementService inventoryMovementService;
-    private final InventoryMovementRepository inventoryMovementRepository;
-    private final InventoryMovementMapper inventoryMovementMapper;
 
     @Operation(
         summary = "Get inventory movements with optional date range filter"
@@ -41,8 +37,7 @@ class InventoryMovementController {
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
         Pageable pageable
     ) {
-        var movements = inventoryMovementService.getMovements(from, to, pageable);
-        return movements.map(inventoryMovementMapper::toDto);
+        return inventoryMovementService.getMovements(from, to, pageable);
     }
 
     @Operation(

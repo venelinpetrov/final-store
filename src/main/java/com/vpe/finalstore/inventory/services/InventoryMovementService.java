@@ -5,8 +5,10 @@ import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
 import com.vpe.finalstore.inventory.entities.InventoryLevel;
 import com.vpe.finalstore.inventory.entities.InventoryMovement;
 import com.vpe.finalstore.inventory.enums.MovementType;
+import com.vpe.finalstore.inventory.mappers.InventoryMovementMapper;
 import com.vpe.finalstore.inventory.repositories.InventoryLevelRepository;
 import com.vpe.finalstore.inventory.repositories.InventoryMovementRepository;
+import com.vpe.finalstore.product.dtos.InventoryMovementDto;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import jakarta.transaction.Transactional;
@@ -23,17 +25,20 @@ public class InventoryMovementService {
     private final ProductVariantRepository variantRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
     private final InventoryLevelRepository inventoryLevelRepository;
+    private final InventoryMovementMapper inventoryMovementMapper;
 
-    public Page<InventoryMovement> getMovements(LocalDateTime from, LocalDateTime to, Pageable pageable) {
+    public Page<InventoryMovementDto> getMovements(LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        Page<InventoryMovement> movements;
         if (from != null && to != null) {
-            return inventoryMovementRepository.findByCreatedAtBetween(from, to, pageable);
+            movements = inventoryMovementRepository.findByCreatedAtBetween(from, to, pageable);
         } else if (from != null) {
-            return inventoryMovementRepository.findByCreatedAtAfter(from, pageable);
+            movements = inventoryMovementRepository.findByCreatedAtAfter(from, pageable);
         } else if (to != null) {
-            return inventoryMovementRepository.findByCreatedAtBefore(to, pageable);
+            movements = inventoryMovementRepository.findByCreatedAtBefore(to, pageable);
         } else {
-            return inventoryMovementRepository.findAll(pageable);
+            movements = inventoryMovementRepository.findAll(pageable);
         }
+        return movements.map(inventoryMovementMapper::toDto);
     }
 
     @Transactional

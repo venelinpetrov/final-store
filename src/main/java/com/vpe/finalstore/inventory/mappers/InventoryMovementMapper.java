@@ -5,8 +5,12 @@ import com.vpe.finalstore.product.dtos.InventoryMovementDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface InventoryMovementMapper {
     @Mapping(source = "variant.variantId", target = "variantId")
     InventoryMovementDto toDto(InventoryMovement movement);
+
+    List<InventoryMovementDto> toDto(List<InventoryMovement> movements);
 }

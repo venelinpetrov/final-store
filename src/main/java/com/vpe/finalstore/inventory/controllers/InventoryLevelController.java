@@ -34,10 +34,9 @@ public class InventoryLevelController {
         @RequestParam(required = false) Integer categoryId
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        var levels = inventoryLevelService.searchInventoryLevels(
+        return inventoryLevelService.searchInventoryLevels(
             sku, productName, categoryId, gte, lte, pageable
         );
-        return levels.map(inventoryLevelMapper::toDto);
     }
 
     @Operation(
