@@ -3,7 +3,6 @@ package com.vpe.finalstore.shipment.controllers;
 import com.vpe.finalstore.shipment.dtos.CarrierCreateDto;
 import com.vpe.finalstore.shipment.dtos.CarrierDto;
 import com.vpe.finalstore.shipment.dtos.CarrierUpdateDto;
-import com.vpe.finalstore.shipment.mappers.CarrierMapper;
 import com.vpe.finalstore.shipment.services.CarrierService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -24,16 +23,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/carriers")
 public class CarrierController {
     private final CarrierService carrierService;
-    private final CarrierMapper carrierMapper;
 
     @Operation(
         summary = "Get all carriers"
     )
     @GetMapping
     public ResponseEntity<List<CarrierDto>> getAllCarriers() {
-        var carriers = carrierService.findAll();
-
-        return ResponseEntity.ok(carrierMapper.toDto(carriers));
+        return ResponseEntity.ok(carrierService.findAll());
     }
 
     @Operation(
@@ -41,9 +37,7 @@ public class CarrierController {
     )
     @PostMapping
     public ResponseEntity<CarrierDto> createCarrier(@RequestBody CarrierCreateDto dto) {
-        var carrier = carrierService.create(dto);
-
-        return ResponseEntity.ok(carrierMapper.toDto(carrier));
+        return ResponseEntity.ok(carrierService.create(dto));
     }
 
     @Operation(
@@ -51,9 +45,7 @@ public class CarrierController {
     )
     @PutMapping("/{carrierId}")
     public ResponseEntity<CarrierDto> updateCarrier(@PathVariable Integer carrierId, @RequestBody CarrierUpdateDto dto) {
-        var carrier = carrierService.update(carrierId, dto);
-
-        return ResponseEntity.ok(carrierMapper.toDto(carrier));
+        return ResponseEntity.ok(carrierService.update(carrierId, dto));
     }
 
 }

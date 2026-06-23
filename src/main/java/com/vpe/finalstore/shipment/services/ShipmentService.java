@@ -2,9 +2,11 @@ package com.vpe.finalstore.shipment.services;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.order.entities.Order;
+import com.vpe.finalstore.shipment.dtos.ShipmentDto;
 import com.vpe.finalstore.shipment.entities.Shipment;
 import com.vpe.finalstore.shipment.entities.ShipmentItem;
 import com.vpe.finalstore.shipment.enums.ShipmentStatusType;
+import com.vpe.finalstore.shipment.mappers.ShipmentMapper;
 import com.vpe.finalstore.shipment.repositories.CarrierRepository;
 import com.vpe.finalstore.shipment.repositories.ShipmentRepository;
 import com.vpe.finalstore.shipment.repositories.ShipmentStatusRepository;
@@ -27,6 +29,7 @@ public class ShipmentService {
     private final ShipmentTrackingEventService shipmentTrackingEventService;
     private final ShipmentStatusRepository shipmentStatusRepository;
     private final ShipmentTrackingEventRepository shipmentTrackingEventRepository;
+    private final ShipmentMapper shipmentMapper;
 
     public ShipmentStatusType getShipmentStatus(Integer shipmentId) {
         return shipmentTrackingEventRepository.getLatestEvent(shipmentId)
@@ -34,13 +37,24 @@ public class ShipmentService {
             .orElseThrow(() -> new NotFoundException("No tracking events found for shipment"));
     }
 
-    public Shipment getShipmentDetail(Integer shipmentId) {
+    public ShipmentDto getShipmentDetail(Integer shipmentId) {
+        var shipment = shipmentRepository.findShipmentWithDetails(shipmentId)
+            .orElseThrow(() -> new NotFoundException("Shipment not found"));
+
+        var dto = shipmentMapper.toDto(shipment);
+        var status = getShipmentStatus(shipmentId);
+        dto.setStatus(status);
+
+        return dto;
+    }
+
+    public Shipment getShipmentEntity(Integer shipmentId) {
         return shipmentRepository.findShipmentWithDetails(shipmentId)
             .orElseThrow(() -> new NotFoundException("Shipment not found"));
     }
 
     @Transactional
-    public Shipment createShipment(Integer carrierId, Order order) {
+    public ShipmentDto createShipment(Integer carrierId, Order order) {
         var shipment = new Shipment();
         var trackingNumber = generateTrackingNumber();
 
@@ -73,8 +87,10 @@ public class ShipmentService {
 
         shipmentTrackingEventService.createEvent(shipment, pendingStatus);
 
-        return shipment;
+        var dto = shipmentMapper.toDto(shipment);
+        dto.setStatus(ShipmentStatusType.PENDING);
 
+        return dto;
     }
 
     private String generateTrackingNumber() {

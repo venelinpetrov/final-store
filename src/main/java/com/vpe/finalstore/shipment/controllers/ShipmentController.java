@@ -3,7 +3,6 @@ package com.vpe.finalstore.shipment.controllers;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.shipment.dtos.ShipmentDto;
 import com.vpe.finalstore.shipment.dtos.ShipmentTrackingEventDto;
-import com.vpe.finalstore.shipment.mappers.ShipmentMapper;
 import com.vpe.finalstore.shipment.mappers.ShipmentTrackingEventMapper;
 import com.vpe.finalstore.shipment.repositories.ShipmentStatusRepository;
 import com.vpe.finalstore.shipment.services.ShipmentService;
@@ -24,7 +23,6 @@ class ShipmentController {
     private final ShipmentTrackingEventService trackingEventService;
     private final ShipmentTrackingEventMapper trackingEventMapper;
     private final ShipmentService shipmentService;
-    private final ShipmentMapper shipmentMapper;
     private final ShipmentStatusRepository shipmentStatusRepository;
 
     @Operation(
@@ -45,14 +43,7 @@ class ShipmentController {
     @PreAuthorize("@shipmentSecurity.isOwner(#shipmentId, authentication)")
     @GetMapping("/{shipmentId}")
     public ResponseEntity<ShipmentDto> getShipment(@PathVariable Integer shipmentId) {
-        var shipment = shipmentService.getShipmentDetail(shipmentId);
-        var status = shipmentService.getShipmentStatus(shipmentId);
-
-        var dto = shipmentMapper.toDto(shipment);
-
-        dto.setStatus(status);
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(shipmentService.getShipmentDetail(shipmentId));
     }
 
     @Operation(
@@ -64,7 +55,7 @@ class ShipmentController {
         @RequestParam Integer statusId,
         UriComponentsBuilder uriBuilder
     ) {
-        var shipment = shipmentService.getShipmentDetail(shipmentId);
+        var shipment = shipmentService.getShipmentEntity(shipmentId);
         var status = shipmentStatusRepository.findByStatusId(statusId)
             .orElseThrow(() -> new NotFoundException("Shipment status not found"));
 
