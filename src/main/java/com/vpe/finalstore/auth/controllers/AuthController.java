@@ -49,7 +49,7 @@ public class AuthController {
         var cookie = new Cookie("refreshToken", refreshToken.toString());
         cookie.setHttpOnly(true);
         cookie.setPath("/api/auth/refresh");
-        cookie.setSecure(false);
+        cookie.setSecure(false); // TODO set to true when done
         cookie.setAttribute("SameSite", "None");
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         response.addCookie(cookie);
@@ -61,7 +61,7 @@ public class AuthController {
         summary = "Refresh access token using refresh token"
     )
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(@CookieValue(value = "refreshToken") String refreshToken) {
+    public ResponseEntity<JwtResponse> refresh(@CookieValue String refreshToken) {
         var jwt = jwtService.parseToken(refreshToken);
 
         if (jwt == null || jwt.isExpired()) {
@@ -70,6 +70,8 @@ public class AuthController {
 
         var user = userRepository.findById(jwt.getUserId()).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
+
+        // TODO refresh the refresh token
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
