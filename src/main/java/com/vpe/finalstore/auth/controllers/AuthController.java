@@ -50,7 +50,7 @@ public class AuthController {
         cookie.setHttpOnly(true);
         cookie.setPath("/api/auth/refresh");
         cookie.setSecure(false); // TODO set to true when done
-        cookie.setAttribute("SameSite", "None");
+        cookie.setAttribute("SameSite", "Lax"); // TODO set to None when done
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         response.addCookie(cookie);
 
@@ -61,7 +61,7 @@ public class AuthController {
         summary = "Refresh access token using refresh token"
     )
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(@CookieValue(required = false) String refreshToken) {
+    public ResponseEntity<JwtResponse> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
