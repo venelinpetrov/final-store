@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -65,6 +66,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDto);
     }
 
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<Void> handleMissingCookie() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 
     // Catches all other unexpected exceptions
     @ExceptionHandler(Exception.class)

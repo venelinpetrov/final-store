@@ -42,8 +42,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder
+        UserDetailsService userDetailsService,
+        PasswordEncoder passwordEncoder
     ) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
@@ -69,9 +69,9 @@ public class SecurityConfig {
                 .exceptionHandling(c -> {
                     c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
                     c.accessDeniedHandler(((
-                            request,
-                            response,
-                            accessDeniedException) -> response.setStatus(HttpStatus.FORBIDDEN.value()))
+                        request,
+                        response,
+                        accessDeniedException) -> response.setStatus(HttpStatus.FORBIDDEN.value()))
                     );
                 });
 

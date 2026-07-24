@@ -61,7 +61,11 @@ public class AuthController {
         summary = "Refresh access token using refresh token"
     )
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(@CookieValue String refreshToken) {
+    public ResponseEntity<JwtResponse> refresh(@CookieValue(required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         var jwt = jwtService.parseToken(refreshToken);
 
         if (jwt == null || jwt.isExpired()) {
