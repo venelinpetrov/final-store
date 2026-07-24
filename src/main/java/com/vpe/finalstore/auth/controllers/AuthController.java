@@ -1,5 +1,6 @@
 package com.vpe.finalstore.auth.controllers;
 
+import com.vpe.finalstore.auth.config.CookieConfig;
 import com.vpe.finalstore.auth.config.JwtConfig;
 import com.vpe.finalstore.auth.dtos.ChangePasswordRequest;
 import com.vpe.finalstore.auth.dtos.JwtResponse;
@@ -33,6 +34,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtConfig jwtConfig;
+    private final CookieConfig cookieConfig;
 
     @Operation(
         summary = "Login with email and password"
@@ -47,11 +49,13 @@ public class AuthController {
         var refreshToken = jwtService.generateRefreshToken(user);
 
         var cookie = new Cookie("refreshToken", refreshToken.toString());
+
         cookie.setHttpOnly(true);
         cookie.setPath("/api/auth/refresh");
-        cookie.setSecure(false); // TODO set to true when done
-        cookie.setAttribute("SameSite", "Lax"); // TODO set to None when done
+        cookie.setSecure(cookieConfig.isSecure());
+        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
+
         response.addCookie(cookie);
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
