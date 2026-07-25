@@ -23,6 +23,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @AllArgsConstructor
 @RequestMapping("/api/auth")
@@ -60,6 +63,20 @@ public class AuthController {
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        var cookie = new Cookie("refreshToken", "");
+
+        cookie.setPath("/api/auth/refresh");
+        cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
+
+        response.addCookie(cookie);
+
+        return ResponseEntity.noContent().build();
+    }
+
 
     @Operation(
         summary = "Refresh access token using refresh token"
