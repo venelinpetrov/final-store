@@ -3,7 +3,6 @@ package com.vpe.finalstore.customer.services;
 import com.vpe.finalstore.customer.dtos.CustomerAddressCreateDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressUpdateDto;
-import com.vpe.finalstore.customer.entities.CustomerAddress;
 import com.vpe.finalstore.customer.mappers.CustomerAddressMapper;
 import com.vpe.finalstore.customer.repositories.AddressTypeRepository;
 import com.vpe.finalstore.customer.repositories.CustomerAddressRepository;
@@ -42,16 +41,8 @@ public class CustomerAddressService {
         var addressType = addressTypeRepository.findById(dto.getAddressTypeId())
             .orElseThrow(() -> new NotFoundException("Address type not found"));
 
-        var address = new CustomerAddress();
+        var address = addressMapper.toEntity(dto);
         address.setCustomer(customer);
-        address.setCountry(dto.getCountry());
-        address.setCountryCode(dto.getCountryCode());
-        address.setState(dto.getState());
-        address.setCity(dto.getCity());
-        address.setStreet(dto.getStreet());
-        address.setPostalCode(dto.getPostalCode());
-        address.setFloor(dto.getFloor());
-        address.setApartmentNo(dto.getApartmentNo());
         address.setAddressType(addressType);
         address.setIsDefault(dto.getIsDefault() != null ? dto.getIsDefault() : false);
 

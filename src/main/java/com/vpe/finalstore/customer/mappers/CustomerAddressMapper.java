@@ -1,5 +1,6 @@
 package com.vpe.finalstore.customer.mappers;
 
+import com.vpe.finalstore.customer.dtos.CustomerAddressCreateDto;
 import com.vpe.finalstore.customer.dtos.CustomerAddressDto;
 import com.vpe.finalstore.customer.entities.CustomerAddress;
 import org.mapstruct.Mapper;
@@ -15,5 +16,11 @@ public interface CustomerAddressMapper {
     CustomerAddressDto toDto(CustomerAddress address);
 
     List<CustomerAddressDto> toDto(List<CustomerAddress> addresses);
+
+    @Mapping(target = "addressId", ignore = true)
+    @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "addressType", ignore = true)
+    @Mapping(target = "isDefault", ignore = true)
+    CustomerAddress toEntity(CustomerAddressCreateDto dto);
 }
 
