@@ -23,19 +23,19 @@ import java.util.Map;
 @Service
 public class StripeService {
     public PaymentIntent createPaymentIntent(
-            BigDecimal amount,
-            String currency,
-            String customerId,
-            String paymentMethodId,
-            Map<String, String> metadata
+        BigDecimal amount,
+        String currency,
+        String customerId,
+        String paymentMethodId,
+        Map<String, String> metadata
     ) {
         try {
             // Convert amount to cents (Stripe uses smallest currency unit)
             long amountInCents = amount.multiply(new BigDecimal("100")).longValue();
 
             var paramsBuilder = PaymentIntentCreateParams.builder()
-                    .setAmount(amountInCents)
-                    .setCurrency(currency);
+                .setAmount(amountInCents)
+                .setCurrency(currency);
 
             if (customerId != null && !customerId.isEmpty()) {
                 paramsBuilder.setCustomer(customerId);
@@ -51,14 +51,15 @@ public class StripeService {
 
             // Automatic payment methods (card only, no redirects for testing without frontend)
             paramsBuilder.setAutomaticPaymentMethods(
-                    PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                            .setEnabled(true)
-                            .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
-                            .build()
+                PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                    .setEnabled(true)
+                    .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                    .build()
             );
 
             PaymentIntent paymentIntent = PaymentIntent.create(paramsBuilder.build());
             log.info("Created PaymentIntent: {}", paymentIntent.getId());
+
             return paymentIntent;
 
         } catch (StripeException e) {
@@ -72,6 +73,7 @@ public class StripeService {
             PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
             PaymentIntent confirmedIntent = paymentIntent.confirm();
             log.info("Confirmed PaymentIntent: {}", confirmedIntent.getId());
+
             return confirmedIntent;
 
         } catch (StripeException e) {
@@ -92,8 +94,8 @@ public class StripeService {
     public Customer createCustomer(String email, String name, Map<String, String> metadata) {
         try {
             var paramsBuilder = CustomerCreateParams.builder()
-                    .setEmail(email)
-                    .setName(name);
+                .setEmail(email)
+                .setName(name);
 
             if (metadata != null && !metadata.isEmpty()) {
                 paramsBuilder.putAllMetadata(metadata);
@@ -123,16 +125,16 @@ public class StripeService {
             PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId);
 
             PaymentMethodAttachParams params = PaymentMethodAttachParams.builder()
-                    .setCustomer(customerId)
-                    .build();
+                .setCustomer(customerId)
+                .build();
 
             PaymentMethod attachedMethod = paymentMethod.attach(params);
             log.info("Attached PaymentMethod {} to Customer {}", paymentMethodId, customerId);
-            return attachedMethod;
 
+            return attachedMethod;
         } catch (StripeException e) {
             log.error("Failed to attach PaymentMethod {} to Customer {}: {}",
-                    paymentMethodId, customerId, e.getMessage(), e);
+                paymentMethodId, customerId, e.getMessage(), e);
             throw new BadRequestException("Failed to attach payment method: " + e.getMessage());
         }
     }

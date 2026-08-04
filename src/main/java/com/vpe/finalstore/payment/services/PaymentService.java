@@ -62,10 +62,10 @@ public class PaymentService {
      */
     @Transactional
     public PaymentIntentResponseDto createPaymentIntentForCart(
-            @NonNull UUID cartId,
-            @NonNull Integer customerId,
-            @NonNull Integer addressId,
-            @NonNull Integer carrierId
+        @NonNull UUID cartId,
+        @NonNull Integer customerId,
+        @NonNull Integer addressId,
+        @NonNull Integer carrierId
     ) {
         // 1. Create order from cart (status: PENDING)
         Order order = orderService.createOrderFromCart(cartId, customerId, addressId, carrierId);
@@ -81,7 +81,7 @@ public class PaymentService {
 
         // 4. Create PaymentIntent with payment metadata
         var customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException("Customer not found"));
+            .orElseThrow(() -> new NotFoundException("Customer not found"));
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("orderId", order.getOrderId().toString());
@@ -91,11 +91,11 @@ public class PaymentService {
         metadata.put("customerEmail", customer.getUser() != null ? customer.getUser().getEmail() : "");
 
         PaymentIntent paymentIntent = stripeService.createPaymentIntent(
-                order.getTotal(),
-                paymentConfig.getCurrency(),
-                null,  // Stripe customer ID (we'll add this later when implementing saved payment methods)
-                null,  // Payment method ID (customer will provide via frontend)
-                metadata
+            order.getTotal(),
+            paymentConfig.getCurrency(),
+            null,  // Stripe customer ID (we'll add this later when implementing saved payment methods)
+            null,  // Payment method ID (customer will provide via frontend)
+            metadata
         );
 
         // 5. Link PaymentIntent to payment record
@@ -103,13 +103,13 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         log.info("Created PaymentIntent {} for payment {} with amount {} {}",
-                paymentIntent.getId(), payment.getPaymentId(), order.getTotal(), paymentConfig.getCurrency());
+            paymentIntent.getId(), payment.getPaymentId(), order.getTotal(), paymentConfig.getCurrency());
 
         return new PaymentIntentResponseDto(
-                paymentIntent.getClientSecret(),
-                paymentIntent.getId(),
-                order.getTotal(),
-                paymentConfig.getCurrency()
+            paymentIntent.getClientSecret(),
+            paymentIntent.getId(),
+            order.getTotal(),
+            paymentConfig.getCurrency()
         );
     }
 
@@ -127,7 +127,7 @@ public class PaymentService {
 
     public Payment getPaymentById(Integer paymentId) {
         return paymentRepository.findPaymentWithDetails(paymentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
+            .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
     public String verifyPaymentStatus(String paymentIntentId) {
@@ -211,7 +211,7 @@ public class PaymentService {
 
         // Get payment record
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
+            .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
 
         // Check if already processed (idempotency)
         if (payment.getStatus().getName() == PaymentStatusType.SUCCEEDED) {
@@ -222,7 +222,7 @@ public class PaymentService {
         PaymentIntent paymentIntent = stripeService.retrievePaymentIntent(paymentIntentId);
 
         var succeededStatus = paymentStatusRepository.findByName(PaymentStatusType.SUCCEEDED)
-                .orElseThrow(() -> new NotFoundException("Payment status SUCCEEDED not found"));
+            .orElseThrow(() -> new NotFoundException("Payment status SUCCEEDED not found"));
         payment.setStatus(succeededStatus);
 
         payment.setStripeChargeId(paymentIntent.getLatestCharge());
@@ -241,19 +241,19 @@ public class PaymentService {
                 var customer = payment.getInvoice().getCustomer();
 
                 var existingPaymentMethod = customerPaymentMethodRepository
-                        .findByStripeMethodId(stripePaymentMethod.getId());
+                    .findByStripeMethodId(stripePaymentMethod.getId());
 
                 if (existingPaymentMethod.isEmpty()) {
                     var customerPaymentMethod = saveCustomerPaymentMethod(
-                            customer.getCustomerId(),
-                            stripePaymentMethod
+                        customer.getCustomerId(),
+                        stripePaymentMethod
                     );
                     payment.setCustomerPaymentMethod(customerPaymentMethod);
 
                     log.info("Saved new payment method: {} ending in {} for customer {}",
-                            customerPaymentMethod.getCardBrand(),
-                            customerPaymentMethod.getLast4(),
-                            customer.getCustomerId());
+                        customerPaymentMethod.getCardBrand(),
+                        customerPaymentMethod.getLast4(),
+                        customer.getCustomerId());
                 }
 
                 // Map Stripe payment method type to our PaymentMethod entity (for reporting)
@@ -277,10 +277,10 @@ public class PaymentService {
 
             } catch (JsonProcessingException e) {
                 log.error("Failed to serialize payment metadata for PaymentIntent {}: {}",
-                        paymentIntentId, e.getMessage());
+                    paymentIntentId, e.getMessage());
             } catch (Exception e) {
                 log.error("Failed to save payment method for PaymentIntent {}: {}",
-                        paymentIntentId, e.getMessage());
+                    paymentIntentId, e.getMessage());
             }
         }
 
