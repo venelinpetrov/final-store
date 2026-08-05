@@ -8,6 +8,7 @@ A comprehensive Java Spring Boot e-commerce store API.
 
 - [Roadmap](https://github.com/users/venelinpetrov/projects/2/views/1)
 - [Database design](https://github.com/venelinpetrov/db-my-store)
+- [Frontend app](https://github.com/venelinpetrov/final-store-fe)
 
 ## Documentation
 
