@@ -4,6 +4,8 @@ import com.vpe.finalstore.product.dtos.*;
 import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductCategory;
 import com.vpe.finalstore.product.entities.ProductImageAssignment;
+import com.vpe.finalstore.product.entities.ProductVariantImageAssignment;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -19,6 +21,11 @@ public interface ProductMapper {
     ProductDto toDto(Product product);
 
     List<ProductDto> toDto(List<Product> products);
+
+    @Mapping(target = "imageId", source = "image.imageId")
+    @Mapping(target = "link", source = "image.link")
+    @Mapping(target = "altText", source = "image.altText")
+    ProductImageDto toDto(ProductVariantImageAssignment assignment);
 
     List<ProductSummaryDto> toSummaryDto(List<Product> products);
 

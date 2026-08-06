@@ -3,14 +3,17 @@ package com.vpe.finalstore.product.services;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.ProductCreateDto;
 import com.vpe.finalstore.product.dtos.ProductDto;
+import com.vpe.finalstore.product.dtos.ProductSummaryDto;
 import com.vpe.finalstore.product.dtos.ProductUpdateDto;
 import com.vpe.finalstore.product.entities.*;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.repositories.*;
-import com.vpe.finalstore.product.repositories.TagRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +30,21 @@ public class ProductService {
     private final ProductImageRepository imageRepository;
     private final ProductVariantService variantService;
     private final ProductMapper productMapper;
+
+    public Page<ProductSummaryDto> getProducts(Integer brandId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products;
+
+        if (brandId != null) {
+            products = productRepository.findProductsByBrandBrandIdAndIsArchivedIsFalse(brandId, pageable);
+        } else {
+            products = productRepository.getAllWithTags(pageable);
+        }
+
+        List<ProductSummaryDto> dtos = productMapper.toSummaryDto(products.getContent());
+
+        return new PageImpl<>(dtos, pageable, products.getTotalElements());
+    }
 
     @Transactional
     public ProductDto createProduct(ProductCreateDto req) {

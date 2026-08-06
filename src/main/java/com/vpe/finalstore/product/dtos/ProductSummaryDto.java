@@ -13,5 +13,5 @@ public class ProductSummaryDto {
     private Integer productId;
     private String name;
     private String description;
-    private Set<ProductImageDto> images;
+    private Set<ProductVariantSummaryDto> variants;
 }

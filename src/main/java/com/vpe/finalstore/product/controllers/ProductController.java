@@ -2,7 +2,6 @@ package com.vpe.finalstore.product.controllers;
 
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.dtos.*;
-import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
@@ -12,8 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,23 +34,12 @@ public class ProductController {
         summary = "Get all products with optional brand filter"
     )
     @GetMapping
-    public Page<ProductSummaryDto> getProducts(
+    public ResponseEntity<Page<ProductSummaryDto>> getProducts(
         @RequestParam(value = "brandId", required = false) Integer brandId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products;
-
-        if (brandId != null) {
-            products = productRepository.findProductsByBrandBrandIdAndIsArchivedIsFalse(brandId, pageable);
-        } else {
-            products = productRepository.getAllWithTags(pageable);
-        }
-
-        List<ProductSummaryDto> dtos = productMapper.toSummaryDto(products.getContent());
-
-        return new PageImpl<>(dtos, pageable, products.getTotalElements());
+        return ResponseEntity.ok(productService.getProducts(brandId, page, size));
     }
 
     @Operation(
