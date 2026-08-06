@@ -59,5 +59,6 @@ public class Product {
     private Set<Tag> tags;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductImageAssignment> images = new LinkedHashSet<>();
 }

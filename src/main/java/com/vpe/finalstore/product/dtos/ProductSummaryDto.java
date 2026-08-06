@@ -1,5 +1,7 @@
 package com.vpe.finalstore.product.dtos;
 
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,4 +12,6 @@ import lombok.Setter;
 public class ProductSummaryDto {
     private Integer productId;
     private String name;
+    private String description;
+    private Set<ProductImageDto> images;
 }
