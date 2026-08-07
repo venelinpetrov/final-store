@@ -1,0 +1,8 @@
+-- Add MIN_ORDER_AMOUNT to
+ALTER TABLE discount_conditions
+MODIFY column condition_type ENUM(
+	'MIN_QUANTITY',
+	'CUSTOMER_GROUP',
+	'VARIANT',
+	'MIN_ORDER_AMOUNT'
+) NOT NULL;
