@@ -6,7 +6,6 @@ import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 import com.vpe.finalstore.product.repositories.ProductRepository;
 import com.vpe.finalstore.product.services.ProductService;
-import com.vpe.finalstore.product.services.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -28,7 +27,6 @@ public class ProductController {
     private final ProductMapper productMapper;
     private final ProductVariantMapper productVariantMapper;
     private final ProductService productService;
-    private final ProductVariantService productVariantService;
 
     @Operation(
         summary = "Get all products with optional brand filter"
@@ -59,7 +57,7 @@ public class ProductController {
     )
     @GetMapping("/{productId}/variants")
     public ResponseEntity<List<ProductVariantDto>> getProductVariants(@PathVariable Integer productId) {
-        var variants = productVariantService.getVariantsByProductId(productId);
+        var variants = productService.getVariantsByProductId(productId);
 
         return ResponseEntity.ok(variants);
     }
@@ -144,7 +142,7 @@ public class ProductController {
         var product = productRepository.findById(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        var variant = productVariantService.createVariant(product, variantDto);
+        var variant = productService.createVariant(product, variantDto);
 
         return productVariantMapper.toDto(variant);
     }

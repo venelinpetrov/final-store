@@ -5,7 +5,7 @@ import com.vpe.finalstore.product.dtos.ProductImageAssignmentDto;
 import com.vpe.finalstore.product.dtos.ProductVariantDto;
 import com.vpe.finalstore.product.dtos.ProductVariantUpdateDto;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
-import com.vpe.finalstore.product.services.ProductVariantService;
+import com.vpe.finalstore.product.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -17,16 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/variants")
 class ProductVariantController {
-    private final ProductVariantService variantService;
     private final ProductVariantRepository variantRepository;
-    private final ProductVariantService productVariantService;
+    private final ProductService productService;
 
     @Operation(
         summary = "Get variant by ID"
     )
     @GetMapping("/{variantId}")
     public ResponseEntity<ProductVariantDto> getVariant(@PathVariable Integer variantId) {
-        var variant = productVariantService.getVariantById(variantId);
+        var variant = productService.getVariantById(variantId);
 
         return ResponseEntity.ok(variant);
     }
@@ -36,7 +35,7 @@ class ProductVariantController {
     )
     @PutMapping("/{variantId}")
     public void updateVariant(@PathVariable Integer variantId, @Valid @RequestBody ProductVariantUpdateDto req) {
-        variantService.updateVariant(variantId, req);
+        productService.updateVariant(variantId, req);
     }
 
     @Operation(
@@ -44,7 +43,7 @@ class ProductVariantController {
     )
     @PostMapping("/{variantId}/archive")
     public void archiveVariant(@PathVariable Integer variantId) {
-        variantService.archiveVariant(variantId);
+        productService.archiveVariant(variantId);
     }
 
     @Operation(
@@ -52,7 +51,7 @@ class ProductVariantController {
     )
     @PostMapping("/{variantId}/unarchive")
     public void unarchiveVariant(@PathVariable Integer variantId) {
-        variantService.unarchiveVariant(variantId);
+        productService.unarchiveVariant(variantId);
     }
 
     @Operation(
@@ -61,7 +60,7 @@ class ProductVariantController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{variantId}")
     public void deleteVariant(@PathVariable Integer variantId) {
-        variantService.deleteVariant(variantId);
+        productService.deleteVariant(variantId);
     }
 
     @Operation(
@@ -72,7 +71,7 @@ class ProductVariantController {
         var variant = variantRepository.findById(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
-        variantService.assignImages(assignmentDto.getImageIds(), variant);
+        productService.assignImages(assignmentDto.getImageIds(), variant);
         return ResponseEntity.ok().build();
     }
 
@@ -85,6 +84,6 @@ class ProductVariantController {
         var variant = variantRepository.findById(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
-        variantService.unassignImages(assignmentDto.getImageIds(), variant);
+        productService.unassignImages(assignmentDto.getImageIds(), variant);
     }
 }
