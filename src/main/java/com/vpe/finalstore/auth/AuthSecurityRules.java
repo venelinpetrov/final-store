@@ -14,9 +14,9 @@ public class AuthSecurityRules implements SecurityRules {
     ) {
         registry
             .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
-            .requestMatchers(HttpMethod.POST, "api/auth/me/password").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/auth/me/password").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll();
     }
 }

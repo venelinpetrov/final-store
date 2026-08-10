@@ -7,6 +7,7 @@ import com.vpe.finalstore.auth.dtos.JwtResponse;
 import com.vpe.finalstore.auth.dtos.LoginDto;
 import com.vpe.finalstore.auth.services.JwtService;
 import com.vpe.finalstore.auth.services.PasswordService;
+import com.vpe.finalstore.auth.services.RefreshTokenService;
 import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.UserRepository;
@@ -38,6 +39,7 @@ public class AuthController {
     private final UserMapper userMapper;
     private final JwtConfig jwtConfig;
     private final CookieConfig cookieConfig;
+    private final RefreshTokenService refreshTokenService;
 
     @Operation(
         summary = "Login with email and password"
@@ -45,30 +47,38 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginDto body, HttpServletResponse response) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword())
+            new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword())
         );
+
         var user = userRepository.findByEmail(body.getEmail()).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
-
         var cookie = new Cookie("refreshToken", refreshToken.toString());
 
         cookie.setHttpOnly(true);
-        cookie.setPath("/api/auth/refresh");
+        cookie.setPath("/api/auth");
         cookie.setSecure(cookieConfig.isSecure());
         cookie.setAttribute("SameSite", cookieConfig.getSameSite());
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
-
         response.addCookie(cookie);
+
+        refreshTokenService.saveToken(refreshToken, user);
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(
+        @CookieValue(name = "refreshToken", required = true) String refreshToken,
+        HttpServletResponse response
+    ) {
+        var jwt = jwtService.parseToken(refreshToken);
+
+        refreshTokenService.revokeToken(jwt);
+
         var cookie = new Cookie("refreshToken", "");
 
-        cookie.setPath("/api/auth/refresh");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
 
@@ -82,21 +92,31 @@ public class AuthController {
         summary = "Refresh access token using refresh token"
     )
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<JwtResponse> refresh(
+        @CookieValue(name="refreshToken", required = false) String refreshToken,
+        HttpServletResponse response
+    ) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         var jwt = jwtService.parseToken(refreshToken);
 
-        if (jwt == null || jwt.isExpired()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        refreshTokenService.revokeToken(jwt);
 
         var user = userRepository.findById(jwt.getUserId()).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
+        var newRefreshToken = jwtService.generateRefreshToken(user);
+        var cookie = new Cookie("refreshToken", newRefreshToken.toString());
 
-        // TODO refresh the refresh token
+        cookie.setHttpOnly(true);
+        cookie.setPath("/api/auth");
+        cookie.setSecure(cookieConfig.isSecure());
+        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
+        response.addCookie(cookie);
+
+        refreshTokenService.saveToken(newRefreshToken, user);
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }

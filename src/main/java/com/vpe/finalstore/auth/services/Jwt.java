@@ -2,6 +2,7 @@ package com.vpe.finalstore.auth.services;
 
 import io.jsonwebtoken.Claims;
 
+import java.time.Instant;
 import java.util.List;
 
 public class Jwt {
@@ -27,6 +28,10 @@ public class Jwt {
 
     public boolean isExpired() {
         return claims.getExpiration().before(new java.util.Date());
+    }
+
+    public Instant getExpiration() {
+        return Instant.ofEpochSecond(Long.valueOf(claims.get("exp").toString()));
     }
 
     public Integer getTokenVersion() {
