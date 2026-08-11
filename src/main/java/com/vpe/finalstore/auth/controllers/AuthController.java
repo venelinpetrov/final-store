@@ -5,6 +5,7 @@ import com.vpe.finalstore.auth.config.JwtConfig;
 import com.vpe.finalstore.auth.dtos.ChangePasswordRequest;
 import com.vpe.finalstore.auth.dtos.JwtResponse;
 import com.vpe.finalstore.auth.dtos.LoginDto;
+import com.vpe.finalstore.auth.services.Jwt;
 import com.vpe.finalstore.auth.services.JwtService;
 import com.vpe.finalstore.auth.services.PasswordService;
 import com.vpe.finalstore.auth.services.RefreshTokenService;
@@ -24,9 +25,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 @AllArgsConstructor
 @RequestMapping("/api/auth")
@@ -41,6 +39,9 @@ public class AuthController {
     private final CookieConfig cookieConfig;
     private final RefreshTokenService refreshTokenService;
 
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "finalstore_refreshToken";
+    private static final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth";
+
     @Operation(
         summary = "Login with email and password"
     )
@@ -53,13 +54,8 @@ public class AuthController {
         var user = userRepository.findByEmail(body.getEmail()).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
-        var cookie = new Cookie("refreshToken", refreshToken.toString());
+        var cookie = getCookie(refreshToken);
 
-        cookie.setHttpOnly(true);
-        cookie.setPath("/api/auth");
-        cookie.setSecure(cookieConfig.isSecure());
-        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
-        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         response.addCookie(cookie);
 
         refreshTokenService.saveToken(refreshToken, user);
@@ -67,18 +63,19 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
-        @CookieValue(name = "refreshToken", required = true) String refreshToken,
+        @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = true) String refreshToken,
         HttpServletResponse response
     ) {
         var jwt = jwtService.parseToken(refreshToken);
 
         refreshTokenService.revokeToken(jwt);
 
-        var cookie = new Cookie("refreshToken", "");
+        var cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
 
-        cookie.setPath("/api/auth");
+        cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
         cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
 
@@ -87,13 +84,12 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-
     @Operation(
         summary = "Refresh access token using refresh token"
     )
     @PostMapping("/refresh")
     public ResponseEntity<JwtResponse> refresh(
-        @CookieValue(name="refreshToken", required = false) String refreshToken,
+        @CookieValue(name= REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
         HttpServletResponse response
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -107,13 +103,8 @@ public class AuthController {
         var user = userRepository.findById(jwt.getUserId()).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
         var newRefreshToken = jwtService.generateRefreshToken(user);
-        var cookie = new Cookie("refreshToken", newRefreshToken.toString());
+        var cookie = getCookie(newRefreshToken);
 
-        cookie.setHttpOnly(true);
-        cookie.setPath("/api/auth");
-        cookie.setSecure(cookieConfig.isSecure());
-        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
-        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         response.addCookie(cookie);
 
         refreshTokenService.saveToken(newRefreshToken, user);
@@ -155,5 +146,17 @@ public class AuthController {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Void> handleBadCredentialsException() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    private Cookie getCookie(Jwt refreshToken) {
+        var cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken.toString());
+
+        cookie.setHttpOnly(true);
+        cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
+        cookie.setSecure(cookieConfig.isSecure());
+        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
+
+        return cookie;
     }
 }
