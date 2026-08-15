@@ -1,5 +1,7 @@
 package com.vpe.finalstore.product.services;
 
+import com.vpe.finalstore.discount.entities.Discount;
+import com.vpe.finalstore.discount.enums.DiscountConditionType;
 import com.vpe.finalstore.discount.enums.DiscountType;
 import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.exceptions.NotFoundException;
@@ -30,6 +32,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -62,6 +66,9 @@ public class ProductService {
         }
 
         List<ProductSummaryDto> dtos = productMapper.toSummaryDto(products.getContent());
+        var discounts = getVariantsToDiscountsMap();
+
+        dtos.forEach(product -> product.getVariants().forEach((variant)-> setDiscountToVariantDto(variant, discounts)));
 
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
@@ -389,6 +396,31 @@ public class ProductService {
                         discount.getValue(),
                         discount.getValidUntil()));
             }
+        }
+    }
+
+    private Map<Integer, Discount> getVariantsToDiscountsMap() {
+        var discounts = discountRepository.findActiveVariantDiscounts();
+
+        Function<Discount, Integer> keyMapper = (discount) -> discount.getDiscountConditions().stream()
+            .filter(x -> x.getConditionType().equals(DiscountConditionType.VARIANT))
+            .findFirst().get().getIntValue();
+
+        Function<Discount, Discount> valueMapper = Function.identity();
+
+        return discounts.stream().collect(Collectors.toMap(keyMapper, valueMapper));
+    }
+
+    private void setDiscountToVariantDto(ProductVariantDto variant, Map<Integer, Discount> discounts) {
+
+        var discountEntity = discounts.getOrDefault(variant.getVariantId(), null);
+
+        if (discountEntity != null) {
+            var activeDiscount = new ActiveDiscountDto(
+                discountEntity.getDiscountType(),
+                discountEntity.getValue(),
+                discountEntity.getValidUntil());
+            variant.setDiscount(activeDiscount);
         }
     }
 }

@@ -11,7 +11,9 @@ import org.hibernate.annotations.Generated;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -73,6 +75,6 @@ public class Discount {
     private Set<Coupon> coupons = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "discount", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Set<DiscountCondition> discountConditions = new LinkedHashSet<>();
+    private List<DiscountCondition> discountConditions = new ArrayList<>();
 
 }

@@ -63,6 +63,21 @@ public interface DiscountRepository extends JpaRepository<Discount, Integer> {
 
 	@Query("""
 		SELECT d FROM Discount d
+		JOIN d.discountConditions dc
+		WHERE d.scope = 'VARIANT'
+			AND dc.conditionType = 'VARIANT'
+			AND d.isActive = true
+			AND (d.validFrom IS NULL OR d.validFrom <= CURRENT_TIMESTAMP)
+			AND (d.validUntil IS NULL OR d.validUntil >= CURRENT_TIMESTAMP)
+		ORDER BY
+			CASE WHEN d.validFrom IS NULL THEN 1 ELSE 0 END,
+			d.validFrom DESC,
+			d.createdAt DESC
+	""")
+	List<Discount> findActiveVariantDiscounts();
+
+	@Query("""
+		SELECT d FROM Discount d
 		WHERE d.scope = :scope
 			AND d.minOrderAmount <= :minOrderAmount
 			AND d.isActive = true
