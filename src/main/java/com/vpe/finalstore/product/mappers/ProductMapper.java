@@ -14,7 +14,10 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring",
+    uses = ProductVariantMapper.class
+)
 public interface ProductMapper {
     @Mapping(target = "brandId", source = "brand.brandId")
     @Mapping(target = "categoryIds", source = "categories")

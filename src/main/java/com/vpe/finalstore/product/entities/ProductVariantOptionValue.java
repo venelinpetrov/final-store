@@ -3,6 +3,8 @@ package com.vpe.finalstore.product.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,6 +15,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "variant_option_values")
+@BatchSize(size = 50)
 public class ProductVariantOptionValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

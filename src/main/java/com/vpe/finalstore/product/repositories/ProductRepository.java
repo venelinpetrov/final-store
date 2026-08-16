@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @EntityGraph(attributePaths = {"tags", "images", "categories"})
     Page<Product> findProductsByBrandBrandIdAndIsArchivedIsFalse(Integer brandId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"tags"})
+    @EntityGraph(attributePaths = {"tags", "images.image", "categories", "variants", "variants.images" })
     @Query("SELECT p FROM Product p WHERE p.isArchived = false")
     Page<Product> getAllWithTags(Pageable pageable);
 

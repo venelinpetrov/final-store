@@ -1,5 +1,7 @@
 package com.vpe.finalstore.product.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,6 +13,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "variant_options")
+@BatchSize(size = 50)
+
 public class ProductVariantOption {
     @Id
     @Column(name = "option_id")

@@ -23,10 +23,10 @@ public interface ProductVariantMapper {
 
     List<ProductVariantDto> toDto(List<ProductVariant> variants);
 
-    @Mapping(source = "value.option.optionId", target = "optionId")
-    @Mapping(source = "value.option.name", target = "optionName")
-    @Mapping(source = "value.valueId", target = "valueId")
-    @Mapping(source = "value.value", target = "value")
+    @Mapping(target = "value", source = "value.value")
+    @Mapping(target = "valueId", source = "value.valueId")
+    @Mapping(target = "optionName", source = "value.option.name")
+    @Mapping(target = "optionId", source = "value.option.optionId")
     ProductVariantOptionAssignmentDto toDto(ProductVariantOptionAssignment assignment);
 
     default Set<ProductImageDto> mapProductVariantImages(Set<ProductVariantImageAssignment> images) {
