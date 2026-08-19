@@ -9,4 +9,7 @@ import lombok.Setter;
 public class CartItemAddDto {
     @NotNull
     private Integer variantId;
+
+    @NotNull
+    private Integer quantity;
 }

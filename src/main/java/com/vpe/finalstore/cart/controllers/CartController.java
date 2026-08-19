@@ -2,7 +2,6 @@ package com.vpe.finalstore.cart.controllers;
 
 import com.vpe.finalstore.cart.dtos.CartDto;
 import com.vpe.finalstore.cart.dtos.CartItemAddDto;
-import com.vpe.finalstore.cart.dtos.CartItemDto;
 import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.exceptions.NotFoundException;
@@ -52,25 +51,24 @@ public class CartController {
         summary = "Add an item to the cart"
     )
     @PostMapping("/{cartId}/items")
-    public ResponseEntity<CartItemDto> addToCart(@PathVariable UUID cartId, @RequestBody CartItemAddDto body) {
-        var cartItemDto = cartService.addToCart(cartId, body.getVariantId());
+    public ResponseEntity<Void> addToCart(@PathVariable UUID cartId, @RequestBody CartItemAddDto body) {
+        cartService.addToCart(cartId, body.getVariantId(), body.getQuantity());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(cartItemDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(
         summary = "Update cart"
     )
     @PutMapping("/{cartId}/items/{variantId}")
-    public ResponseEntity<CartItemDto> updateCart(
+    public ResponseEntity<Void> updateCart(
         @PathVariable UUID cartId,
         @PathVariable Integer variantId,
         @Valid @RequestBody CartItemUpdateDto body
     ) {
-        var cartItemDto = cartService.updateCartItem(cartId, variantId, body.getQuantity());
+        cartService.updateCartItem(cartId, variantId, body.getQuantity());
 
-        return ResponseEntity.ok(cartItemDto);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(

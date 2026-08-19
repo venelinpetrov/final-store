@@ -53,7 +53,7 @@ public class Cart {
             .orElse(null);
     }
 
-    public CartItem addItem(ProductVariant variant) {
+    public CartItem addItem(ProductVariant variant, Integer quantity) {
         var cartItem = getItem(variant.getVariantId());
 
         if (cartItem != null) {
@@ -61,7 +61,7 @@ public class Cart {
         } else {
             cartItem = new CartItem();
             cartItem.setVariant(variant);
-            cartItem.setQuantity(1);
+            cartItem.setQuantity(quantity);
             cartItem.setCart(this);
             cartItems.add(cartItem);
         }

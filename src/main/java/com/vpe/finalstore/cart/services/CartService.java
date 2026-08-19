@@ -43,13 +43,13 @@ public class CartService {
         return cartMapper.toDto(savedCart);
     }
 
-    public CartItemDto addToCart(UUID cartId, Integer variantId) {
+    public CartItemDto addToCart(UUID cartId, Integer variantId, Integer quantity) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(CartNotFoundException::new);
         var variant = variantRepository.findByVariantId(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
-        var cartItem = cart.addItem(variant);
+        var cartItem = cart.addItem(variant, quantity);
 
         cartRepository.save(cart);
 
