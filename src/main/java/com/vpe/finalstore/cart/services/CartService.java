@@ -109,7 +109,7 @@ public class CartService {
         if (existingCart.isPresent()) {
             // Merge: move items from anonymous cart to customer's cart
             for (var item : cart.getCartItems()) {
-                existingCart.get().addItem(item.getVariant());
+                existingCart.get().addItem(item.getVariant(), item.getQuantity());
             }
             cartRepository.delete(cart); // Delete anonymous cart
             resultCart = cartRepository.save(existingCart.get());
