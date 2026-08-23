@@ -1,6 +1,5 @@
 package com.vpe.finalstore.auth.controllers;
 
-import com.vpe.finalstore.auth.config.CookieConfig;
 import com.vpe.finalstore.auth.config.JwtConfig;
 import com.vpe.finalstore.auth.dtos.ChangePasswordRequest;
 import com.vpe.finalstore.auth.dtos.JwtResponse;
@@ -9,6 +8,7 @@ import com.vpe.finalstore.auth.services.Jwt;
 import com.vpe.finalstore.auth.services.JwtService;
 import com.vpe.finalstore.auth.services.PasswordService;
 import com.vpe.finalstore.auth.services.RefreshTokenService;
+import com.vpe.finalstore.common.services.CookieService;
 import com.vpe.finalstore.users.dtos.UserDto;
 import com.vpe.finalstore.users.mappers.UserMapper;
 import com.vpe.finalstore.users.repositories.UserRepository;
@@ -36,7 +36,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtConfig jwtConfig;
-    private final CookieConfig cookieConfig;
+    private final CookieService cookieService;
     private final RefreshTokenService refreshTokenService;
 
     private static final String REFRESH_TOKEN_COOKIE_NAME = "finalstore_refreshToken";
@@ -149,14 +149,11 @@ public class AuthController {
     }
 
     private Cookie getCookie(Jwt refreshToken) {
-        var cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken.toString());
-
-        cookie.setHttpOnly(true);
-        cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
-        cookie.setSecure(cookieConfig.isSecure());
-        cookie.setAttribute("SameSite", cookieConfig.getSameSite());
-        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
-
-        return cookie;
+        return cookieService.getCookie(
+            REFRESH_TOKEN_COOKIE_NAME,
+            refreshToken.toString(),
+            REFRESH_TOKEN_COOKIE_PATH,
+            jwtConfig.getRefreshTokenExpiration()
+        );
     }
 }
