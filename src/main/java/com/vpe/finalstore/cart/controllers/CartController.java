@@ -3,10 +3,14 @@ package com.vpe.finalstore.cart.controllers;
 import com.vpe.finalstore.cart.dtos.CartDto;
 import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
+import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.services.CartService;
+import com.vpe.finalstore.common.services.CookieService;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +27,10 @@ import java.util.UUID;
 public class CartController {
     private final CartService cartService;
     private final UserRepository userRepository;
+    private final CookieService cookieService;
+
+    private static final String CART_COOKIE_NAME = "finalstore_cartSessionId";
+    private static final String CART_COOKIE_PATH = "/api/carts";
 
     @Operation(
         summary = "Get cart by UUID"
@@ -37,14 +45,29 @@ public class CartController {
         summary = "Create cart"
     )
     @PostMapping
-    ResponseEntity<CartDto> createCart(UriComponentsBuilder uriBuilder) {
-        var cartDto = cartService.createCart();
-        var uri = uriBuilder.path("api/carts/{cart_id}")
-            .buildAndExpand(cartDto.getCartId())
-            .toUri();
+    ResponseEntity<CartDto> createCart(
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId,
+        HttpServletResponse response,
+        UriComponentsBuilder uriBuilder
+    ) {
+        CartDto cartDto = null;
 
-        return ResponseEntity.created(uri)
-            .body(cartDto);
+        if (sessionId == null) {
+            cartDto = cartService.createCart();
+            sessionId = cartDto.getSessionId().toString();
+            response.addCookie(getCookie(sessionId));
+            var uri = uriBuilder.path("api/carts/{cart_id}")
+                .buildAndExpand(cartDto.getCartId())
+                .toUri();
+
+            return ResponseEntity.created(uri)
+                .body(cartDto);
+        } else {
+            cartDto = cartService.getCartBySessionId(UUID.fromString(sessionId))
+                .orElseThrow(CartNotFoundException::new);
+
+            return ResponseEntity.ok(cartDto);
+        }
     }
 
     @Operation(
@@ -124,5 +147,13 @@ public class CartController {
             .orElseThrow(() -> new NotFoundException("User not found"));
 
         return cartService.associateCartWithCustomer(sessionId, user.getCustomer().getCustomerId());
+    }
+
+    private Cookie getCookie(String value) {
+        return cookieService.getCookie(
+            CART_COOKIE_NAME,
+            value,
+            CART_COOKIE_PATH,
+            3000);
     }
 }
