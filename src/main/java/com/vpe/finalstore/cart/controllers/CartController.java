@@ -3,7 +3,6 @@ package com.vpe.finalstore.cart.controllers;
 import com.vpe.finalstore.cart.dtos.CartDto;
 import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
-import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.common.services.CookieService;
 import com.vpe.finalstore.exceptions.NotFoundException;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -45,29 +43,19 @@ public class CartController {
         summary = "Create cart"
     )
     @PostMapping
-    ResponseEntity<CartDto> createCart(
+    public ResponseEntity<CartDto> getOrCreateCart(
         @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId,
-        HttpServletResponse response,
-        UriComponentsBuilder uriBuilder
+        HttpServletResponse response
     ) {
-        CartDto cartDto = null;
+        var cartDto = cartService.getOrCreateCart(sessionId);
 
-        if (sessionId == null) {
-            cartDto = cartService.createCart();
-            sessionId = cartDto.getSessionId().toString();
-            response.addCookie(getCookie(sessionId));
-            var uri = uriBuilder.path("api/carts/{cart_id}")
-                .buildAndExpand(cartDto.getCartId())
-                .toUri();
-
-            return ResponseEntity.created(uri)
-                .body(cartDto);
-        } else {
-            cartDto = cartService.getCartBySessionId(UUID.fromString(sessionId))
-                .orElseThrow(CartNotFoundException::new);
-
-            return ResponseEntity.ok(cartDto);
+        if (sessionId == null || sessionId.isBlank()) {
+            response.addCookie(
+                getCookie(cartDto.getSessionId().toString())
+            );
         }
+
+        return ResponseEntity.ok(cartDto);
     }
 
     @Operation(
@@ -138,22 +126,26 @@ public class CartController {
         summary = "Associate anonymous cart with logged-in user (after login)"
     )
     @PostMapping("/associate")
-    public CartDto associateCart(
-        @RequestParam UUID sessionId,
-        Authentication authentication
+    public void associateCart(
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId,
+        Authentication authentication,
+        HttpServletResponse response
     ) {
         Integer userId = (Integer) authentication.getPrincipal();
-        var user = userRepository.findById(userId)
-            .orElseThrow(() -> new NotFoundException("User not found"));
-
-        return cartService.associateCartWithCustomer(sessionId, user.getCustomer().getCustomerId());
+        cartService.associateCartWithCustomer(userId, sessionId);
+        response.addCookie(getCookie("", 0));
     }
 
-    private Cookie getCookie(String value) {
+    private Cookie getCookie(String value, int maxAge) {
         return cookieService.getCookie(
             CART_COOKIE_NAME,
             value,
             CART_COOKIE_PATH,
-            3000);
+            maxAge
+        );
+    }
+
+    private Cookie getCookie(String value) {
+        return getCookie(value, 3000);
     }
 }

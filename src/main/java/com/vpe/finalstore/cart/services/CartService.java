@@ -7,10 +7,11 @@ import com.vpe.finalstore.cart.entities.Cart;
 import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.repositories.CartRepository;
-import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.users.repositories.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,37 +24,62 @@ import java.util.UUID;
 public class CartService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository variantRepository;
-    private final CustomerRepository customerRepository;
     private final AuthService authService;
     private final CartMapper cartMapper;
+    private final UserRepository userRepository;
 
     public Optional<CartDto> getCartWithItems(UUID cartId) {
         return cartRepository.getCartWithItems(cartId)
             .map(cartMapper::toDto);
     }
 
-    public CartDto createCart() {
-        var cart = new Cart();
+    public CartDto getOrCreateCart(String sessionId) {
         var user = authService.getCurrentuser();
+
+        // Authenticated user
         if (user != null) {
             var customer = user.getCustomer();
-            cart.setCustomer(customer);
+
+            if (customer == null) {
+                throw new NotFoundException("Customer not found");
+            }
+
+            return cartRepository
+                .findByCustomer_CustomerId(customer.getCustomerId())
+                .map(cartMapper::toDto)
+                .orElseGet(() -> {
+                    var cart = new Cart();
+                    cart.setCustomer(customer);
+
+                    return cartMapper.toDto(
+                        cartRepository.save(cart)
+                    );
+                });
         }
-        var savedCart = cartRepository.save(cart);
-        return cartMapper.toDto(savedCart);
+
+        // Anonymous user
+        if (sessionId != null && !sessionId.isBlank()) {
+            return cartRepository
+                .findBySessionId(UUID.fromString(sessionId))
+                .map(cartMapper::toDto)
+                .orElseThrow(CartNotFoundException::new);
+        }
+
+        // Anonymous user without a cart
+        var cart = cartRepository.save(new Cart());
+
+        return cartMapper.toDto(cart);
     }
 
-    public CartItemDto addToCart(UUID cartId, Integer variantId, Integer quantity) {
+    public void addToCart(UUID cartId, Integer variantId, Integer quantity) {
         var cart = cartRepository.getCartWithItems(cartId)
             .orElseThrow(CartNotFoundException::new);
         var variant = variantRepository.findByVariantId(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
-        var cartItem = cart.addItem(variant, quantity);
+        cart.addItem(variant, quantity);
 
         cartRepository.save(cart);
-
-        return cartMapper.toDto(cartItem);
     }
 
     public CartItemDto updateCartItem(UUID cartId, Integer variantId, Integer quantity) {
@@ -95,30 +121,47 @@ public class CartService {
     }
 
     @Transactional
-    public CartDto associateCartWithCustomer(UUID sessionId, Integer customerId) {
-        var cart = cartRepository.findBySessionId(sessionId)
-            .orElseThrow(() -> new NotFoundException("Cart not found"));
-
-        var customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new NotFoundException("Customer not found"));
-
-        // Check if customer already has a cart
-        var existingCart = cartRepository.findByCustomer_CustomerId(customerId);
-
-        Cart resultCart;
-        if (existingCart.isPresent()) {
-            // Merge: move items from anonymous cart to customer's cart
-            for (var item : cart.getCartItems()) {
-                existingCart.get().addItem(item.getVariant(), item.getQuantity());
-            }
-            cartRepository.delete(cart); // Delete anonymous cart
-            resultCart = cartRepository.save(existingCart.get());
-        } else {
-            // Simply associate the cart with the customer
-            cart.setCustomer(customer);
-            resultCart = cartRepository.save(cart);
+    public void associateCartWithCustomer(Integer userId, String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return;
         }
 
-        return cartMapper.toDto(resultCart);
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+
+        var customer = user.getCustomer();
+
+        if (customer == null) {
+            throw new NotFoundException("Customer not found");
+        }
+
+        var customerId = customer.getCustomerId();
+
+        UUID sessionUuid;
+
+        try {
+            sessionUuid = UUID.fromString(sessionId);
+        } catch (IllegalArgumentException e) {
+            throw new CartNotFoundException();
+        }
+
+        var anonymousCart = cartRepository.findBySessionId(sessionUuid)
+            .orElseThrow(CartNotFoundException::new);
+
+        var existingCart = cartRepository.findByCustomer_CustomerId(customerId);
+
+        if (existingCart.isPresent()) {
+            var customerCart = existingCart.get();
+
+            // Merge anonymous cart items into customer cart
+            for (var item : anonymousCart.getCartItems()) {
+                customerCart.addItem(item.getVariant(), item.getQuantity());
+            }
+
+            cartRepository.delete(anonymousCart);
+        } else {
+            // No existing customer cart, so associate anonymous cart
+            anonymousCart.setCustomer(customer);
+        }
     }
 }

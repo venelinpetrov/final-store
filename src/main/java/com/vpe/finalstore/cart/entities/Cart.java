@@ -43,7 +43,11 @@ public class Cart {
     @Generated
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(
+        mappedBy = "cart",
+        cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE },
+        orphanRemoval = true
+    )
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
     public CartItem getItem(Integer variantId) {
@@ -53,22 +57,15 @@ public class Cart {
             .orElse(null);
     }
 
-    public CartItem addItem(ProductVariant variant, Integer quantity) {
-        var cartItem = getItem(variant.getVariantId());
-
-        if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
-        } else {
-            cartItem = new CartItem();
-            cartItem.setVariant(variant);
-            cartItem.setQuantity(quantity);
-            cartItem.setCart(this);
-            cartItems.add(cartItem);
-        }
-
-        return cartItem;
+    public void addItem(ProductVariant variant, int quantity) {
+        cartItems.stream()
+            .filter(item -> item.getVariant().equals(variant))
+            .findFirst()
+            .ifPresentOrElse(
+                item -> item.increaseQuantity(quantity),
+                () -> cartItems.add(new CartItem(this, variant, quantity))
+            );
     }
-
 
     public void removeItem(Integer variantId) {
         var cartItem = getItem(variantId);
@@ -89,9 +86,11 @@ public class Cart {
 
     public BigDecimal calculateTotal() {
         return cartItems.stream()
-                .map(item -> item.getVariant().getUnitPrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .map(item -> item.getVariant()
+                .getUnitPrice()
+                .multiply(BigDecimal.valueOf(item.getQuantity()))
+            )
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 }

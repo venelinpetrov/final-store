@@ -4,6 +4,7 @@ import com.vpe.finalstore.product.entities.ProductVariant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -11,8 +12,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "cart_items")
 public class CartItem {
+    public CartItem (Cart cart, ProductVariant variant, int quantity) {
+        this.cart = cart;
+        this.variant = variant;
+        this.quantity = quantity;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
@@ -36,4 +44,7 @@ public class CartItem {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
+    public void increaseQuantity(int quantity) {
+        this.setQuantity(this.quantity + quantity);
+    }
 }
