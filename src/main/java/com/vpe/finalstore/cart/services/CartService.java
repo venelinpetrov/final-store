@@ -34,7 +34,7 @@ public class CartService {
     }
 
     public CartDto getOrCreateCart(String sessionId) {
-        var user = authService.getCurrentuser();
+        var user = authService.getCurrentUser();
 
         // Authenticated user
         if (user != null) {
@@ -69,6 +69,32 @@ public class CartService {
         var cart = cartRepository.save(new Cart());
 
         return cartMapper.toDto(cart);
+    }
+
+    public CartDto getCart(String sessionId) {
+        var user = authService.getCurrentUser();
+
+        if (user != null) {
+            var customer = user.getCustomer();
+
+            if (customer == null) {
+                throw new NotFoundException("Customer not found");
+            }
+
+            return cartRepository
+                .findByCustomer_CustomerId(customer.getCustomerId())
+                .map(cartMapper::toDto)
+                .orElse(null);
+        }
+
+        if (sessionId != null && !sessionId.isBlank()) {
+            return cartRepository
+                .findBySessionId(UUID.fromString(sessionId))
+                .map(cartMapper::toDto)
+                .orElseThrow(CartNotFoundException::new);
+        }
+
+        return null;
     }
 
     public void addToCart(UUID cartId, Integer variantId, Integer quantity) {

@@ -6,7 +6,6 @@ import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.common.services.CookieService;
 import com.vpe.finalstore.exceptions.NotFoundException;
-import com.vpe.finalstore.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +23,6 @@ import java.util.UUID;
 @RequestMapping("/api/carts")
 public class CartController {
     private final CartService cartService;
-    private final UserRepository userRepository;
     private final CookieService cookieService;
 
     private static final String CART_COOKIE_NAME = "finalstore_cartSessionId";
@@ -110,16 +108,13 @@ public class CartController {
     }
 
     @Operation(
-        summary = "Get cart for current logged-in user"
+        summary = "Get cart for current user (annonymouse or logged-in)"
     )
     @GetMapping("/my-cart")
-    public CartDto getMyCart(Authentication authentication) {
-        Integer userId = (Integer) authentication.getPrincipal();
-        var user = userRepository.findById(userId)
-            .orElseThrow(() -> new NotFoundException("User not found"));
-
-        return cartService.getCartByCustomerId(user.getCustomer().getCustomerId())
-            .orElseThrow(() -> new NotFoundException("Cart not found for customer"));
+    public ResponseEntity<CartDto> getMyCart(
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId
+    ) {
+        return ResponseEntity.ok(cartService.getCart(sessionId));
     }
 
     @Operation(

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
 
-    public User getCurrentuser() {
+    public User getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // Return null if user is not authenticated or principal is not an Integer (e.g., "anonymousUser")

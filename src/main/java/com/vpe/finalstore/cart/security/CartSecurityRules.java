@@ -22,9 +22,9 @@ public class CartSecurityRules implements SecurityRules {
             .requestMatchers(HttpMethod.PUT, "/api/carts/{cartId}/items/*").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items/*").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items").permitAll()
-            
+            .requestMatchers(HttpMethod.GET, "/api/carts/my-cart").permitAll()
+
             // Authenticated cart operations (require login)
-            .requestMatchers(HttpMethod.GET, "/api/carts/my-cart").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/carts/associate").authenticated();
     }
 }

@@ -71,7 +71,7 @@ public class AuthController {
     ) {
         var jwt = jwtService.parseToken(refreshToken);
 
-        refreshTokenService.revokeToken(jwt);
+        refreshTokenService.revokeToken(jwt.toString());
 
         var cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
 
@@ -89,27 +89,25 @@ public class AuthController {
     )
     @PostMapping("/refresh")
     public ResponseEntity<JwtResponse> refresh(
-        @CookieValue(name= REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
+        @CookieValue(
+            name = REFRESH_TOKEN_COOKIE_NAME,
+            required = false
+        ) String refreshToken,
         HttpServletResponse response
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        var jwt = jwtService.parseToken(refreshToken);
+        var tokens = refreshTokenService.rotate(refreshToken);
 
-        refreshTokenService.revokeToken(jwt);
+        response.addCookie(
+            getCookie(tokens.refreshToken())
+        );
 
-        var user = userRepository.findById(jwt.getUserId()).orElseThrow();
-        var accessToken = jwtService.generateAccessToken(user);
-        var newRefreshToken = jwtService.generateRefreshToken(user);
-        var cookie = getCookie(newRefreshToken);
-
-        response.addCookie(cookie);
-
-        refreshTokenService.saveToken(newRefreshToken, user);
-
-        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+        return ResponseEntity.ok(
+            new JwtResponse(tokens.accessToken().toString())
+        );
     }
 
     @Operation(
