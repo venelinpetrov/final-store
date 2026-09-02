@@ -29,15 +29,6 @@ public class CartController {
     private static final String CART_COOKIE_PATH = "/api/carts";
 
     @Operation(
-        summary = "Get cart by UUID"
-    )
-    @GetMapping("/{cartId}")
-    public CartDto getCart(@PathVariable UUID cartId) {
-        return cartService.getCartWithItems(cartId)
-            .orElseThrow(() -> new NotFoundException("Cart with UUID: " + cartId + " not found"));
-    }
-
-    @Operation(
         summary = "Create cart"
     )
     @PostMapping
@@ -57,25 +48,15 @@ public class CartController {
     }
 
     @Operation(
-        summary = "Add an item to the cart"
-    )
-    @PostMapping("/{cartId}/items")
-    public ResponseEntity<Void> addToCart(@PathVariable UUID cartId, @RequestBody CartItemAddDto body) {
-        cartService.addToCart(cartId, body.getVariantId(), body.getQuantity());
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @Operation(
         summary = "Update cart"
     )
-    @PutMapping("/{cartId}/items/{variantId}")
+    @PutMapping("/items/{variantId}")
     public ResponseEntity<Void> updateCart(
-        @PathVariable UUID cartId,
         @PathVariable Integer variantId,
-        @Valid @RequestBody CartItemUpdateDto body
+        @Valid @RequestBody CartItemUpdateDto body,
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId
     ) {
-        cartService.updateCartItem(cartId, variantId, body.getQuantity());
+        cartService.updateCart(sessionId, variantId, body.getQuantity());
 
         return ResponseEntity.ok().build();
     }
@@ -114,7 +95,7 @@ public class CartController {
     public ResponseEntity<CartDto> getMyCart(
         @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId
     ) {
-        return ResponseEntity.ok(cartService.getCart(sessionId));
+        return ResponseEntity.ok(cartService.getCartDto(sessionId));
     }
 
     @Operation(

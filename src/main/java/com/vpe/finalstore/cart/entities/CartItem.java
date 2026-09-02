@@ -1,5 +1,6 @@
 package com.vpe.finalstore.cart.entities;
 
+import com.vpe.finalstore.product.entities.Product;
 import com.vpe.finalstore.product.entities.ProductVariant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -15,9 +16,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(name = "cart_items")
 public class CartItem {
-    public CartItem (Cart cart, ProductVariant variant, int quantity) {
+    public CartItem (Cart cart, ProductVariant variant, Product product, int quantity) {
         this.cart = cart;
         this.variant = variant;
+        this.product = product;
         this.quantity = quantity;
     }
 
@@ -33,6 +35,10 @@ public class CartItem {
     @ManyToOne
     @JoinColumn(name = "variant_id")
     private ProductVariant variant;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @NotNull
     @Column(name = "quantity")

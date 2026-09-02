@@ -63,7 +63,9 @@ public class Cart {
             .findFirst()
             .ifPresentOrElse(
                 item -> item.increaseQuantity(quantity),
-                () -> cartItems.add(new CartItem(this, variant, quantity))
+                () -> cartItems.add(
+                    new CartItem(this, variant, variant.getProduct(), quantity)
+                )
             );
     }
 

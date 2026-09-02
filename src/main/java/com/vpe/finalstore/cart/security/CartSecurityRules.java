@@ -15,11 +15,10 @@ public class CartSecurityRules implements SecurityRules {
     ) {
         registry
             // Anonymous cart operations (no authentication required)
-            .requestMatchers(HttpMethod.GET, "/api/carts/{cartId}").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/carts/session/*").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/carts").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/carts/{cartId}/items").permitAll()
-            .requestMatchers(HttpMethod.PUT, "/api/carts/{cartId}/items/*").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/cart/items").permitAll()
+            .requestMatchers(HttpMethod.PUT, "/api/carts/items/*").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items/*").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/carts/my-cart").permitAll()

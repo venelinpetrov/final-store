@@ -71,7 +71,7 @@ public class CartService {
         return cartMapper.toDto(cart);
     }
 
-    public CartDto getCart(String sessionId) {
+    private Cart getCart(String sessionId) {
         var user = authService.getCurrentUser();
 
         if (user != null) {
@@ -83,44 +83,38 @@ public class CartService {
 
             return cartRepository
                 .findByCustomer_CustomerId(customer.getCustomerId())
-                .map(cartMapper::toDto)
+                // .map(cartMapper::toDto)
                 .orElse(null);
         }
 
         if (sessionId != null && !sessionId.isBlank()) {
             return cartRepository
                 .findBySessionId(UUID.fromString(sessionId))
-                .map(cartMapper::toDto)
+                // .map(cartMapper::toDto)
                 .orElseThrow(CartNotFoundException::new);
         }
 
         return null;
     }
 
-    public void addToCart(UUID cartId, Integer variantId, Integer quantity) {
-        var cart = cartRepository.getCartWithItems(cartId)
-            .orElseThrow(CartNotFoundException::new);
+    public CartDto getCartDto(String sessionId) {
+        return cartMapper.toDto( getCart(sessionId));
+
+    }
+
+    public void updateCart(String sessionId, Integer variantId, Integer quantity) {
+        var cart = getCart(sessionId);
+
+        if (cart == null) {
+            throw new CartNotFoundException();
+        }
+
         var variant = variantRepository.findByVariantId(variantId)
             .orElseThrow(VariantNotFoundException::new);
 
         cart.addItem(variant, quantity);
 
         cartRepository.save(cart);
-    }
-
-    public CartItemDto updateCartItem(UUID cartId, Integer variantId, Integer quantity) {
-        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
-        var cartItem = cart.getItem(variantId);
-
-        if (cartItem == null) {
-            throw new VariantNotFoundException();
-        }
-
-        cartItem.setQuantity(quantity);
-
-        cartRepository.save(cart);
-
-        return cartMapper.toDto(cartItem);
     }
 
     public void deleteCartItem(UUID cartId, Integer variantId) {

@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 @Getter
@@ -14,5 +14,5 @@ public class CartDto {
    private UUID sessionId;
    private LocalDateTime createdAt;
    private LocalDateTime updatedAt;
-   private Set<CartItemDto> cartItems;
+   private LinkedHashSet<CartItemDto> cartItems;
 }
