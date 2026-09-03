@@ -1,11 +1,9 @@
 package com.vpe.finalstore.cart.controllers;
 
 import com.vpe.finalstore.cart.dtos.CartDto;
-import com.vpe.finalstore.cart.dtos.CartItemAddDto;
 import com.vpe.finalstore.cart.dtos.CartItemUpdateDto;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.common.services.CookieService;
-import com.vpe.finalstore.exceptions.NotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -77,15 +75,6 @@ public class CartController {
     @DeleteMapping("/{cartId}/items")
     public void clearCart(@PathVariable UUID cartId) {
         cartService.clearCart(cartId);
-    }
-
-    @Operation(
-        summary = "Get cart by session ID (for anonymous users)"
-    )
-    @GetMapping("/session/{sessionId}")
-    public CartDto getCartBySession(@PathVariable UUID sessionId) {
-        return cartService.getCartBySessionId(sessionId)
-            .orElseThrow(() -> new NotFoundException("Cart with session ID: " + sessionId + " not found"));
     }
 
     @Operation(

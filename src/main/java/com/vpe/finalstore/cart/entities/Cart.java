@@ -48,6 +48,7 @@ public class Cart {
         cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE },
         orphanRemoval = true
     )
+    @OrderBy("createdAt ASC")
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
     public CartItem getItem(Integer variantId) {
@@ -62,7 +63,7 @@ public class Cart {
             .filter(item -> item.getVariant().equals(variant))
             .findFirst()
             .ifPresentOrElse(
-                item -> item.increaseQuantity(quantity),
+                item -> item.setQuantity(quantity),
                 () -> cartItems.add(
                     new CartItem(this, variant, variant.getProduct(), quantity)
                 )

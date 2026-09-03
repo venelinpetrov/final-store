@@ -98,7 +98,7 @@ public class CartService {
     }
 
     public CartDto getCartDto(String sessionId) {
-        return cartMapper.toDto( getCart(sessionId));
+        return cartMapper.toDto(getCart(sessionId));
 
     }
 
