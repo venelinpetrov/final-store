@@ -63,7 +63,7 @@ public class Cart {
             .filter(item -> item.getVariant().equals(variant))
             .findFirst()
             .ifPresentOrElse(
-                item -> item.setQuantity(quantity),
+                item -> item.adjustQuantity(quantity),
                 () -> cartItems.add(
                     new CartItem(this, variant, variant.getProduct(), quantity)
                 )

@@ -50,7 +50,7 @@ public class CartItem {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    public void increaseQuantity(int quantity) {
-        this.setQuantity(this.quantity + quantity);
+    public void adjustQuantity(int quantity) {
+        this.setQuantity(Math.max(0, this.quantity + quantity));
     }
 }

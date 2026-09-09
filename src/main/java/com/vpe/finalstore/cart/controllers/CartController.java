@@ -46,7 +46,8 @@ public class CartController {
     }
 
     @Operation(
-        summary = "Update cart"
+        summary = "Update cart",
+        description = "Quantity represents the delta, i.e. with how much to increase or decrease"
     )
     @PutMapping("/items/{variantId}")
     public ResponseEntity<Void> updateCart(
