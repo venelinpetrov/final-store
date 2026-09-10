@@ -2,7 +2,6 @@ package com.vpe.finalstore.cart.services;
 
 import com.vpe.finalstore.auth.config.AuthService;
 import com.vpe.finalstore.cart.dtos.CartDto;
-import com.vpe.finalstore.cart.dtos.CartItemDto;
 import com.vpe.finalstore.cart.entities.Cart;
 import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.mappers.CartMapper;
@@ -10,6 +9,7 @@ import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.product.services.ProductService;
 import com.vpe.finalstore.users.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -24,6 +24,7 @@ import java.util.UUID;
 public class CartService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository variantRepository;
+    private final ProductService productService;
     private final AuthService authService;
     private final CartMapper cartMapper;
     private final UserRepository userRepository;
@@ -83,14 +84,12 @@ public class CartService {
 
             return cartRepository
                 .findByCustomer_CustomerId(customer.getCustomerId())
-                // .map(cartMapper::toDto)
                 .orElse(null);
         }
 
         if (sessionId != null && !sessionId.isBlank()) {
             return cartRepository
                 .findBySessionId(UUID.fromString(sessionId))
-                // .map(cartMapper::toDto)
                 .orElseThrow(CartNotFoundException::new);
         }
 
@@ -98,8 +97,14 @@ public class CartService {
     }
 
     public CartDto getCartDto(String sessionId) {
-        return cartMapper.toDto(getCart(sessionId));
+        var cartDto = cartMapper.toDto(getCart(sessionId));
+        var discountsMap = productService.getVariantsToDiscountsMap();
 
+        cartDto.getCartItems().forEach(item -> {
+            productService.enrichVariantDto(item.getVariant(), discountsMap);
+        });
+
+        return cartDto;
     }
 
     public void updateCart(String sessionId, Integer variantId, Integer quantity) {

@@ -66,9 +66,11 @@ public class ProductService {
         }
 
         List<ProductSummaryDto> dtos = productMapper.toSummaryDto(products.getContent());
-        var discounts = getVariantsToDiscountsMap();
+        var discountsMap = getVariantsToDiscountsMap();
 
-        dtos.forEach(product -> product.getVariants().forEach((variant)-> setDiscountToVariantDto(variant, discounts)));
+        dtos.forEach(product -> product.getVariants()
+            .forEach((variant)-> setDiscountToVariantDto(variant, discountsMap))
+        );
 
         return new PageImpl<>(dtos, pageable, products.getTotalElements());
     }
@@ -233,18 +235,22 @@ public class ProductService {
     public ProductVariantDto getVariantById(Integer variantId) {
         var variant = variantRepository.findByVariantId(variantId)
             .orElseThrow(VariantNotFoundException::new);
-
         var dto = productVariantMapper.toDto(variant);
-        enrichVariantDto(dto);
+        var discountsMap = getVariantsToDiscountsMap();
+
+        enrichVariantDto(dto, discountsMap);
+
         return dto;
     }
 
     public List<ProductVariantDto> getVariantsByProductId(Integer productId) {
         var variants = productVariantRepository.findProductVariantsByProductProductIdAndIsArchivedIsFalse(productId)
             .orElseThrow(() -> new NotFoundException("Product not found"));
-
         var dtos = productVariantMapper.toDto(variants);
-        dtos.forEach(this::enrichVariantDto);
+        var discountsMap = getVariantsToDiscountsMap();
+
+        dtos.forEach((variant) -> enrichVariantDto(variant, discountsMap));
+
         return dtos;
     }
 
@@ -376,30 +382,18 @@ public class ProductService {
         productImageAssignmentRepository.deleteAll(assignments);
     }
 
-    private void enrichVariantDto(ProductVariantDto dto) {
-        if (dto == null || dto.getVariantId() == null) {
+    public void enrichVariantDto(ProductVariantDto variant, Map<Integer, Discount> discountsMap) {
+        if (variant == null || variant.getVariantId() == null) {
             return;
         }
 
-        var inventory = inventoryLevelRepository.findByVariantVariantId(dto.getVariantId());
-        dto.setQuantityInStock(inventory.map(inv -> inv.getQuantityInStock()).orElse(0));
+        var inventory = inventoryLevelRepository.findByVariantVariantId(variant.getVariantId());
+        variant.setQuantityInStock(inventory.map(inv -> inv.getQuantityInStock()).orElse(0));
 
-        var discountOpt = discountRepository.findActiveDiscountForVariant(dto.getVariantId());
-        if (discountOpt.isPresent()) {
-            var discount = discountOpt.get();
-
-            // Map PERCENTAGE and FIXED discounts
-            if (discount.getDiscountType() == DiscountType.PERCENTAGE ||
-                    discount.getDiscountType() == DiscountType.FIXED) {
-                dto.setDiscount(new ActiveDiscountDto(
-                        discount.getDiscountType(),
-                        discount.getValue(),
-                        discount.getValidUntil()));
-            }
-        }
+        setDiscountToVariantDto(variant, discountsMap);
     }
 
-    private Map<Integer, Discount> getVariantsToDiscountsMap() {
+    public Map<Integer, Discount> getVariantsToDiscountsMap() {
         var discounts = discountRepository.findActiveVariantDiscounts();
 
         Function<Discount, Integer> keyMapper = (discount) -> discount.getDiscountConditions().stream()
@@ -415,11 +409,19 @@ public class ProductService {
 
         var discountEntity = discounts.getOrDefault(variant.getVariantId(), null);
 
-        if (discountEntity != null) {
+        if (
+                discountEntity != null &&
+                (
+                    discountEntity.getDiscountType() == DiscountType.PERCENTAGE ||
+                    discountEntity.getDiscountType() == DiscountType.FIXED
+                )
+        ) {
             var activeDiscount = new ActiveDiscountDto(
                 discountEntity.getDiscountType(),
                 discountEntity.getValue(),
-                discountEntity.getValidUntil());
+                discountEntity.getValidUntil()
+            );
+
             variant.setDiscount(activeDiscount);
         }
     }
