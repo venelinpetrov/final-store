@@ -122,15 +122,24 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void deleteCartItem(UUID cartId, Integer variantId) {
-        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
+    public void deleteCartItem(String sessionId, Integer variantId) {
+        var cart = getCart(sessionId);
+
+        if (cart == null) {
+            throw new CartNotFoundException();
+        }
 
         cart.removeItem(variantId);
         cartRepository.save(cart);
     }
 
-    public void clearCart(UUID cartId) {
-        var cart = cartRepository.getCartWithItems(cartId).orElseThrow(CartNotFoundException::new);
+    public void clearCart(String sessionId) {
+        var cart = getCart(sessionId);
+
+        if (cart == null) {
+            throw new CartNotFoundException();
+        }
+
         cart.clear();
         cartRepository.save(cart);
     }

@@ -19,8 +19,7 @@ public class CartSecurityRules implements SecurityRules {
             .requestMatchers(HttpMethod.POST, "/api/carts").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/cart/items").permitAll()
             .requestMatchers(HttpMethod.PUT, "/api/carts/items/*").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items/*").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/api/carts/{cartId}/items").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/api/carts/items/*").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/carts/my-cart").permitAll()
 
             // Authenticated cart operations (require login)

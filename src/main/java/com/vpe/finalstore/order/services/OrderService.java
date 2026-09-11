@@ -166,7 +166,7 @@ public class OrderService {
 
         shipmentService.createShipment(carrierId, order);
 
-        cartService.clearCart(cartId);
+        cartService.clearCart(cartId.toString());
 
         return order;
     }

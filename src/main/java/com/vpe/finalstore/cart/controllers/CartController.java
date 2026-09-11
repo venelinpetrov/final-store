@@ -64,18 +64,23 @@ public class CartController {
         summary = "Delete cart item"
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{cartId}/items/{variantId}")
-    public void deleteCartItem(@PathVariable UUID cartId, @PathVariable Integer variantId) {
-        cartService.deleteCartItem(cartId, variantId);
+    @DeleteMapping("/items/{variantId}")
+    public void deleteCartItem(
+        @PathVariable Integer variantId,
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId
+    ) {
+        cartService.deleteCartItem(sessionId, variantId);
     }
 
     @Operation(
         summary = "Empty/clear cart"
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{cartId}/items")
-    public void clearCart(@PathVariable UUID cartId) {
-        cartService.clearCart(cartId);
+    @DeleteMapping
+    public void clearCart(
+        @CookieValue(name = CART_COOKIE_NAME, required = false) String sessionId
+    ) {
+        cartService.clearCart(sessionId);
     }
 
     @Operation(
