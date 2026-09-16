@@ -17,6 +17,6 @@ public enum RoleEnum {
     }
 
     public GrantedAuthority toAuthority() {
-        return new SimpleGrantedAuthority("ROLE_" + name());
+        return new SimpleGrantedAuthority(authority());
     }
 }
