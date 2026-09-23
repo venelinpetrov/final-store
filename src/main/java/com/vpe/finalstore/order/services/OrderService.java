@@ -4,9 +4,8 @@ import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.cart.services.CartService;
 import com.vpe.finalstore.customer.repositories.CustomerAddressRepository;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
-import com.vpe.finalstore.discount.entities.AppliedDiscount;
-import com.vpe.finalstore.discount.repositories.AppliedDiscountRepository;
 import com.vpe.finalstore.discount.services.CouponService;
+import com.vpe.finalstore.discount.services.DiscountService;
 import com.vpe.finalstore.exceptions.BadRequestException;
 import com.vpe.finalstore.exceptions.NotFoundException;
 import com.vpe.finalstore.inventory.dtos.InventoryMovementCreateDto;
@@ -31,8 +30,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,7 +47,7 @@ public class OrderService {
     private final InvoiceStatusRepository invoiceStatusRepository;
     private final InvoiceRepository invoiceRepository;
     private final ShipmentService shipmentService;
-    private final AppliedDiscountRepository appliedDiscountRepository;
+    private final DiscountService discountService;
     private final CouponService couponService;
     private final OrderMapper orderMapper;
     private final TaxBreakdownMapper taxBreakdownMapper;
@@ -119,45 +116,8 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        // Track item-level discounts
-        var appliedDiscountsMap = orderSummaryCalculator.getAppliedDiscounts(order, coupon);
-        var appliedDiscountsList = appliedDiscountsMap.entrySet().stream()
-            .map(entry -> {
-                var orderItem = entry.getKey();
-                var discount = entry.getValue();
-
-                var appliedDiscount = new AppliedDiscount();
-                appliedDiscount.setOrder(order);
-                appliedDiscount.setOrderItem(orderItem);
-                appliedDiscount.setDiscount(discount);
-                appliedDiscount.setDiscountAmount(orderItem.getDiscountAmount());
-                appliedDiscount.setAppliedAt(LocalDateTime.now());
-                return appliedDiscount;
-            })
-            .collect(java.util.stream.Collectors.toList());
-
-        // Track order-level discount (coupon or automatic)
-        var orderLevelDiscount = orderSummaryCalculator.getOrderLevelDiscount(order, coupon);
-        if (orderLevelDiscount != null && order.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
-            var itemDiscountsTotal = appliedDiscountsList.stream()
-                .map(AppliedDiscount::getDiscountAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            var orderDiscountAmount = order.getDiscountAmount().subtract(itemDiscountsTotal);
-
-            if (orderDiscountAmount.compareTo(BigDecimal.ZERO) > 0) {
-                var appliedDiscount = new AppliedDiscount();
-                appliedDiscount.setOrder(order);
-                appliedDiscount.setOrderItem(null); // Order-level discount
-                appliedDiscount.setDiscount(orderLevelDiscount);
-                appliedDiscount.setCoupon(coupon); // Track which coupon was used
-                appliedDiscount.setDiscountAmount(orderDiscountAmount);
-                appliedDiscount.setAppliedAt(LocalDateTime.now());
-                appliedDiscountsList.add(appliedDiscount);
-            }
-        }
-
-        appliedDiscountRepository.saveAll(appliedDiscountsList);
+        // Applied discounts
+        discountService.trackAppliedDiscounts(order, coupon);
 
         // Increment coupon usage count if coupon was used
         if (coupon != null) {

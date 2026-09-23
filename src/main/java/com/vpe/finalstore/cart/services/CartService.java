@@ -7,6 +7,7 @@ import com.vpe.finalstore.cart.exceptions.CartNotFoundException;
 import com.vpe.finalstore.cart.mappers.CartMapper;
 import com.vpe.finalstore.cart.repositories.CartRepository;
 import com.vpe.finalstore.exceptions.NotFoundException;
+import com.vpe.finalstore.price.services.PricingService;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
 import com.vpe.finalstore.product.services.ProductService;
@@ -28,6 +29,7 @@ public class CartService {
     private final AuthService authService;
     private final CartMapper cartMapper;
     private final UserRepository userRepository;
+    private final PricingService pricingService;
 
     public Optional<CartDto> getCartWithItems(UUID cartId) {
         return cartRepository.getCartWithItems(cartId)
@@ -97,9 +99,12 @@ public class CartService {
     }
 
     public CartDto getCartDto(String sessionId) {
-        var cartDto = cartMapper.toDto(getCart(sessionId));
+        var cart = getCart(sessionId);
+        var cartDto = cartMapper.toDto(cart);
         var discountsMap = productService.getVariantsToDiscountsMap();
+        var priceSummary = pricingService.calculateCart(cart, null);
 
+        cartDto.setPriceSummary(priceSummary);
         cartDto.getCartItems().forEach(item -> {
             productService.enrichVariantDto(item.getVariant(), discountsMap);
         });

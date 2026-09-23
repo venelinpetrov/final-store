@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.UUID;
 
+import com.vpe.finalstore.price.dtos.PriceSummary;
+
 @Getter
 @Setter
 public class CartDto {
@@ -15,4 +17,5 @@ public class CartDto {
    private LocalDateTime createdAt;
    private LocalDateTime updatedAt;
    private LinkedHashSet<CartItemDto> cartItems;
+   private PriceSummary priceSummary;
 }

@@ -8,6 +8,7 @@ import com.vpe.finalstore.product.mappers.ProductMapper;
 import com.vpe.finalstore.product.mappers.ProductVariantMapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 
 @Mapper(
@@ -15,6 +16,7 @@ import org.mapstruct.Mapper;
     uses = { ProductMapper.class, ProductVariantMapper.class }
 )
 public interface CartMapper {
+    @Mapping(target = "priceSummary", ignore = true)
     CartDto toDto(Cart cart);
 
     CartItemDto toDto(CartItem item);

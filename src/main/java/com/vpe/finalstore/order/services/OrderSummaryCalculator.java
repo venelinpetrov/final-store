@@ -1,205 +1,35 @@
 package com.vpe.finalstore.order.services;
 
 import com.vpe.finalstore.discount.entities.Coupon;
-import com.vpe.finalstore.discount.entities.Discount;
-import com.vpe.finalstore.discount.repositories.DiscountRepository;
 import com.vpe.finalstore.order.entities.Order;
-import com.vpe.finalstore.order.entities.OrderItem;
-import com.vpe.finalstore.payment.config.PaymentConfig;
-import com.vpe.finalstore.tax.dtos.TaxCalculationResult;
+import com.vpe.finalstore.price.services.PricingService;
 import com.vpe.finalstore.tax.services.TaxService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.Map;
-
 @Slf4j
 @Service
 @AllArgsConstructor
 public class OrderSummaryCalculator {
-
-    private final DiscountRepository discountRepository;
     private final TaxService taxService;
-    private final PaymentConfig paymentConfig;
-
-    // TODO remove hardcoding costs and implement them
-    private static final BigDecimal SHIPPING_COST = new BigDecimal("5.00"); // $5.00 flat shipping
+    private final PricingService pricingService;
 
     public void calculateOrderSummary(Order order) {
         calculateOrderSummary(order, null);
     }
 
     public void calculateOrderSummary(Order order, Coupon coupon) {
-        BigDecimal subtotal = calculateSubtotal(order);
-        BigDecimal shippingCost = calculateShippingCost(order);
+        var pricing = pricingService.calculateOrder(order, coupon);
+        var taxResult = pricing.taxResult();
 
-        TaxCalculationResult taxResult = calculateTax(order, shippingCost);
-        BigDecimal tax = taxResult.getTaxAmount();
-
-        BigDecimal discount = calculateDiscount(order, subtotal, coupon);
-        BigDecimal total = calculateTotal(subtotal, tax, discount, shippingCost);
-
-        order.setSubtotal(subtotal);
-        order.setTax(tax);
+        order.setSubtotal(pricing.subtotal());
+        order.setTax(taxResult.getTaxAmount());
         order.setStripeTaxCalculationId(taxResult.getStripeTaxCalculationId());
         order.setTaxBreakdown(taxService.serializeTaxBreakdown(taxResult.getBreakdown()));
-        order.setDiscountAmount(discount);
-        order.setShippingCost(shippingCost);
-        order.setTotal(total);
-    }
-
-    public Map<OrderItem, Discount> getAppliedDiscounts(Order order) {
-        return getAppliedDiscounts(order, null);
-    }
-
-    public Map<OrderItem, Discount> getAppliedDiscounts(Order order, Coupon orderLevelCoupon) {
-        Map<OrderItem, Discount> appliedDiscounts = new HashMap<>();
-
-        for (OrderItem item : order.getOrderItems()) {
-            if (item.getDiscountAmount() != null &&
-                item.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
-
-                var discount = discountRepository.findActiveDiscountForVariant(
-                    item.getVariant().getVariantId()
-                );
-
-                discount.ifPresent(d -> appliedDiscounts.put(item, d));
-            }
-        }
-
-        return appliedDiscounts;
-    }
-
-    public Discount getOrderLevelDiscount(Order order, Coupon coupon) {
-        if (coupon != null) {
-            return coupon.getDiscount();
-        }
-
-        BigDecimal subtotal = calculateSubtotal(order);
-        BigDecimal itemsDiscount = calculateItemsDiscount(order);
-        BigDecimal subtotalAfterItemDiscounts = subtotal.subtract(itemsDiscount);
-
-        return discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts).orElse(null);
-    }
-
-    private BigDecimal calculateSubtotal(Order order) {
-        return order.getOrderItems().stream()
-            .map(this::calculateItemTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add)
-            .setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateItemTotal(OrderItem item) {
-        return item.getUnitPrice()
-            .multiply(BigDecimal.valueOf(item.getQuantity()));
-    }
-
-    private TaxCalculationResult calculateTax(Order order, BigDecimal shippingCost) {
-        // Convert shipping cost to cents for Stripe
-        Long shippingCostInCents = shippingCost != null
-            ? shippingCost.multiply(new BigDecimal("100")).longValue()
-            : null;
-
-        return taxService.calculateTax(
-            order,
-            order.getAddress(),
-            paymentConfig.getCurrency(),
-            shippingCostInCents
-        );
-    }
-
-    private BigDecimal calculateDiscount(Order order, BigDecimal subtotal, Coupon coupon) {
-        BigDecimal itemsDiscount = calculateItemsDiscount(order);
-        BigDecimal subtotalAfterItemDiscounts = subtotal.subtract(itemsDiscount);
-        BigDecimal orderDiscount = calculateOrderDiscount(order, subtotalAfterItemDiscounts, coupon);
-        return itemsDiscount.add(orderDiscount);
-    }
-
-    private BigDecimal calculateItemsDiscount(Order order) {
-        return order.getOrderItems().stream()
-            .map(this::calculateItemDiscount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal calculateItemDiscount(OrderItem item) {
-        var variant = item.getVariant();
-
-        var existingDiscount = discountRepository.findActiveDiscountForVariant(variant.getVariantId());
-
-        if (existingDiscount.isEmpty()) {
-            item.setDiscountAmount(BigDecimal.ZERO);
-            return BigDecimal.ZERO;
-        }
-
-        var discount = existingDiscount.get();
-        var unitPrice = variant.getUnitPrice();
-
-        BigDecimal discountAmount = switch (discount.getDiscountType()) {
-            case PERCENTAGE -> unitPrice
-                .multiply(discount.getValue())
-                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(item.getQuantity()));
-            case FIXED -> {
-                BigDecimal discountPerItem = discount.getValue().min(unitPrice);
-                yield discountPerItem.multiply(BigDecimal.valueOf(item.getQuantity()));
-            }
-            case BUY_X_GET_Y -> BigDecimal.ZERO;
-        };
-
-        item.setDiscountAmount(discountAmount);
-        return discountAmount;
-    }
-
-    private BigDecimal calculateOrderDiscount(Order order, BigDecimal subtotalAfterItemDiscounts, Coupon coupon) {
-        Discount discount = null;
-
-        // Priority 1: Coupon-based discount
-        if (coupon != null) {
-            discount = coupon.getDiscount();
-        } else {
-            // Priority 2: Automatic order-level discount
-            var existingDiscount = discountRepository.findActiveDiscountForOrder(subtotalAfterItemDiscounts);
-            if (existingDiscount.isEmpty()) {
-                return BigDecimal.ZERO;
-            }
-            discount = existingDiscount.get();
-        }
-
-        // Validate min order amount for coupon discounts
-        if (coupon != null && discount.getMinOrderAmount() != null &&
-            subtotalAfterItemDiscounts.compareTo(discount.getMinOrderAmount()) < 0) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal discountAmount = switch (discount.getDiscountType()) {
-            case PERCENTAGE -> subtotalAfterItemDiscounts
-                .multiply(discount.getValue())
-                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
-            case FIXED -> discount.getValue();
-            case BUY_X_GET_Y -> BigDecimal.ZERO; // TODO
-        };
-
-        return discount.getMaxDiscountAmount() != null && discount.getMaxDiscountAmount().compareTo(BigDecimal.ZERO) > 0
-            ? discountAmount.min(discount.getMaxDiscountAmount())
-            : discountAmount;
-    }
-
-    private BigDecimal calculateShippingCost(Order order) {
-        // TODO: implement shipping cost calculation
-        // Simple flat rate for now
-        return SHIPPING_COST;
-    }
-
-    private BigDecimal calculateTotal(BigDecimal subtotal, BigDecimal tax, BigDecimal discount, BigDecimal shippingCost) {
-        return subtotal
-            .add(tax)
-            .add(shippingCost)
-            .subtract(discount)
-            .setScale(2, RoundingMode.HALF_UP);
+        order.setDiscountAmount(pricing.discountAmount());
+        order.setShippingCost(pricing.shippingCost());
+        order.setTotal(pricing.total());
     }
 }
 
