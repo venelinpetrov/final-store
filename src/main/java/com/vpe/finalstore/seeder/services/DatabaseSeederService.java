@@ -506,7 +506,7 @@ public class DatabaseSeederService {
                 var variant = new ProductVariant();
                 variant.setProduct(product);
                 variant.setSku("SKU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-                variant.setUnitPrice(new BigDecimal(faker.commerce().price(5.00, 10000.00)));
+                variant.setUnitPrice(new BigDecimal(faker.commerce().price(5.00, 3000.00)));
                 variant.setIsArchived(false);
 
                 variantRepository.save(variant);

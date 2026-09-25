@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.exception.StripeException;
 import com.stripe.model.tax.Calculation;
+import com.vpe.finalstore.cart.entities.Cart;
 import com.vpe.finalstore.customer.entities.CustomerAddress;
 import com.vpe.finalstore.exceptions.ServiceUnavailableException;
 import com.vpe.finalstore.order.entities.Order;
@@ -30,10 +31,10 @@ public class TaxService {
 
     public TaxCalculationResult calculateTax(
         Order order,
-        CustomerAddress address,
         String currency,
         Long shippingCostInCents
     ) {
+        var address = order.getAddress();
         try {
             List<TaxLineItemDto> lineItems = order.getOrderItems().stream().map(item -> {
                 var amountInCents = item.getUnitPrice()
@@ -82,6 +83,66 @@ public class TaxService {
             throw new ServiceUnavailableException("Tax calculation service is currently unavailable. Please try again later.", e);
         }
     }
+
+    // TODO there is code repetition with calculateTax that can be reduced
+    public TaxCalculationResult calculateEstimatedTax(
+        Cart cart,
+        String currency,
+        CustomerAddress address,
+        Long shippingCostInCents
+    ) {
+        try {
+            List<TaxLineItemDto> lineItems = cart.getCartItems().stream().map(item -> {
+                var amountInCents = item.getVariant().getUnitPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity()))
+                    .multiply(new BigDecimal("100"))
+                    .longValue();
+
+                String taxCode = item.getVariant().getProduct().getTaxCode();
+
+                if (taxCode == null || taxCode.isEmpty()) {
+                    taxCode = "txcd_99999999"; // Default: General tangible goods
+                }
+
+                return new TaxLineItemDto(
+                    amountInCents,
+                    item.getVariant().getVariantId().toString(),
+                    taxCode
+                );
+            }).toList();
+
+            var calculation = stripeService.calculateTax(
+                currency,
+                lineItems,
+                shippingCostInCents,
+                address.getCountryCode(), // By "country" Stripe means "country code" (e.g., "US", "CA")
+                address.getPostalCode(),
+                address.getState(),
+                address.getCity(),
+                address.getStreet()
+            );
+
+            // Convert Stripe response to our DTOs
+            var taxAmount = BigDecimal.valueOf(calculation.getTaxAmountExclusive())
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+
+            var breakdown = convertStripeBreakdown(calculation);
+
+            log.info("Tax estimation calculated via Stripe Tax API. Calculation ID: {}, Amount: {}", calculation.getId(), taxAmount);
+
+            return new TaxCalculationResult(taxAmount, calculation.getId(), breakdown);
+
+        } catch (StripeException e) {
+            log.error("Stripe Tax API failed: {}", e.getMessage(), e);
+            throw new ServiceUnavailableException(
+                "Tax calculation service is currently unavailable. Please try again later.", e);
+        } catch(Exception e) {
+            log.error("Unexpected error during tax calculation: {}", e.getMessage(), e);
+            throw new ServiceUnavailableException(
+                "Tax calculation service is currently unavailable. Please try again later.", e);
+        }
+    }
+
 
     private TaxBreakdownDto convertStripeBreakdown(Calculation calculation) {
         var total = BigDecimal.valueOf(calculation.getTaxAmountExclusive())

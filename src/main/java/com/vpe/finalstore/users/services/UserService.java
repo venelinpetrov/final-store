@@ -4,7 +4,6 @@ import com.vpe.finalstore.customer.entities.Customer;
 import com.vpe.finalstore.customer.repositories.CustomerRepository;
 import com.vpe.finalstore.users.dtos.UserCreateDto;
 import com.vpe.finalstore.users.dtos.UserDto;
-import com.vpe.finalstore.users.entities.User;
 import com.vpe.finalstore.users.enums.RoleEnum;
 import com.vpe.finalstore.users.exceptions.RoleNotFoundException;
 import com.vpe.finalstore.users.mappers.UserMapper;
