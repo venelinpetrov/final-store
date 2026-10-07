@@ -100,6 +100,11 @@ public class CartService {
 
     public CartDto getCartDto(String sessionId) {
         var cart = getCart(sessionId);
+
+        if (cart == null) {
+            return null;
+        }
+
         var cartDto = cartMapper.toDto(cart);
         var discountsMap = productService.getVariantsToDiscountsMap();
         var priceSummary = pricingService.calculateCart(cart, null);
