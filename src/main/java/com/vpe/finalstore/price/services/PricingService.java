@@ -37,7 +37,7 @@ public class PricingService {
         BigDecimal discount = discountService.calculateDiscount(cart, subtotal, coupon);
 
         TaxCalculationResult taxResult = calculateEstimatedTax(cart);
-        BigDecimal tax = taxResult == null ? null: taxResult.getTaxAmount();
+        BigDecimal tax = taxResult == null ? BigDecimal.ZERO: taxResult.getTaxAmount();
 
         BigDecimal total = calculateTotal(subtotal, tax, discount, BigDecimal.ZERO);
 
