@@ -75,21 +75,19 @@ public class DiscountService {
     public void trackAppliedDiscounts(Order order, Coupon coupon) {
         // Track item-level discounts
         var appliedDiscountsList = order.getOrderItems().stream()
+            .filter(orderItem -> {
+                return orderItem.getDiscountAmount() != null &&
+                    orderItem.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0;
+            })
             .map(orderItem -> {
-
+                var discount = discountRepository.findActiveDiscountForVariant(
+                    orderItem.getVariant().getVariantId()
+                );
                 var appliedDiscount = new AppliedDiscount();
                 appliedDiscount.setOrder(order);
                 appliedDiscount.setOrderItem(orderItem);
 
-                if (orderItem.getDiscountAmount() != null &&
-                    orderItem.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
-
-                    var discount = discountRepository.findActiveDiscountForVariant(
-                        orderItem.getVariant().getVariantId()
-                    );
-
-                    discount.ifPresent(d -> appliedDiscount.setDiscount(d));
-                }
+                discount.ifPresent(d -> appliedDiscount.setDiscount(d));
 
                 appliedDiscount.setDiscountAmount(orderItem.getDiscountAmount());
                 appliedDiscount.setAppliedAt(LocalDateTime.now());
