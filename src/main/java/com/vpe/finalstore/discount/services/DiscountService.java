@@ -124,7 +124,7 @@ public class DiscountService {
     public BigDecimal calculateDiscount(Order order, BigDecimal subtotal, Coupon coupon) {
         List<ProductShort> items = order.getOrderItems().stream().map(orderItem -> {
             return new ProductShort(
-                orderItem.getOrderItemId(),
+                orderItem.getVariant().getVariantId(),
                 orderItem.getQuantity(),
                 orderItem.getVariant().getUnitPrice()
             );
