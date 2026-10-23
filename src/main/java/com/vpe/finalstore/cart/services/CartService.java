@@ -101,7 +101,7 @@ public class CartService {
     public CartDto getCartDto(String sessionId) {
         var cart = getCart(sessionId);
 
-        if (cart == null) {
+        if (cart == null || cart.isEmpty()) {
             return null;
         }
 
