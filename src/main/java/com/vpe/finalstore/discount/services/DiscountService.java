@@ -15,6 +15,7 @@ import com.vpe.finalstore.order.entities.Order;
 import com.vpe.finalstore.order.entities.OrderItem;
 import com.vpe.finalstore.product.exceptions.VariantNotFoundException;
 import com.vpe.finalstore.product.repositories.ProductVariantRepository;
+import com.vpe.finalstore.product.services.ProductService;
 
 import lombok.AllArgsConstructor;
 
@@ -37,6 +38,7 @@ public class DiscountService {
     private final DiscountMapper discountMapper;
     private final ProductVariantRepository variantRepository;
     private final AppliedDiscountRepository appliedDiscountRepository;
+    private final ProductService productService;
 
     public Page<DiscountDto> getDiscounts(
         Boolean isActive,
@@ -73,6 +75,8 @@ public class DiscountService {
     }
 
     public void trackAppliedDiscounts(Order order, Coupon coupon) {
+        var discountsMap = productService.getVariantsToDiscountsMap();
+
         // Track item-level discounts
         var appliedDiscountsList = order.getOrderItems().stream()
             .filter(orderItem -> {
@@ -80,16 +84,13 @@ public class DiscountService {
                     orderItem.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0;
             })
             .map(orderItem -> {
-                var discount = discountRepository.findActiveDiscountForVariant(
-                    orderItem.getVariant().getVariantId()
-                );
+                var discount = discountsMap.get(orderItem.getVariant().getVariantId());
                 var appliedDiscount = new AppliedDiscount();
+
                 appliedDiscount.setOrder(order);
                 appliedDiscount.setOrderItem(orderItem);
-
-                discount.ifPresent(d -> appliedDiscount.setDiscount(d));
-
-                appliedDiscount.setDiscountAmount(orderItem.getDiscountAmount());
+                appliedDiscount.setDiscount(discount);
+                appliedDiscount.setDiscountAmount(calculateItemDiscount(orderItem));
                 appliedDiscount.setAppliedAt(LocalDateTime.now());
 
                 return appliedDiscount;
@@ -136,7 +137,7 @@ public class DiscountService {
     public BigDecimal calculateDiscount(Cart cart, BigDecimal subtotal, Coupon coupon) {
         List<ProductShort> items = cart.getCartItems().stream().map(cartItem -> {
             return new ProductShort(
-                cartItem.getItemId(),
+                cartItem.getVariant().getVariantId(),
                 cartItem.getQuantity(),
                 cartItem.getVariant().getUnitPrice()
             );
@@ -192,30 +193,38 @@ public class DiscountService {
     }
 
     private BigDecimal calculateItemDiscount(ProductShort item) {
+        var discountsMap = productService.getVariantsToDiscountsMap();
+        var existingDiscount = discountsMap.get(item.id);
 
-        var existingDiscount = discountRepository.findActiveDiscountForVariant(item.id);
-
-        if (existingDiscount.isEmpty()) {
+        if (existingDiscount == null) {
             return BigDecimal.ZERO;
         }
 
-        var discount = existingDiscount.get();
         var unitPrice = item.unitPrice;
         var quantity = item.quantity;
 
-        BigDecimal discountAmount = switch (discount.getDiscountType()) {
+        BigDecimal discountAmount = switch (existingDiscount.getDiscountType()) {
             case PERCENTAGE -> unitPrice
-                .multiply(discount.getValue())
+                .multiply(existingDiscount.getValue())
                 .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(quantity));
             case FIXED -> {
-                BigDecimal discountPerItem = discount.getValue().min(unitPrice);
+                BigDecimal discountPerItem = existingDiscount.getValue().min(unitPrice);
                 yield discountPerItem.multiply(BigDecimal.valueOf(quantity));
             }
             case BUY_X_GET_Y -> BigDecimal.ZERO;
         };
 
         return discountAmount;
+    }
+
+    private BigDecimal calculateItemDiscount(OrderItem orderItem) {
+        var p = new ProductShort(
+            orderItem.getVariant().getVariantId(),
+            orderItem.getQuantity(),
+            orderItem.getVariant().getUnitPrice()
+        );
+        return calculateItemDiscount(p);
     }
 
     private record ProductShort (
@@ -257,6 +266,4 @@ public class DiscountService {
             ? discountAmount.min(discount.getMaxDiscountAmount())
             : discountAmount;
     }
-
-
 }
