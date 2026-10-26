@@ -20,7 +20,10 @@ public class PaymentSecurityRules implements SecurityRules {
 
             // Payment endpoints
             .requestMatchers(HttpMethod.GET, "/api/payments/*").authenticated()
-            .requestMatchers(HttpMethod.GET, "/api/payments/verify/*").authenticated();
+            .requestMatchers(HttpMethod.GET, "/api/payments/verify/*").authenticated()
+
+            .requestMatchers(HttpMethod.GET, "/api/customer-payment-methods").authenticated();
+
     }
 }
 
